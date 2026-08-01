@@ -18,8 +18,9 @@ class ListingSource(Protocol):
 class GenericParser:
     """Öffentliche Serviceklasse für eingebettete Nutzung.
 
-    Version 0.1 definiert die Integrationsgrenze. Der produktive
-    Kleinanzeigen-Adapter wird in Version 0.2 implementiert.
+    Der in 0.2a enthaltene Kleinanzeigen-Adapter erfüllt das ListingSource-
+    Protokoll. Spätere Matching- und Persistenzstufen bleiben hinter derselben
+    Integrationsgrenze.
     """
 
     source: ListingSource
