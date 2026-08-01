@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>GenericParser Diagnose</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Kleinanzeigen · Diagnoseoberfläche</p>
+        <h1>GenericParser <span>0.2b</span></h1>
+        <p class="subtitle">Echte Testsuchen, gespeicherte Fixtures und transparente Parserdiagnose in einer schlanken Oberfläche.</p>
+      </div>
+      <div class="status-pill"><span class="status-dot"></span> Parser bereit · {{ version }}</div>
+    </header>
+
+    <section class="workspace">
+      <aside class="panel control-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">01 · Eingabe</p>
+            <h2>Testsuche</h2>
+          </div>
+          <button type="button" class="ghost-button" id="reset-button">Zurücksetzen</button>
+        </div>
+
+        <div class="mode-switch" role="tablist" aria-label="Testmodus">
+          <button type="button" class="mode-button active" data-mode="fixture">Fixture</button>
+          <button type="button" class="mode-button" data-mode="live">Live</button>
+          <button type="button" class="mode-button" data-mode="html">HTML</button>
+        </div>
+
+        <form id="search-form">
+          <input type="hidden" id="mode" value="fixture">
+
+          <label class="field">
+            <span>Suchbegriff</span>
+            <input id="query" required maxlength="160" value="evercade sunsoft collection 1" placeholder="z. B. Evercade Sunsoft Collection 1">
+          </label>
+
+          <div class="fixture-fields mode-fields" data-for="fixture">
+            <label class="field">
+              <span>Testseite</span>
+              <select id="fixture-name"></select>
+            </label>
+            <p class="field-note">Fixtures testen den Parser reproduzierbar und ohne Anfrage an Kleinanzeigen.</p>
+          </div>
+
+          <div class="live-fields mode-fields hidden" data-for="live">
+            <div class="two-columns">
+              <label class="field">
+                <span>PLZ</span>
+                <input id="postal-code" inputmode="numeric" maxlength="5" placeholder="37136">
+              </label>
+              <label class="field">
+                <span>Location-ID</span>
+                <input id="location-id" type="number" min="1" placeholder="interne ID">
+              </label>
+            </div>
+            <div class="two-columns">
+              <label class="field">
+                <span>Radius</span>
+                <select id="radius-km">
+                  <option value="">bundesweit</option>
+                  <option value="5">5 km</option>
+                  <option value="10">10 km</option>
+                  <option value="20">20 km</option>
+                  <option value="50" selected>50 km</option>
+                  <option value="100">100 km</option>
+                  <option value="200">200 km</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Maximalpreis</span>
+                <input id="max-price" type="number" min="0" step="0.01" placeholder="optional">
+              </label>
+            </div>
+            <label class="field">
+              <span>Kategoriepfad</span>
+              <input id="category-path" placeholder="optional, z. B. s-multimedia-elektronik">
+            </label>
+            <label class="check-field">
+              <input id="save-fixture" type="checkbox">
+              <span>Abgerufene Seite als Fixture speichern</span>
+            </label>
+            <div class="location-tools">
+              <button type="button" class="secondary-button" id="extract-location">Location-ID aus URL</button>
+              <button type="button" class="secondary-button" id="verify-location">Radius prüfen</button>
+            </div>
+          </div>
+
+          <div class="html-fields mode-fields hidden" data-for="html">
+            <label class="field">
+              <span>HTML der Ergebnisliste</span>
+              <textarea id="raw-html" rows="10" placeholder="Hier gespeichertes Kleinanzeigen-HTML einfügen …"></textarea>
+            </label>
+          </div>
+
+          <div class="examples">
+            <span>Beispiele</span>
+            <button type="button" data-example="evercade">Evercade</button>
+            <button type="button" data-example="snes">SNES PAL</button>
+          </div>
+
+          <button class="primary-button" type="submit" id="search-button">
+            <span class="button-label">Testsuche starten</span>
+            <span class="spinner hidden" aria-hidden="true"></span>
+          </button>
+        </form>
+      </aside>
+
+      <section class="results-column">
+        <div id="welcome" class="panel empty-state">
+          <div class="empty-icon">GP</div>
+          <p class="section-kicker">02 · Auswertung</p>
+          <h2>Bereit für den ersten Test</h2>
+          <p>Starte mit der Ergebnis-Fixture. Sie enthält zwei gültige Anzeigen, ein TOP-Duplikat und eine absichtlich fehlerhafte Karte.</p>
+          <div class="empty-features">
+            <span>Normalisierung</span><span>Duplikate</span><span>Layoutdiagnose</span><span>Direktlinks</span>
+          </div>
+        </div>
+
+        <div id="error-box" class="panel error-box hidden" role="alert">
+          <p class="section-kicker">Fehler</p>
+          <h2 id="error-title">Suche fehlgeschlagen</h2>
+          <p id="error-message"></p>
+        </div>
+
+        <div id="result-area" class="hidden">
+          <section class="metrics" id="metrics"></section>
+
+          <section class="panel diagnostic-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker">03 · Diagnose</p>
+                <h2>Parserzustand</h2>
+              </div>
+              <span class="mode-label" id="result-mode"></span>
+            </div>
+            <div id="url-list" class="url-list"></div>
+            <div id="diagnostics" class="diagnostics"></div>
+            <div id="saved-fixtures" class="saved-fixtures hidden"></div>
+          </section>
+
+          <section class="listing-header">
+            <div>
+              <p class="section-kicker">04 · Ergebnisse</p>
+              <h2>Normalisierte Anzeigen</h2>
+            </div>
+            <span id="listing-count" class="count-label"></span>
+          </section>
+          <div id="listings" class="listing-grid"></div>
+        </div>
+      </section>
+    </section>
+
+    <footer>
+      <span>GenericParser · Kleinanzeigen first</span>
+      <span>Live-Anfragen bewusst sequenziell und limitiert</span>
+    </footer>
+  </main>
+
+  <dialog id="location-dialog">
+    <form method="dialog" class="dialog-card" id="location-form">
+      <div class="panel-heading">
+        <div>
+          <p class="section-kicker">Location-Hilfe</p>
+          <h2>Interne ID auslesen</h2>
+        </div>
+        <button class="dialog-close" value="cancel" aria-label="Schließen">×</button>
+      </div>
+      <p class="field-note">Öffne auf Kleinanzeigen eine Suche mit deinem Ort und kopiere die vollständige URL hier hinein.</p>
+      <label class="field">
+        <span>Kleinanzeigen-URL</span>
+        <input id="location-url" type="url" placeholder="https://www.kleinanzeigen.de/s-37136/…/k0l…r50">
+      </label>
+      <button type="submit" class="primary-button">Location-ID übernehmen</button>
+    </form>
+  </dialog>
+
+  <script src="{{ url_for('static', path='app.js') }}" defer></script>
+</body>
+</html>
