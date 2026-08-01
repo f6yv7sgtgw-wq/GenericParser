@@ -4,23 +4,25 @@ Wiederverwendbarer Python-Parser für Kleinanzeigen, entwickelt für die später
 
 ## Status
 
-**Version 0.2c / Paketversion `0.2.0rc1`.**
+**Version 0.2d / Paketversion `0.2.0rc2`.**
 
-Zusätzlich zum lokalen Diagnoseinterface enthält das Projekt jetzt eine mobile PWA für Cloudflare Workers. Die Oberfläche läuft auf iPhone und Android im Browser oder vom Home-Bildschirm; der Worker ruft pro manueller Suche genau eine Kleinanzeigen-Ergebnisliste ab.
+Zusätzlich zum lokalen Diagnoseinterface enthält das Projekt eine mobile PWA für Cloudflare Workers. 0.2d ergänzt den reproduzierbaren Produktionsprozess mit GitHub Actions, Cloudflare-Secrets, Smoke-Test und Rollback.
 
-## In 0.2c enthalten
+## In 0.2d enthalten
 
-- alle Funktionen aus 0.2a und 0.2b
+- alle Funktionen aus 0.2a bis 0.2c
 - FastAPI-Einstiegspunkt für Python Workers
 - asynchroner Cloud-Abruf über `httpx`
 - CPU-reduzierter Kartenparser mit `SoupStrainer`
 - maximal eine Ergebnisseite und 20 Anzeigen pro Worker-Anfrage
 - mobile PWA mit Offline-App-Shell
-- Installationsunterstützung für den Home-Bildschirm
-- Demo-Modus ohne Kleinanzeigen-Zugriff
+- Demo- und direkter Browser-Dateimodus
 - optionale Absicherung über `APP_TOKEN`
 - Workers Static Assets und `wrangler.jsonc`
 - automatisierte Worker-API- und PWA-Tests
+- GitHub-Actions-Deployment mit Cloudflare-Secrets
+- Produktions-Smoke-Test und Rollback-Skript
+- dokumentierter Workers-Builds-Erststart
 
 Noch nicht enthalten sind Produkt-Matching, Scoring, Persistenz, automatische Hintergrundläufe und Benachrichtigungen.
 
@@ -43,7 +45,7 @@ Optionaler Zugriffsschutz:
 uv run --group cloudflare pywrangler secret put APP_TOKEN
 ```
 
-Die veröffentlichte `workers.dev`-URL kann auf dem Smartphone zum Home-Bildschirm hinzugefügt werden. Details stehen in [`cloudflare/README.md`](cloudflare/README.md) und [`docs/TESTING_0_2C.md`](docs/TESTING_0_2C.md).
+Die veröffentlichte `workers.dev`-URL kann auf dem Smartphone zum Home-Bildschirm hinzugefügt werden. Der vollständige Erststart, die GitHub-Secrets und der Rollback sind unter [`docs/DEPLOYMENT_0_2D.md`](docs/DEPLOYMENT_0_2D.md) beschrieben.
 
 ## Lokales Webinterface
 
@@ -56,21 +58,13 @@ generic-parser-web
 
 Danach `http://127.0.0.1:8000` öffnen. Alternativ stehen Docker, `start-interface.sh` und `start-interface.bat` bereit.
 
-## CLI
-
-```bash
-generic-parser fetch examples/evercade_sunsoft_collection_1.yaml --limit 10
-generic-parser parse-fixture tests/fixtures/kleinanzeigen_results.html
-generic-parser location-id "https://www.kleinanzeigen.de/s-37136/test/k0l1234r50"
-```
-
 ## Tests
 
 ```bash
 python -m pytest -q
 ```
 
-Der echte Live-Smoke-Test ist standardmäßig deaktiviert:
+Der echte Kleinanzeigen-Live-Smoke-Test ist standardmäßig deaktiviert:
 
 ```bash
 GENERIC_PARSER_LIVE_TEST=1 pytest -m live -q
