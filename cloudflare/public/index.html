@@ -7,17 +7,26 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="GP Mobile">
+  <meta name="format-detection" content="telephone=no">
   <title>GenericParser Mobile</title>
-  <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="apple-touch-icon" href="/icons/icon.svg">
-  <link rel="stylesheet" href="/app.css">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/icon.svg">
+  <link rel="stylesheet" href="./app.css">
+  <style>
+    button:disabled{opacity:.48;cursor:not-allowed;filter:grayscale(.25)}
+    @media(max-width:390px){.app-shell{padding-left:11px;padding-right:11px}.card{padding:15px;border-radius:18px}.hero h1{font-size:2.2rem}.details-grid{grid-template-columns:1fr}.listing{grid-template-columns:1fr}.listing-image{height:150px}.metrics{gap:6px}.metric{padding:10px 4px}}
+  </style>
 </head>
 <body>
   <main class="app-shell">
     <header class="hero">
       <div><p class="eyebrow">Kleinanzeigen · Cloud Worker</p><h1>GenericParser <span>0.2c</span></h1><p class="subtitle">Mobile Testsuchen ohne lokalen Rechner.</p></div>
-      <div id="connection" class="status"><span></span> Online</div>
+      <div id="connection" class="status"><span></span> Prüfe Verbindung</div>
     </header>
+
+    <section id="browser-note" class="message hidden"></section>
+
     <section class="card search-card">
       <div class="row between"><h2>Testsuche</h2><button id="install-button" class="ghost hidden" type="button">Installieren</button></div>
       <label>Suchbegriff<input id="query" value="evercade sunsoft collection 1" autocomplete="off"></label>
@@ -30,13 +39,13 @@
       <label>Kleinanzeigen-URL zur Location-ID<div class="inline"><input id="location-url" placeholder="https://www.kleinanzeigen.de/s-.../k0l1234r50"><button id="extract-location" class="ghost" type="button">Übernehmen</button></div></label>
       <label>Zugriffstoken<input id="token" type="password" placeholder="Nur nötig, wenn APP_TOKEN gesetzt ist"></label></details>
       <div class="actions"><button id="search-button" class="primary" type="button">Live-Suche starten</button><button id="demo-button" class="secondary" type="button">Demo anzeigen</button></div>
-      <p class="hint">Pro Anfrage wird bewusst nur eine Ergebnisliste geladen. Das schont Worker-Limits und Kleinanzeigen.</p>
+      <p class="hint">Die heruntergeladene HTML-Datei öffnet sich im Demo-Modus. Live-Suchen funktionieren über die veröffentlichte workers.dev-Adresse.</p>
     </section>
     <section id="message" class="message hidden"></section><section id="summary" class="metrics hidden"></section>
     <section id="diagnostics-card" class="card hidden"><div class="row between"><h2>Diagnose</h2><span id="worker-version" class="chip"></span></div><div id="urls" class="urls"></div><div id="diagnostics"></div></section>
     <section id="results" class="results"></section>
-    <footer><span>GenericParser Mobile</span><a href="/health" target="_blank" rel="noopener">Worker-Status</a></footer>
+    <footer><span>GenericParser Mobile</span><a id="health-link" href="./health" target="_blank" rel="noopener">Worker-Status</a></footer>
   </main>
-  <script src="/app.js" defer></script>
+  <script src="./app.js" defer></script>
 </body>
 </html>
