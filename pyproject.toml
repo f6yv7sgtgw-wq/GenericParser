@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generic-kleinanzeigen-parser"
-version = "0.2.0b1"
+version = "0.2.0rc1"
 description = "Wiederverwendbarer Kleinanzeigen-Parser für Sammlungsprojekte"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -47,3 +47,9 @@ markers = ["live: expliziter Live-Test gegen Kleinanzeigen"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 addopts = "-ra"
+
+[dependency-groups]
+cloudflare = [
+  "workers-py>=1.72.0",
+  "workers-runtime-sdk",
+]
