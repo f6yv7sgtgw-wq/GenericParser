@@ -1,36 +1,85 @@
 # GenericParser
 
-Modularer Python-Parser für Kleinanzeigen-Suchen und später weitere Quellen.
+Wiederverwendbare Python-Bibliothek zum zuverlässigen Suchen und Auswerten von Anzeigen auf **Kleinanzeigen**.
 
-## Ziel
+GenericParser wird zunächst gezielt für die Einbindung in die Projekte **Evercade** und **SNES-PAL-Sammlung** entwickelt. Beide Projekte sollen denselben Parser verwenden und lediglich ihre eigenen Suchprofile, Preisgrenzen und Ergebnisverarbeitung bereitstellen.
 
-GenericParser durchsucht konfigurierbare Quellen nach Produkten, normalisiert Ergebnisse, filtert Fehlalarme, bewertet Kandidaten und speichert den Verlauf lokal.
+## Festgelegter Umfang
 
-Die erste Umsetzung orientiert sich an der bereitgestellten Kleinanzeigen-Spezifikation. Zentrale Anforderungen sind:
+### Im Fokus
 
-- Produkte als strukturierte Suchprofile statt als einzelne Suchstrings
-- robuste Preis-, Datums- und Ortsnormalisierung
+- Kleinanzeigen als einzige produktive Quelle
+- strukturierte, projektunabhängige Suchprofile
+- robuste Extraktion aus Ergebnislisten und bei Bedarf Detailseiten
+- Normalisierung von Preis, Datum, Ort und Entfernung
 - Erkennung von Gesuchen, Stellenanzeigen, Zubehör, Defekten und Duplikaten
-- gestufte Filterpipeline mit lokalem Scoring
-- SQLite-Persistenz für gesehene Inserate, Alerts und Preisänderungen
-- Baseline-Lauf ohne Benachrichtigungsflut
-- sequenzielle Requests, Rate-Limiting und Backoff
-- automatisierte Tests für die beschriebenen Sonderfälle
+- regelbasiertes Matching und nachvollziehbares Scoring
+- SQLite-Persistenz für bekannte Anzeigen, Alerts und Preisänderungen
+- kontrolliertes Rate-Limiting, Backoff und Layout-Sanity-Checks
+- stabile Bibliotheks-API für Evercade und SNES
+- automatisierte Tests anhand der fachlichen Abnahmekriterien
+
+### Bewusst noch nicht enthalten
+
+- eBay
+- Vinted
+- andere Marktplätze
+- verpflichtende LLM- oder Bildanalyse
+- eine fest eingebaute Benachrichtigungsart
+- projektspezifische Produktlisten
+
+Weitere Quellen werden erst begonnen, wenn die Kleinanzeigen-Implementierung im realen Betrieb zuverlässig funktioniert und die Abnahmetests erfüllt.
+
+## Abgrenzung zu Evercade und SNES
+
+GenericParser kennt keine feste Evercade- oder SNES-Sammlung. Die aufrufenden Projekte liefern zur Laufzeit:
+
+- Suchbegriffe und Schreibvarianten
+- Produkt- und Modellmerkmale
+- Ausschlussbegriffe
+- Preisobergrenzen und optionale Richtwerte
+- Standort, Radius und Versandpräferenz
+- gewünschte Behandlung von Konvoluten
+- Callback oder Adapter für die weitere Verarbeitung eines Treffers
+
+GenericParser liefert normalisierte und bewertete Treffer zurück. Darstellung, Sammlungspflege und Benachrichtigung bleiben Aufgabe des jeweiligen Projekts.
+
+## Ziel-API
+
+```python
+from generic_parser import KleinanzeigenParser, SearchProfile
+
+parser = KleinanzeigenParser(storage_path="data/anzeigen.db")
+results = parser.search(profile)
+
+for result in results:
+    if result.should_alert:
+        project.handle_match(result)
+```
+
+Die genaue API wird in Version 0.1 implementiert und durch Integrationsbeispiele für beide Projekte abgesichert.
 
 ## Geplante Struktur
 
 ```text
-docs/                         Fachliche Spezifikationen
-src/generic_parser/           Python-Paket
-  models.py                   Daten- und Produktmodelle
+docs/
+  KLEINANZEIGEN_PARSING.md    Fachliche Referenz
+  ARCHITECTURE.md             Komponenten und Integrationsgrenzen
+  ROADMAP.md                  Schritte bis zur stabilen Kleinanzeigen-Version
+src/generic_parser/
+  models.py                   Anzeigen- und Suchprofilmodelle
   normalization.py            Text-, Preis-, Datum- und Ortsnormalisierung
-  scoring.py                  Filter- und Bewertungslogik
-  sources/                    Quellenspezifische Adapter
+  matching.py                 Ausschlüsse und Produkt-Matching
+  scoring.py                  Bewertungslogik
+  sources/kleinanzeigen.py    Kleinanzeigen-Adapter
   storage.py                  SQLite-Persistenz
-  cli.py                      Kommandozeilen-Schnittstelle
-tests/                        Automatisierte Tests
+  service.py                  Öffentliche Bibliotheks-API
+  cli.py                      Test- und Diagnosewerkzeug
+tests/                        Unit-, Parser- und Integrationstests
 ```
 
 ## Status
 
-Projekt initialisiert. Die fachlichen Pflichtangaben für den ersten produktiven Suchlauf – Ort, Radius, Produkte, Preisgrenzen, Laufzeitumgebung und Benachrichtigungsweg – werden vor der konkreten Implementierung festgelegt.
+**Projektphase: Architektur und Schnittstellendefinition.**
+
+Die fachliche Referenz liegt unter [`docs/KLEINANZEIGEN_PARSING.md`](docs/KLEINANZEIGEN_PARSING.md). Als Nächstes entsteht Version 0.1 mit Datenmodellen, Konfigurationsschema, öffentlicher API und den ersten Normalisierungstests.
