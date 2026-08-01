@@ -1,0 +1,27 @@
+id: evercade-sunsoft-collection-1
+display_name: Evercade Sunsoft Collection 1
+search_queries:
+  - evercade sunsoft collection 1
+  - sunsoft collection 1 evercade
+brands:
+  - evercade
+  - blaze
+product_types:
+  - cartridge
+  - collection
+model_patterns:
+  - sunsoft collection 1
+required_any:
+  - evercade
+excluded_terms:
+  - defekt
+  - nur hülle
+  - leerhülle
+  - anleitung
+max_price: "35.00"
+market_value: "40.00"
+postal_code: "37136"
+radius_km: 50
+shipping_allowed: true
+accept_bundles: true
+accept_incomplete: false
