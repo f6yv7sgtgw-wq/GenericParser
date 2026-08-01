@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#07111f"/>
+  <rect x="52" y="52" width="408" height="408" rx="96" fill="#10243a" stroke="#52d7ff" stroke-width="10"/>
+  <circle cx="360" cy="132" r="38" fill="#54e3a4"/>
+  <text x="256" y="292" text-anchor="middle" font-family="Arial, sans-serif" font-size="170" font-weight="700" fill="#eef6ff">GP</text>
+  <text x="256" y="378" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" font-weight="700" fill="#52d7ff">0.2c</text>
+</svg>
