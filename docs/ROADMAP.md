@@ -37,6 +37,17 @@ Kleinanzeigen wird vollständig und belastbar umgesetzt, bevor eine zweite Quell
 
 **Abnahme:** abgeschlossen. Der Parser kann im Browser per Fixture, eingefügtem HTML oder Live-Suche geprüft werden; Diagnosezustände und normalisierte Listings werden sichtbar dargestellt.
 
+## Version 0.2c – Mobile Cloud-Version ✅
+
+- Cloudflare-Python-Worker mit FastAPI
+- mobile PWA und Home-Bildschirm-Installation
+- Workers Static Assets
+- asynchroner, begrenzter Live-Abruf
+- optionale Token-Absicherung
+- lokale Worker- und PWA-Tests
+
+**Abnahme:** Implementierung und lokale Abnahme abgeschlossen. Das erste echte Cloudflare-Deployment dient zusätzlich der Messung von CPU-Zeit und der Prüfung, ob Kleinanzeigen Zugriffe aus dem Worker-Netz akzeptiert.
+
 ## Version 0.3 – Matching und Scoring
 
 - Modellnummern- und Schreibvarianten-Matching
