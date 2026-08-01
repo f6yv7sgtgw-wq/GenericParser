@@ -16,20 +16,19 @@ def test_cloudflare_configuration_is_mobile_worker_ready() -> None:
 def test_pwa_manifest_and_required_assets_exist() -> None:
     manifest = json.loads((PUBLIC / "manifest.webmanifest").read_text(encoding="utf-8"))
     assert manifest["display"] == "standalone"
-    for path in [
-        "index.html",
-        "app.css",
-        "app.js",
-        "service-worker.js",
-        "icons/icon.svg",
-    ]:
+    assert manifest["start_url"] == "./"
+    assert manifest["scope"] == "./"
+    for path in ["index.html", "app.css", "app.js", "service-worker.js", "icons/icon.svg"]:
         assert (PUBLIC / path).is_file(), path
 
 
-def test_mobile_interface_has_live_and_demo_paths() -> None:
+def test_mobile_interface_supports_deployed_and_direct_file_modes() -> None:
     html = (PUBLIC / "index.html").read_text(encoding="utf-8")
     js = (PUBLIC / "app.js").read_text(encoding="utf-8")
     assert "Live-Suche starten" in html
     assert "Demo anzeigen" in html
-    assert 'fetch("/api/search"' in js
-    assert "serviceWorker" in js
+    assert 'window.location.protocol === "file:"' in js
+    assert 'apiUrl("api/search")' in js
+    assert 'register("./service-worker.js")' in js
+    assert 'href="./app.css"' in html
+    assert 'src="./app.js"' in html
