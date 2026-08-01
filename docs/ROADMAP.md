@@ -28,14 +28,14 @@ Kleinanzeigen wird vollständig und belastbar umgesetzt, bevor eine zweite Quell
 
 **Abnahme:** Implementierung und Fixture-Abnahme abgeschlossen. Der optionale Live-Smoke-Test ist vorhanden und wird in einer Umgebung mit externem Netzwerkzugriff ausgeführt.
 
-## Version 0.2b – Diagnose-Webinterface
+## Version 0.2b – Diagnose-Webinterface ✅
 
 - manuelle Testsuchen im Browser
 - Anzeige von Such-URL, Location-ID, Rohdaten und normalisierten Feldern
 - Diagnose von Nulltreffern, Blockierung und Selektorfehlern
 - Speicherung geeigneter HTML-Fixtures für Tests
 
-**Abnahme:** Der Parser kann ohne Kommandozeile mit echten Daten geprüft werden.
+**Abnahme:** abgeschlossen. Der Parser kann im Browser per Fixture, eingefügtem HTML oder Live-Suche geprüft werden; Diagnosezustände und normalisierte Listings werden sichtbar dargestellt.
 
 ## Version 0.3 – Matching und Scoring
 
