@@ -4,19 +4,19 @@
 
 Kleinanzeigen wird vollständig und belastbar umgesetzt, bevor eine zweite Quelle begonnen wird. Jede Phase muss durch Tests und reale Suchläufe abgesichert sein.
 
-## Version 0.1 – Bibliothekskern
+## Version 0.1 – Bibliothekskern ✅
 
 - Python-Paketstruktur
 - Datenmodelle für SearchProfile, Listing und MatchResult
-- Konfigurationsschema
+- JSON- und YAML-Konfigurationsschema
 - Text-, Preis-, Datums- und Ortsnormalisierung
 - öffentliche Service-Schnittstelle
-- Unit-Tests für Normalisierungs-Sonderfälle
-- Beispielprofile für die spätere Einbindung
+- Unit-Tests für Normalisierungs- und Konfigurationsfälle
+- Beispielprofile für Evercade und SNES
 
-**Abnahme:** Modelle und Normalisierung funktionieren unabhängig von einem Live-Zugriff auf Kleinanzeigen.
+**Abnahme:** abgeschlossen. Modelle, Konfiguration und Normalisierung funktionieren unabhängig von einem Live-Zugriff auf Kleinanzeigen.
 
-## Version 0.2 – Kleinanzeigen-Ergebnislisten
+## Version 0.2a – Kleinanzeigen-Ergebnislisten
 
 - URL-Erzeugung für Keyword- und Kategoriesuche
 - Location-ID-Verwaltung und Verifikation
@@ -28,47 +28,46 @@ Kleinanzeigen wird vollständig und belastbar umgesetzt, bevor eine zweite Quell
 
 **Abnahme:** Echte und gespeicherte Ergebnislisten werden konsistent in Listing-Objekte umgewandelt.
 
+## Version 0.2b – Diagnose-Webinterface
+
+- manuelle Testsuchen im Browser
+- Anzeige von Such-URL, Location-ID, Rohdaten und normalisierten Feldern
+- Diagnose von Nulltreffern, Blockierung und Selektorfehlern
+- Speicherung geeigneter HTML-Fixtures für Tests
+
+**Abnahme:** Der Parser kann ohne Kommandozeile mit echten Daten geprüft werden.
+
 ## Version 0.3 – Matching und Scoring
 
-- Normalisierung von Titel und Beschreibung
 - Modellnummern- und Schreibvarianten-Matching
 - Gesuch-, Stellenanzeigen-, Zubehör- und Defektfilter
 - Negationsbehandlung für Begriffe wie „nicht defekt“
 - Konvolut-Erkennung als eigene Trefferklasse
 - nachvollziehbares Score- und Begründungsmodell
+- Feedback im Diagnose-Webinterface
 
-**Abnahme:** Die fachlichen Positiv- und Negativbeispiele aus der Spezifikation bestehen automatisiert und an realen Anzeigen.
-
-## Version 0.4 – Detailseiten und Persistenz
+## Version 0.4 – Detailseiten, Persistenz und Worker
 
 - selektives Laden von Detailseiten im Graubereich
 - SQLite für gesehene Anzeigen, Alerts und Preisverlauf
 - Baseline-Lauf ohne Alert-Flut
 - erneute Bewertung bei Preissenkungen
-- Trennung von gesehen und erfolgreich verarbeitet
 - kontrollierte Retries, Backoff und Rate-Limiting
-
-**Abnahme:** Mehrere Läufe erzeugen keine Doppelmeldungen; fehlgeschlagene Verarbeitung verliert keine Treffer.
+- zentraler Hintergrund-Worker und kleine API
 
 ## Version 0.5 – Integration Evercade
 
 - Adapter im Evercade-Projekt
-- Suchprofile aus fehlenden beziehungsweise überwachten Cartridges
+- Suchprofile aus fehlenden oder überwachten Cartridges
 - Übergabe von Preislimits und Richtwerten
-- Anzeige der Match-Begründung
 - realer Parallelbetrieb mit Feedback zu Fehlalarmen
-
-**Abnahme:** Evercade kann GenericParser als Bibliothek nutzen, ohne Parsercode zu duplizieren.
 
 ## Version 0.6 – Integration SNES
 
 - Adapter im SNES-PAL-Sammlung-Projekt
 - Suchprofile für SNES-PAL-Titel und Schreibvarianten
 - Nutzung derselben Bibliotheks-API
-- Vergleich der Anforderungen beider Projekte
 - Beseitigung verbleibender projektspezifischer Annahmen
-
-**Abnahme:** Beide Projekte verwenden denselben Parserkern und unterscheiden sich nur in Konfiguration und Ergebnisverarbeitung.
 
 ## Version 0.7 – Betriebsstabilität
 
@@ -77,9 +76,6 @@ Kleinanzeigen wird vollständig und belastbar umgesetzt, bevor eine zweite Quell
 - Wartungsalarm bei Layoutänderung
 - Kalibrierung von Scores und Schwellenwerten
 - dokumentierter Umgang mit Blockierungen
-- vollständiger Abnahmetest mit konkreten Anzeigen
-
-**Abnahme:** Stabiler Kleinanzeigen-Betrieb mit nachvollziehbarer Trefferqualität und ohne unbemerkte Totalausfälle.
 
 ## Version 1.0 – Kleinanzeigen stabil
 
@@ -92,4 +88,4 @@ Kleinanzeigen wird vollständig und belastbar umgesetzt, bevor eine zweite Quell
 
 ## Nach Version 1.0
 
-Erst jetzt wird anhand der Erfahrungen entschieden, ob als nächste Quelle eBay, Vinted oder eine andere Plattform sinnvoll ist. Die bestehende Architektur wird nicht vorsorglich auf deren vermutete Anforderungen zugeschnitten.
+Erst dann wird anhand der Erfahrungen entschieden, ob eBay, Vinted oder eine andere Plattform als nächste Quelle sinnvoll ist.
