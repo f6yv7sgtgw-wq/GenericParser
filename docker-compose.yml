@@ -1,0 +1,12 @@
+services:
+  generic-parser-web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      GENERIC_PARSER_HOST: 0.0.0.0
+      GENERIC_PARSER_PORT: 8000
+      GENERIC_PARSER_FIXTURE_DIR: /app/data/fixtures
+    volumes:
+      - ./data/fixtures:/app/data/fixtures
+    restart: unless-stopped
