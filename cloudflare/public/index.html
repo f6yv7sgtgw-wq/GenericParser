@@ -24,14 +24,16 @@
     <section id="browser-note" class="message hidden"></section>
     <section class="card search-card">
       <div class="row between"><h2>Testsuche</h2><button id="install-button" class="ghost hidden" type="button">Installieren</button></div>
-      <label>Suchbegriff<input id="query" value="evercade sunsoft collection 1" autocomplete="off"></label>
-      <details><summary>Ort, Radius und Zugriff</summary><div class="details-grid">
+      <label>Suchbegriff für Kleinanzeigen<input id="query" value="evercade sunsoft collection 1" autocomplete="off" placeholder="z. B. snes oder evercade"></label>
+      <p class="hint">Hier nur den Suchbegriff eingeben. Eine Kleinanzeigen-URL ist für die Suche nicht nötig.</p>
+      <details><summary>Optional: Ort, Radius und Zugriff</summary><div class="details-grid">
         <label>PLZ<input id="postal-code" inputmode="numeric" maxlength="5" placeholder="37136"></label>
         <label>Location-ID<input id="location-id" inputmode="numeric" placeholder="1234"></label>
         <label>Radius<input id="radius-km" inputmode="numeric" value="50"></label>
         <label>Max. Ergebnisse<input id="max-results" inputmode="numeric" value="12" min="1" max="20"></label>
       </div>
-      <label>Kleinanzeigen-URL zur Location-ID<div class="inline"><input id="location-url" placeholder="https://www.kleinanzeigen.de/s-.../k0l1234r50"><button id="extract-location" class="ghost" type="button">Übernehmen</button></div></label>
+      <label>Nur zur Ortsbestimmung: Kleinanzeigen-URL<div class="inline"><input id="location-url" placeholder="URL mit Location-ID, z. B. .../k0l1234r50"><button id="extract-location" class="ghost" type="button">Orts-ID übernehmen</button></div></label>
+      <p class="hint">Dieses Feld ist nur nötig, wenn du eine Location-ID aus einer Kleinanzeigen-URL übernehmen möchtest. Für eine normale Suche leer lassen.</p>
       <label>Zugriffstoken<input id="token" type="password" placeholder="Nur nötig, wenn APP_TOKEN gesetzt ist"></label></details>
       <div class="actions"><button id="search-button" class="primary" type="button">Live-Suche starten</button><button id="demo-button" class="secondary" type="button">Demo anzeigen</button></div>
       <p class="hint">Die heruntergeladene HTML-Datei läuft im Demo-Modus. Live-Suchen funktionieren über die veröffentlichte workers.dev-Adresse.</p>
