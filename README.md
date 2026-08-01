@@ -57,7 +57,7 @@ for result in results:
         project.handle_match(result)
 ```
 
-Die genaue API wird in Version 0.1 implementiert und durch Integrationsbeispiele für beide Projekte abgesichert.
+Die konkrete Parser-Serviceklasse folgt innerhalb von Version 0.1. Die bereits vorhandenen Datenmodelle und Normalisierungsfunktionen bilden ihre stabile Grundlage.
 
 ## Geplante Struktur
 
@@ -80,6 +80,16 @@ tests/                        Unit-, Parser- und Integrationstests
 
 ## Status
 
-**Projektphase: Architektur und Schnittstellendefinition.**
+**Version 0.1 in Umsetzung.**
 
-Die fachliche Referenz liegt unter [`docs/KLEINANZEIGEN_PARSING.md`](docs/KLEINANZEIGEN_PARSING.md). Als Nächstes entsteht Version 0.1 mit Datenmodellen, Konfigurationsschema, öffentlicher API und den ersten Normalisierungstests.
+Bereits vorhanden:
+
+- installierbare Python-Paketstruktur
+- quellenunabhängige Modelle für Suchprofile, Anzeigen, Preise, Orte und Match-Ergebnisse
+- Textnormalisierung einschließlich kompakter Modellnummern
+- deutsche Preisnormalisierung einschließlich VB, Tausenderpunkt, Dezimalkomma, Gratis, unbekanntem Preis und verdächtigem 1-Euro-Preis
+- Orts- und Entfernungsnormalisierung
+- relative Kleinanzeigen-Zeitangaben in `Europe/Berlin`
+- 15 erfolgreich ausgeführte Tests
+
+Als Nächstes folgen Konfigurationsserialisierung, Matching-Grundlagen und anschließend der Kleinanzeigen-Listenadapter.
