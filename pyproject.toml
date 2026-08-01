@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generic-kleinanzeigen-parser"
-version = "0.2.0rc3"
+version = "0.2.0rc2"
 description = "Wiederverwendbarer Kleinanzeigen-Parser für Sammlungsprojekte"
 readme = "README.md"
 requires-python = ">=3.13"
