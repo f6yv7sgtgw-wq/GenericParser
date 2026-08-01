@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "generic-parser-mobile",
-  "main": "cloudflare_worker.py",
+  "name": "genericparser",
+  "main": "src/generic_parser/cloudflare_worker.py",
   "compatibility_date": "2026-08-01",
   "compatibility_flags": ["python_workers"],
   "assets": {
