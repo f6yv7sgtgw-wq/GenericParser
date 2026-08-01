@@ -1,70 +1,94 @@
 # GenericParser
 
-Wiederverwendbare Python-Bibliothek zum zuverlässigen Suchen und Auswerten von Anzeigen auf **Kleinanzeigen**.
-
-GenericParser wird zunächst für die Einbindung in die Projekte **Evercade** und **SNES-PAL-Sammlung** entwickelt. Beide Projekte verwenden denselben Parserkern und liefern nur ihre eigenen Suchprofile, Preisgrenzen und Ergebnisverarbeitung.
+Wiederverwendbarer Python-Parser für Kleinanzeigen, entwickelt für die spätere Einbindung in **Evercade** und **SNES-PAL-Sammlung**.
 
 ## Status
 
-**Version 0.2a / Paketversion 0.2.0a1.**
+**Version 0.2b / Paketversion `0.2.0b1`.**
 
-Der Kleinanzeigen-Ergebnislistenadapter, ein kontrollierter HTTP-Client, Diagnosezustände und eine CLI sind implementiert. Das Diagnose-Webinterface folgt in 0.2b.
+Der Kleinanzeigen-Ergebnislistenparser und ein browserbasiertes Diagnoseinterface sind implementiert. Du kannst gespeicherte Fixtures, eigenes HTML oder kontrollierte Live-Suchen prüfen. Produkt-Matching, Scoring, SQLite und Hintergrundbetrieb folgen in den nächsten Versionen.
 
-## Enthalten
+## In 0.2b enthalten
 
-- Datenmodelle für `SearchProfile`, `Listing` und `MatchResult`
-- JSON- und YAML-Konfiguration
 - Keyword- und Kategorie-URLs für Kleinanzeigen
-- explizite interne `location_id` statt fehlerhafter PLZ-Nutzung
-- sequenzieller HTTP-Client mit Browser-Headern, Delay, Retry und Backoff
-- Ergebnislistenparser für Anzeigen-ID, Titel, Link, Preis, Ort, Datum, Beschreibung, Tags und Vorschaubild
-- Deduplizierung doppelter TOP-Anzeigen
-- Unterscheidung zwischen Nulltreffer, Blockierung und Layoutänderung
-- Fehlerisolation pro Ergebniskarte
-- CLI für Live-Suche, Fixture-Parsing und Location-ID-Diagnose
-- gespeicherte HTML-Fixtures und optionale Live-Smoke-Tests
+- verifizierbare interne Location-ID und Radiuswirkung
+- sequenzieller HTTP-Client mit Delay, Retry und Backoff
+- Ergebnislistenparser mit TOP-Deduplizierung und Fehlerisolation
+- Unterscheidung von Ergebnissen, Nulltreffer, Blockierung und Layoutänderung
+- FastAPI-Diagnoseinterface im Dark Mode
+- Live-, Fixture- und HTML-Testmodus
+- Anzeige von Such-URLs, Parserdiagnose und normalisierten Anzeigen
+- Location-ID-Hilfe und Radiusvergleich
+- optionales Speichern von Live-HTML als Fixture
+- Docker- und lokale Startoption
+- automatisierte Tests einschließlich Web-API
 
-Noch nicht enthalten sind Produkt-Matching und Scoring, Detailseiten, SQLite und Hintergrundbetrieb.
+## Webinterface starten
 
-## Installation
+### Schnellstart
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -e ".[dev]"
-pytest
+generic-parser-web
 ```
 
-Unter Windows wird die virtuelle Umgebung mit `.venv\Scripts\activate` aktiviert.
+Unter Windows:
 
-## Echte Suche über die CLI
-
-```bash
-generic-parser fetch examples/snes_zelda_link_to_the_past.json --limit 20
+```bat
+python -m venv .venv
+.venv\Scripts\activate
+python -m pip install -e ".[dev]"
+generic-parser-web
 ```
 
-JSON-Ausgabe:
+Danach `http://127.0.0.1:8000` im Browser öffnen.
+
+Alternativ stehen `start-interface.sh` und `start-interface.bat` bereit.
+
+### Docker
 
 ```bash
-generic-parser fetch examples/evercade_sunsoft_collection_1.yaml --json
+docker compose up --build
 ```
 
-## Fixture prüfen
+Die Weboberfläche ist anschließend ebenfalls unter `http://127.0.0.1:8000` erreichbar. Gespeicherte Fixtures bleiben im lokalen Verzeichnis `data/fixtures` erhalten.
+
+## Testmodi
+
+### Fixture
+
+Reproduzierbare Paket-Fixtures prüfen:
+
+- normale Ergebnisse mit TOP-Duplikat und Kartenfehler
+- Nulltreffer
+- Layoutänderung
+- Block-/CAPTCHA-Seite
+
+### HTML
+
+Gespeichertes oder kopiertes HTML einer Ergebnisliste direkt einfügen und ohne Netzwerkzugriff parsen.
+
+### Live
+
+Eine echte Kleinanzeigen-Suche starten. Lokale Suchen benötigen gemeinsam:
+
+- fünfstellige PLZ
+- interne Kleinanzeigen-Location-ID
+- optionalen Radius
+
+Die Oberfläche kann die Location-ID aus einer bereits gefilterten Kleinanzeigen-URL extrahieren und die Radiuswirkung durch einen Vergleich mit einer bundesweiten Suche prüfen.
+
+## CLI bleibt verfügbar
 
 ```bash
+generic-parser fetch examples/evercade_sunsoft_collection_1.yaml --limit 10
 generic-parser parse-fixture tests/fixtures/kleinanzeigen_results.html
+generic-parser location-id "https://www.kleinanzeigen.de/s-37136/test/k0l1234r50"
 ```
 
-## Location-ID aus einer Browser-URL lesen
-
-```bash
-generic-parser location-id "https://www.kleinanzeigen.de/s-.../k0l1234r50"
-```
-
-Für lokale Keyword-Suchen werden sowohl `postal_code` als auch die verifizierte
-`location_id` benötigt. Die PLZ wird niemals still als interne ID verwendet.
-
-## Eingebettete Nutzung
+## Python-Integration
 
 ```python
 from generic_parser import GenericParser, KleinanzeigenAdapter, KleinanzeigenHttpClient
@@ -73,47 +97,19 @@ from generic_parser import load_profile
 profile = load_profile("examples/evercade_sunsoft_collection_1.yaml")
 
 with KleinanzeigenHttpClient() as http:
-    adapter = KleinanzeigenAdapter(http=http)
-    listings = GenericParser(adapter).search(profile)
-
-for listing in listings:
-    print(listing.title, listing.price.amount, listing.url)
+    listings = GenericParser(KleinanzeigenAdapter(http=http)).search(profile)
 ```
 
-## Testen
+## Tests
 
 ```bash
 pytest
 ```
 
-Optionaler Live-Smoke-Test:
+Der Live-Smoke-Test ist standardmäßig deaktiviert:
 
 ```bash
 GENERIC_PARSER_LIVE_TEST=1 pytest -m live -q
 ```
 
-Weitere Hinweise: [`docs/TESTING_0_2A.md`](docs/TESTING_0_2A.md).
-
-## Projektgrenzen
-
-GenericParser übernimmt:
-
-- Such-URL-Erzeugung
-- Kleinanzeigen-Abruf und Ergebnislistenparsing
-- Normalisierung und technische Diagnosen
-- später Matching, Scoring und Persistenz
-
-Evercade und SNES übernehmen:
-
-- Produktkataloge und Sammlungsstatus
-- Preislimits und Richtwerte
-- Darstellung und Benachrichtigung
-- Nutzerfeedback
-
-## Dokumentation
-
-- [`docs/KLEINANZEIGEN_PARSING.md`](docs/KLEINANZEIGEN_PARSING.md) – fachliche Referenz
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) – Architektur und Integrationsgrenzen
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) – weitere Versionen
-- [`docs/TESTING_0_2A.md`](docs/TESTING_0_2A.md) – Testanleitung
-- [`CHANGELOG.md`](CHANGELOG.md) – Versionshistorie
+Weitere Hinweise stehen in `docs/TESTING_0_2A.md` und `docs/TESTING_0_2B.md`.
