@@ -16,7 +16,7 @@ Kleinanzeigen wird vollständig und belastbar umgesetzt, bevor eine zweite Quell
 
 **Abnahme:** abgeschlossen. Modelle, Konfiguration und Normalisierung funktionieren unabhängig von einem Live-Zugriff auf Kleinanzeigen.
 
-## Version 0.2a – Kleinanzeigen-Ergebnislisten
+## Version 0.2a – Kleinanzeigen-Ergebnislisten ✅
 
 - URL-Erzeugung für Keyword- und Kategoriesuche
 - Location-ID-Verwaltung und Verifikation
@@ -26,7 +26,7 @@ Kleinanzeigen wird vollständig und belastbar umgesetzt, bevor eine zweite Quell
 - Deduplizierung doppelter TOP-Anzeigen
 - gespeicherte HTML-Fixtures für reproduzierbare Tests
 
-**Abnahme:** Echte und gespeicherte Ergebnislisten werden konsistent in Listing-Objekte umgewandelt.
+**Abnahme:** Implementierung und Fixture-Abnahme abgeschlossen. Der optionale Live-Smoke-Test ist vorhanden und wird in einer Umgebung mit externem Netzwerkzugriff ausgeführt.
 
 ## Version 0.2b – Diagnose-Webinterface
 
