@@ -59,7 +59,7 @@ def _mobile_url(payload: "CloudSearchRequest") -> str:
     from urllib.parse import urlencode
     params: dict[str, str | int] = {
         "_in": MOBILE_API_FIELDS, "q": payload.query, "page": 0,
-        "size": payload.max_results, "includeTopAds": "false",
+        "size": 200 if payload.max_results == 0 else payload.max_results, "includeTopAds": "false",
         "limitTotalResultCount": "false", "sortType": "DATE_DESCENDING",
     }
     if payload.location_id is not None:
@@ -112,7 +112,7 @@ def _parse_mobile(payload: Any, query: str) -> ParsedPage:
         listings_parsed=len(unique), duplicates_skipped=len(listings)-len(unique), errors=tuple(errors),
     ))
 
-VERSION = "0.25.0"
+VERSION = "0.25.1"
 FetchPage = Callable[[str], Awaitable[FetchedPage]]
 
 
@@ -122,7 +122,7 @@ class CloudSearchRequest(BaseModel):
     postal_code: str | None = None
     location_id: int | None = Field(default=None, gt=0)
     radius_km: int | None = Field(default=None, ge=0, le=200)
-    max_results: int = Field(default=12, ge=1, le=20)
+    max_results: int = Field(default=120, ge=0, le=200)
     html: str | None = Field(default=None, max_length=2_000_000)
 
     @field_validator("query")
@@ -293,13 +293,13 @@ def create_cloudflare_app(*, fetcher: FetchPage = fetch_search_page) -> FastAPI:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         except httpx.RequestError as exc:
             raise HTTPException(status_code=502, detail="Kleinanzeigen ist nicht erreichbar") from exc
-        listings = parsed.listings[:payload.max_results]
+        listings = parsed.listings if payload.max_results == 0 else parsed.listings[:payload.max_results]
         return {
             "mode": payload.mode, "generated_urls": [url] if payload.mode == "live" else [],
             "diagnostics": [_diagnostic_dict(parsed.diagnostics)],
             "listings": [_listing_dict(item) for item in listings],
             "summary": {"listings": len(listings), "cards": parsed.diagnostics.cards_found, "duplicates": parsed.diagnostics.duplicates_skipped, "card_errors": len(parsed.diagnostics.errors), "truncated": len(parsed.listings) > len(listings)},
-            "worker": {"version": VERSION, "single_page": True, "fallback": "mobile-api", "max_results": payload.max_results},
+            "worker": {"version": VERSION, "single_page": True, "fallback": "mobile-api", "max_results": "all" if payload.max_results == 0 else payload.max_results},
         }
     return app
 
