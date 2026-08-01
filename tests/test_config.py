@@ -1,3 +1,4 @@
+from pathlib import Path
 from decimal import Decimal
 
 import pytest
@@ -87,8 +88,6 @@ def test_invalid_boolean_value_is_rejected() -> None:
 
 
 def test_repository_example_profiles_load() -> None:
-    from pathlib import Path
-
     root = Path(__file__).resolve().parents[1]
     assert load_profile(root / "examples/evercade_sunsoft_collection_1.yaml").id.startswith("evercade-")
     assert load_profile(root / "examples/snes_zelda_link_to_the_past.json").id.startswith("snes-")
@@ -104,3 +103,22 @@ def test_invalid_postal_code_is_rejected() -> None:
                 "postal_code": "123",
             }
         )
+
+
+def test_profile_roundtrip_preserves_kleinanzeigen_location_and_categories(tmp_path: Path) -> None:
+    profile = profile_from_dict(
+        {
+            "id": "category-local",
+            "display_name": "Lokale Videospiele",
+            "category_paths": ["s-videospiele"],
+            "postal_code": "37075",
+            "location_id": 1234,
+            "radius_km": 25,
+        }
+    )
+    target = tmp_path / "local.yaml"
+    save_profile(target, profile)
+    loaded = load_profile(target)
+    assert loaded.category_paths == ("s-videospiele",)
+    assert loaded.location_id == 1234
+    assert loaded.radius_km == 25
