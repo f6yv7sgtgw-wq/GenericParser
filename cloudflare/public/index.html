@@ -18,7 +18,7 @@
 <body>
   <main class="app-shell">
     <header class="hero">
-      <div><p class="eyebrow">Kleinanzeigen · Cloud Worker</p><h1>GenericParser <span>0.25</span></h1><p class="subtitle">Mobile Testsuchen mit HTML-Pfad und strukturiertem Kleinanzeigen-Fallback.</p></div>
+      <div><p class="eyebrow">Kleinanzeigen · Cloud Worker</p><h1>GenericParser <span>0.251</span></h1><p class="subtitle">Mobile Testsuchen mit HTML-Pfad und strukturiertem Kleinanzeigen-Fallback.</p></div>
       <div id="connection" class="status"><span></span> Prüfe Verbindung</div>
     </header>
     <section id="browser-note" class="message hidden"></section>
@@ -30,13 +30,14 @@
         <label>PLZ<input id="postal-code" inputmode="numeric" maxlength="5" placeholder="37136"></label>
         <label>Location-ID<input id="location-id" inputmode="numeric" placeholder="1234"></label>
         <label>Radius<input id="radius-km" inputmode="numeric" value="50"></label>
-        <label>Max. Ergebnisse<input id="max-results" inputmode="numeric" value="12" min="1" max="20"></label>
+        <label>Max. Ergebnisse<input id="max-results" inputmode="numeric" value="120" min="0" max="200"></label>
       </div>
+      <p class="hint">Bis zu 200 Ergebnisse pro Abfrage. Der Wert 0 bedeutet: alle verfügbaren Treffer dieser Abfrage.</p>
       <label>Nur zur Ortsbestimmung: Kleinanzeigen-URL<div class="inline"><input id="location-url" placeholder="URL mit Location-ID, z. B. .../k0l1234r50"><button id="extract-location" class="ghost" type="button">Orts-ID übernehmen</button></div></label>
       <p class="hint">Dieses Feld ist nur nötig, wenn du eine Location-ID aus einer Kleinanzeigen-URL übernehmen möchtest. Für eine normale Suche leer lassen.</p>
       <label>Zugriffstoken<input id="token" type="password" placeholder="Nur nötig, wenn APP_TOKEN gesetzt ist"></label></details>
       <div class="actions"><button id="search-button" class="primary" type="button">Live-Suche starten</button><button id="demo-button" class="secondary" type="button">Demo anzeigen</button></div>
-      <p class="hint">0.25 versucht zuerst den klassischen HTML-Parser und wechselt bei der React-Suchseite automatisch auf den strukturierten Fallback.</p>
+      <p class="hint">0.251 versucht zuerst den klassischen HTML-Parser und wechselt bei der React-Suchseite automatisch auf den strukturierten Fallback.</p>
     </section>
     <section id="message" class="message hidden"></section><section id="summary" class="metrics hidden"></section>
     <section id="diagnostics-card" class="card hidden"><div class="row between"><h2>Diagnose</h2><span id="worker-version" class="chip"></span></div><div id="urls" class="urls"></div><div id="diagnostics"></div></section>
