@@ -1,5 +1,6 @@
 const $ = (id) => document.getElementById(id);
-const state = { installPrompt: null };
+const state = { installPrompt: null, standaloneFile: window.location.protocol === "file:" };
+const apiUrl = (path) => state.standaloneFile ? null : new URL(path.replace(/^\//, ""), window.location.href).toString();
 const demo = {
   mode: "demo", generated_urls: ["https://www.kleinanzeigen.de/s-evercade-sunsoft-collection-1/k0?sortingField=SORTING_DATE"],
   diagnostics: [{state:"results",cards_found:3,listings_parsed:2,duplicates_skipped:1,errors:[]}],
@@ -18,10 +19,29 @@ function metric(value,label){return `<div class="metric"><strong>${value}</stron
 function escapeHtml(value){return String(value??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));}
 function render(payload){clearMessage();$("summary").classList.remove("hidden");$("summary").innerHTML=metric(payload.summary.listings,"Anzeigen")+metric(payload.summary.cards,"Karten")+metric(payload.summary.duplicates,"Duplikate")+metric(payload.summary.card_errors,"Fehler");$("diagnostics-card").classList.remove("hidden");$("worker-version").textContent=payload.worker?.version||"Worker";$("urls").innerHTML=(payload.generated_urls||[]).map(url=>`<code>${escapeHtml(url)}</code>`).join("");$("diagnostics").innerHTML=(payload.diagnostics||[]).map(d=>`<div class="diagnostic"><span>${escapeHtml(d.state)}</span><span>${d.cards_found} Karten</span><span>${d.listings_parsed} geparst</span><span>${d.duplicates_skipped} Duplikate</span></div>`).join("");$("results").innerHTML=(payload.listings||[]).map(item=>`<article class="listing"><div class="listing-image">${item.image_url?`<img src="${escapeHtml(item.image_url)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:"KEIN BILD"}</div><div><h3><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">${escapeHtml(item.title)}</a></h3><div class="price">${item.price!==null?`${escapeHtml(item.price)} €`:escapeHtml(item.price_raw||"Preis offen")}</div><div class="meta">${escapeHtml([item.postal_code,item.place].filter(Boolean).join(" "))} · ID ${escapeHtml(item.id)}</div><p class="description">${escapeHtml(item.description||"Keine Beschreibung in der Ergebnisliste.")}</p><div class="tags">${[...(item.tags||[]),...(item.price_flags||[])].map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join("")}</div></div></article>`).join("");if(!(payload.listings||[]).length)message("Die Suche wurde verarbeitet, aber es wurden keine Anzeigen gefunden.");}
 
-async function liveSearch(){setBusy(true);clearMessage();const body={mode:"live",query:$("query").value.trim(),postal_code:$("postal-code").value.trim()||null,location_id:numberOrNull("location-id"),radius_km:numberOrNull("radius-km"),max_results:numberOrNull("max-results")||12};try{const response=await fetch("/api/search",{method:"POST",headers:{"Content-Type":"application/json",...tokenHeaders()},body:JSON.stringify(body)});const data=await response.json();if(!response.ok)throw new Error(data.detail||"Suche fehlgeschlagen");render(data);}catch(error){message(error.message,true);}finally{setBusy(false);}}
-async function extractLocation(){const url=$("location-url").value.trim();if(!url)return message("Bitte zuerst eine Kleinanzeigen-URL einfügen.",true);try{const response=await fetch("/api/location-id",{method:"POST",headers:{"Content-Type":"application/json",...tokenHeaders()},body:JSON.stringify({url})});const data=await response.json();if(!response.ok)throw new Error(data.detail||"Location-ID nicht gefunden");$("location-id").value=data.location_id;message(`Location-ID ${data.location_id} übernommen.`);}catch(error){message(error.message,true);}}
+async function liveSearch(){if(state.standaloneFile)return message("Live-Suchen benötigen die veröffentlichte Cloudflare-URL.",true);setBusy(true);clearMessage();const body={mode:"live",query:$("query").value.trim(),postal_code:$("postal-code").value.trim()||null,location_id:numberOrNull("location-id"),radius_km:numberOrNull("radius-km"),max_results:numberOrNull("max-results")||12};try{const response=await fetch(apiUrl("api/search"),{method:"POST",headers:{"Content-Type":"application/json",...tokenHeaders()},body:JSON.stringify(body)});const data=await response.json();if(!response.ok)throw new Error(data.detail||"Suche fehlgeschlagen");render(data);}catch(error){message(error.message,true);}finally{setBusy(false);}}
+async function extractLocation(){if(state.standaloneFile){const match=$("location-url").value.trim().match(/(?:^|[/?])l(\d+)(?:r\d+)?(?:$|[/?#])/);if(match){$("location-id").value=match[1];return message(`Location-ID ${match[1]} lokal übernommen.`);}return message("Keine Location-ID in der URL gefunden.",true);}const url=$("location-url").value.trim();if(!url)return message("Bitte zuerst eine Kleinanzeigen-URL einfügen.",true);try{const response=await fetch(apiUrl("api/location-id"),{method:"POST",headers:{"Content-Type":"application/json",...tokenHeaders()},body:JSON.stringify({url})});const data=await response.json();if(!response.ok)throw new Error(data.detail||"Location-ID nicht gefunden");$("location-id").value=data.location_id;message(`Location-ID ${data.location_id} übernommen.`);}catch(error){message(error.message,true);}}
 
 $("search-button").addEventListener("click",liveSearch);$("demo-button").addEventListener("click",()=>render(demo));$("extract-location").addEventListener("click",extractLocation);$("token").value=localStorage.getItem("gp-token")||"";
 window.addEventListener("online",()=>{$("connection").className="status";$("connection").innerHTML="<span></span> Online";});window.addEventListener("offline",()=>{$("connection").className="status offline";$("connection").innerHTML="<span></span> Offline";});
 window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();state.installPrompt=event;$("install-button").classList.remove("hidden");});$("install-button").addEventListener("click",async()=>{if(!state.installPrompt)return;state.installPrompt.prompt();await state.installPrompt.userChoice;state.installPrompt=null;$("install-button").classList.add("hidden");});
-if("serviceWorker" in navigator)navigator.serviceWorker.register("/service-worker.js").catch(()=>{});
+if("serviceWorker" in navigator && window.location.protocol.startsWith("http")) navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+
+function initialiseBrowserMode(){
+  const connection=$("connection");
+  if(state.standaloneFile){
+    connection.className="status offline";
+    connection.innerHTML="<span></span> Demo-Datei";
+    $("search-button").disabled=true;
+    $("search-button").title="Live-Suchen benötigen die veröffentlichte Cloudflare-URL";
+    $("health-link").classList.add("hidden");
+    const note=$("browser-note");
+    note.className="message";
+    note.textContent="Diese Datei läuft vollständig lokal im Demo-Modus. Für echte Suchen öffne nach dem Deployment die workers.dev-URL.";
+    render(demo);
+  }else{
+    connection.className=navigator.onLine?"status":"status offline";
+    connection.innerHTML=navigator.onLine?"<span></span> Online":"<span></span> Offline";
+  }
+}
+initialiseBrowserMode();
