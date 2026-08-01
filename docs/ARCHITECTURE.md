@@ -9,7 +9,7 @@ Die erste produktive Nutzung erfolgt in:
 - Evercade
 - SNES-PAL-Sammlung
 
-Beide Projekte konfigurieren Suchprofile und verarbeiten Treffer. GenericParser übernimmt ausschließlich Suche, Parsing, Normalisierung, Matching, Bewertung und technische Persistenz.
+Beide Projekte konfigurieren Suchprofile und verarbeiten Treffer. GenericParser übernimmt Suche, Parsing, Normalisierung, Matching, Bewertung und technische Persistenz.
 
 ## 2. Grundsatz: generische Domäne, eine Quelle
 
@@ -27,12 +27,9 @@ Es wird ausdrücklich keine vorzeitige Mehrquellen-Abstraktion gebaut. Erst nach
 - Anzeigenkarten robust extrahieren
 - Preise, Datum, Ort und Entfernung normalisieren
 - Titel und Beschreibung vereinheitlichen
-- Gesuche, Stellenanzeigen, Zubehör und Defektware erkennen
-- Produktkandidaten matchen und bewerten
-- Duplikate sowie bereits bekannte Anzeigen erkennen
-- Preisänderungen speichern und bewerten
 - technische Zustände und Parse-Fehler melden
-- normalisierte Ergebnisse über eine stabile API zurückgeben
+- später Produktkandidaten matchen und bewerten
+- später Duplikate, Preisänderungen und Alerts dauerhaft speichern
 
 ### Evercade und SNES
 
@@ -42,7 +39,7 @@ Es wird ausdrücklich keine vorzeitige Mehrquellen-Abstraktion gebaut. Erst nach
 - Treffer darstellen oder Benachrichtigungen auslösen
 - Nutzerfeedback verwalten
 
-## 4. Öffentliche Schnittstelle
+## 4. Öffentliche Bibliotheksschnittstelle
 
 ```python
 from generic_parser import GenericParser, KleinanzeigenAdapter, KleinanzeigenHttpClient
@@ -54,7 +51,30 @@ with KleinanzeigenHttpClient() as http:
 
 Der Adapter erfüllt das `ListingSource`-Protokoll und liefert ausschließlich normalisierte `Listing`-Objekte.
 
-## 5. Integrationsprinzip
+## 5. Kleinanzeigen-Listenadapter seit 0.2a
+
+Der Adapter besteht aus vier getrennten Bausteinen:
+
+- `KleinanzeigenUrlBuilder` für Keyword- und Kategorie-URLs
+- `KleinanzeigenHttpClient` für sequenzielle, gedrosselte Abrufe
+- `KleinanzeigenPageParser` für robuste Kartenextraktion und Diagnosezustände
+- `KleinanzeigenAdapter` als Implementierung des öffentlichen `ListingSource`-Ports
+
+Netzwerk und Parsing sind getrennt. Tests können deshalb Mock-Antworten und gespeicherte HTML-Fixtures nutzen.
+
+## 6. Diagnose-Webinterface seit 0.2b
+
+Das Webinterface ist eine dünne FastAPI-Schicht über dem Parserkern. Es enthält keine eigene Parsinglogik. Die Oberfläche unterstützt drei Testmodi:
+
+- gespeicherte Paket-Fixtures
+- manuell eingefügtes HTML
+- kontrollierte Live-Suche über den Kleinanzeigen-HTTP-Client
+
+Live-Suchen sind innerhalb einer Instanz serialisiert. Die API erzeugt ausschließlich Kleinanzeigen-URLs über den `KleinanzeigenUrlBuilder`; frei wählbare Remote-URLs werden nicht abgerufen. Gespeicherte Fixtures werden in einem konfigurierbaren Datenverzeichnis abgelegt.
+
+Die Weboberfläche ist ein Diagnosewerkzeug. Produktentscheidungen, Datenbankzustände und Hintergrundplanung bleiben späteren Komponenten vorbehalten.
+
+## 7. Integrationsprinzip
 
 GenericParser darf Evercade oder SNES nicht importieren. Die Abhängigkeit zeigt ausschließlich in die andere Richtung:
 
@@ -65,17 +85,6 @@ SNES-PAL-Sammlung -> GenericParser
 
 Treffer werden als Datenobjekte zurückgegeben. Darstellung und Benachrichtigung bleiben in den aufrufenden Projekten.
 
-## 6. Späterer Hintergrundbetrieb
+## 8. Späterer Hintergrundbetrieb
 
 Ab der Persistenz- und Betriebsphase wird GenericParser als zentraler Worker mit kleiner API betrieben. Evercade und SNES teilen sich dann denselben Kleinanzeigen-Zugriff, dieselbe Datenbank und dasselbe Rate-Limit-Budget.
-
-## 7. Stand 0.2a
-
-Der Kleinanzeigen-Listenadapter besteht aus vier getrennten Bausteinen:
-
-- `KleinanzeigenUrlBuilder` für Keyword- und Kategorie-URLs
-- `KleinanzeigenHttpClient` für sequenzielle, gedrosselte Abrufe
-- `KleinanzeigenPageParser` für robuste Kartenextraktion und Diagnosezustände
-- `KleinanzeigenAdapter` als Implementierung des öffentlichen `ListingSource`-Ports
-
-Netzwerk und Parsing sind getrennt. Tests können deshalb Mock-Antworten und gespeicherte HTML-Fixtures nutzen. Der Adapter liefert nur normalisierte `Listing`-Objekte und kennt weiterhin keine Evercade- oder SNES-Fachlogik.
