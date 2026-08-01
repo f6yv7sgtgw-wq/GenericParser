@@ -5,15 +5,33 @@
     "zelda link to the past snes pal",
     "zelda a link to the past super nintendo"
   ],
-  "brands": ["nintendo", "snes", "super nintendo"],
-  "product_types": ["spiel", "modul", "cartridge"],
-  "model_patterns": ["zelda a link to the past", "link to the past"],
-  "required_any": ["snes", "super nintendo"],
-  "excluded_terms": ["repro", "nachbau", "defekt", "nur ovp", "nur anleitung"],
+  "brands": [
+    "nintendo",
+    "snes",
+    "super nintendo"
+  ],
+  "product_types": [
+    "spiel",
+    "modul",
+    "cartridge"
+  ],
+  "model_patterns": [
+    "zelda a link to the past",
+    "link to the past"
+  ],
+  "required_any": [
+    "snes",
+    "super nintendo"
+  ],
+  "excluded_terms": [
+    "repro",
+    "nachbau",
+    "defekt",
+    "nur ovp",
+    "nur anleitung"
+  ],
   "max_price": "70.00",
   "market_value": "80.00",
-  "postal_code": "37136",
-  "radius_km": 50,
   "shipping_allowed": true,
   "accept_bundles": true,
   "accept_incomplete": true
