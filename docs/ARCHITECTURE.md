@@ -42,16 +42,17 @@ Es wird ausdrücklich keine vorzeitige Mehrquellen-Abstraktion gebaut. Erst nach
 - Treffer darstellen oder Benachrichtigungen auslösen
 - Nutzerfeedback verwalten
 
-## 4. Öffentliche Schnittstelle in 0.1
+## 4. Öffentliche Schnittstelle
 
 ```python
-from generic_parser import GenericParser, SearchProfile
+from generic_parser import GenericParser, KleinanzeigenAdapter, KleinanzeigenHttpClient
 
-parser = GenericParser(source=source_adapter)
-listings = parser.search(profile)
+with KleinanzeigenHttpClient() as http:
+    parser = GenericParser(source=KleinanzeigenAdapter(http=http))
+    listings = parser.search(profile)
 ```
 
-`source_adapter` erfüllt das `ListingSource`-Protokoll. Ab 0.2 stellt das Projekt dafür einen Kleinanzeigen-Adapter bereit.
+Der Adapter erfüllt das `ListingSource`-Protokoll und liefert ausschließlich normalisierte `Listing`-Objekte.
 
 ## 5. Integrationsprinzip
 
@@ -67,3 +68,14 @@ Treffer werden als Datenobjekte zurückgegeben. Darstellung und Benachrichtigung
 ## 6. Späterer Hintergrundbetrieb
 
 Ab der Persistenz- und Betriebsphase wird GenericParser als zentraler Worker mit kleiner API betrieben. Evercade und SNES teilen sich dann denselben Kleinanzeigen-Zugriff, dieselbe Datenbank und dasselbe Rate-Limit-Budget.
+
+## 7. Stand 0.2a
+
+Der Kleinanzeigen-Listenadapter besteht aus vier getrennten Bausteinen:
+
+- `KleinanzeigenUrlBuilder` für Keyword- und Kategorie-URLs
+- `KleinanzeigenHttpClient` für sequenzielle, gedrosselte Abrufe
+- `KleinanzeigenPageParser` für robuste Kartenextraktion und Diagnosezustände
+- `KleinanzeigenAdapter` als Implementierung des öffentlichen `ListingSource`-Ports
+
+Netzwerk und Parsing sind getrennt. Tests können deshalb Mock-Antworten und gespeicherte HTML-Fixtures nutzen. Der Adapter liefert nur normalisierte `Listing`-Objekte und kennt weiterhin keine Evercade- oder SNES-Fachlogik.
