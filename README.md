@@ -2,94 +2,76 @@
 
 Wiederverwendbare Python-Bibliothek zum zuverlässigen Suchen und Auswerten von Anzeigen auf **Kleinanzeigen**.
 
-GenericParser wird zunächst gezielt für die Einbindung in die Projekte **Evercade** und **SNES-PAL-Sammlung** entwickelt. Beide Projekte sollen denselben Parser verwenden und lediglich ihre eigenen Suchprofile, Preisgrenzen und Ergebnisverarbeitung bereitstellen.
-
-## Festgelegter Umfang
-
-### Im Fokus
-
-- Kleinanzeigen als einzige produktive Quelle
-- strukturierte, projektunabhängige Suchprofile
-- robuste Extraktion aus Ergebnislisten und bei Bedarf Detailseiten
-- Normalisierung von Preis, Datum, Ort und Entfernung
-- Erkennung von Gesuchen, Stellenanzeigen, Zubehör, Defekten und Duplikaten
-- regelbasiertes Matching und nachvollziehbares Scoring
-- SQLite-Persistenz für bekannte Anzeigen, Alerts und Preisänderungen
-- kontrolliertes Rate-Limiting, Backoff und Layout-Sanity-Checks
-- stabile Bibliotheks-API für Evercade und SNES
-- automatisierte Tests anhand der fachlichen Abnahmekriterien
-
-### Bewusst noch nicht enthalten
-
-- eBay
-- Vinted
-- andere Marktplätze
-- verpflichtende LLM- oder Bildanalyse
-- eine fest eingebaute Benachrichtigungsart
-- projektspezifische Produktlisten
-
-Weitere Quellen werden erst begonnen, wenn die Kleinanzeigen-Implementierung im realen Betrieb zuverlässig funktioniert und die Abnahmetests erfüllt.
-
-## Abgrenzung zu Evercade und SNES
-
-GenericParser kennt keine feste Evercade- oder SNES-Sammlung. Die aufrufenden Projekte liefern zur Laufzeit:
-
-- Suchbegriffe und Schreibvarianten
-- Produkt- und Modellmerkmale
-- Ausschlussbegriffe
-- Preisobergrenzen und optionale Richtwerte
-- Standort, Radius und Versandpräferenz
-- gewünschte Behandlung von Konvoluten
-- Callback oder Adapter für die weitere Verarbeitung eines Treffers
-
-GenericParser liefert normalisierte und bewertete Treffer zurück. Darstellung, Sammlungspflege und Benachrichtigung bleiben Aufgabe des jeweiligen Projekts.
-
-## Ziel-API
-
-```python
-from generic_parser import KleinanzeigenParser, SearchProfile
-
-parser = KleinanzeigenParser(storage_path="data/anzeigen.db")
-results = parser.search(profile)
-
-for result in results:
-    if result.should_alert:
-        project.handle_match(result)
-```
-
-Die konkrete Parser-Serviceklasse folgt innerhalb von Version 0.1. Die bereits vorhandenen Datenmodelle und Normalisierungsfunktionen bilden ihre stabile Grundlage.
-
-## Geplante Struktur
-
-```text
-docs/
-  KLEINANZEIGEN_PARSING.md    Fachliche Referenz
-  ARCHITECTURE.md             Komponenten und Integrationsgrenzen
-  ROADMAP.md                  Schritte bis zur stabilen Kleinanzeigen-Version
-src/generic_parser/
-  models.py                   Anzeigen- und Suchprofilmodelle
-  normalization.py            Text-, Preis-, Datum- und Ortsnormalisierung
-  matching.py                 Ausschlüsse und Produkt-Matching
-  scoring.py                  Bewertungslogik
-  sources/kleinanzeigen.py    Kleinanzeigen-Adapter
-  storage.py                  SQLite-Persistenz
-  service.py                  Öffentliche Bibliotheks-API
-  cli.py                      Test- und Diagnosewerkzeug
-tests/                        Unit-, Parser- und Integrationstests
-```
+GenericParser wird zunächst für die Einbindung in die Projekte **Evercade** und **SNES-PAL-Sammlung** entwickelt. Beide Projekte verwenden denselben Parserkern und liefern nur ihre eigenen Suchprofile, Preisgrenzen und Ergebnisverarbeitung.
 
 ## Status
 
-**Version 0.1 in Umsetzung.**
+**Version 0.1.0 abgeschlossen.**
 
-Bereits vorhanden:
+Der Bibliothekskern ist installierbar, konfigurierbar und getestet. Live-Zugriffe auf Kleinanzeigen beginnen mit Version 0.2.
 
-- installierbare Python-Paketstruktur
-- quellenunabhängige Modelle für Suchprofile, Anzeigen, Preise, Orte und Match-Ergebnisse
-- Textnormalisierung einschließlich kompakter Modellnummern
-- deutsche Preisnormalisierung einschließlich VB, Tausenderpunkt, Dezimalkomma, Gratis, unbekanntem Preis und verdächtigem 1-Euro-Preis
-- Orts- und Entfernungsnormalisierung
-- relative Kleinanzeigen-Zeitangaben in `Europe/Berlin`
-- 15 erfolgreich ausgeführte Tests
+## Enthalten in 0.1
 
-Als Nächstes folgen Konfigurationsserialisierung, Matching-Grundlagen und anschließend der Kleinanzeigen-Listenadapter.
+- Datenmodelle für `SearchProfile`, `Listing` und `MatchResult`
+- Normalisierung von Text, Preis, Ort und Datum
+- JSON- und YAML-Konfiguration
+- öffentliche Serviceklasse mit austauschbarem Quellenadapter
+- Beispielprofile für Evercade und SNES PAL
+- automatisierte Tests
+
+## Installation
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
+pytest
+```
+
+Unter Windows wird die virtuelle Umgebung mit `.venv\Scripts\activate` aktiviert.
+
+## Suchprofil laden
+
+```python
+from generic_parser import load_profile
+
+profile = load_profile("examples/evercade_sunsoft_collection_1.yaml")
+print(profile.display_name)
+```
+
+## Service verwenden
+
+Version 0.1 definiert bereits die stabile Einbindungsrichtung. Ein Quellenadapter liefert `Listing`-Objekte; `GenericParser` stellt sie dem aufrufenden Projekt bereit.
+
+```python
+from generic_parser import GenericParser, SearchProfile
+
+parser = GenericParser(source=my_source_adapter)
+listings = parser.search(profile)
+```
+
+Der echte Kleinanzeigen-Adapter folgt in Version 0.2.
+
+## Projektgrenzen
+
+GenericParser übernimmt künftig:
+
+- Such-URL-Erzeugung
+- Kleinanzeigen-Abruf und Parsing
+- Normalisierung
+- Matching und Scoring
+- technische Persistenz und Deduplizierung
+
+Evercade und SNES übernehmen:
+
+- Produktkataloge und Sammlungsstatus
+- Preislimits und Richtwerte
+- Darstellung und Benachrichtigung
+- Nutzerfeedback
+
+## Dokumentation
+
+- [`docs/KLEINANZEIGEN_PARSING.md`](docs/KLEINANZEIGEN_PARSING.md) – fachliche Referenz
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) – Architektur und Integrationsgrenzen
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) – weitere Versionen
+- [`CHANGELOG.md`](CHANGELOG.md) – Versionshistorie
