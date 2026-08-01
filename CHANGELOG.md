@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.2.0rc1 – 2026-08-01
+
+Mobile Cloudflare-Worker/PWA-Version für manuelle Kleinanzeigen-Diagnose.
+
+### Neu
+
+- Python-Worker-Einstiegspunkt mit FastAPI und ASGI
+- asynchroner Ein-Seiten-Abruf für Cloudflare Workers
+- CPU-reduzierter Ergebnisparser mit begrenzter Ausgabe
+- mobile PWA mit Home-Bildschirm-Installation und Offline-App-Shell
+- Live- und Demo-Modus
+- optionale Absicherung über ein Worker-Secret `APP_TOKEN`
+- Workers Static Assets, Wrangler-Konfiguration und Deployment-Anleitung
+- automatisierte Worker-API- und PWA-Asset-Tests
+
+### Grenzen
+
+- keine Hintergrundläufe oder Persistenz
+- eine Ergebnisseite und maximal 20 Anzeigen pro Anfrage
+- echte Cloudflare-CPU-Zeit und Kleinanzeigen-Erreichbarkeit müssen nach dem ersten Deployment gemessen werden
+
 ## 0.2.0b1 – 2026-08-01
 
 Diagnose-Webinterface für manuelle und reproduzierbare Parserprüfungen.
