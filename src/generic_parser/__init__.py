@@ -20,21 +20,46 @@ from .models import (
 )
 from .normalization import compact_text, normalize_text, parse_location, parse_posted_at, parse_price
 from .service import GenericParser, ListingSource
+from .sources.kleinanzeigen import (
+    FetchedPage,
+    KleinanzeigenAdapter,
+    KleinanzeigenBlockedError,
+    KleinanzeigenHttpClient,
+    KleinanzeigenLayoutError,
+    KleinanzeigenPageParser,
+    KleinanzeigenUrlBuilder,
+    LocationVerification,
+    PageDiagnostics,
+    PageState,
+    extract_location_id,
+    slugify_keyword,
+)
 
-__version__ = "0.1.0"
+__version__ = "0.2.0a1"
 
 __all__ = [
     "ConfigurationError",
+    "FetchedPage",
     "GenericParser",
+    "KleinanzeigenAdapter",
+    "KleinanzeigenBlockedError",
+    "KleinanzeigenHttpClient",
+    "KleinanzeigenLayoutError",
+    "KleinanzeigenPageParser",
+    "KleinanzeigenUrlBuilder",
     "Listing",
     "ListingSource",
     "Location",
+    "LocationVerification",
     "MatchDecision",
     "MatchResult",
     "NormalizedPrice",
+    "PageDiagnostics",
+    "PageState",
     "PriceFlag",
     "SearchProfile",
     "compact_text",
+    "extract_location_id",
     "load_profile",
     "load_profiles",
     "normalize_text",
@@ -45,4 +70,5 @@ __all__ = [
     "profile_to_dict",
     "save_profile",
     "save_profiles",
+    "slugify_keyword",
 ]
