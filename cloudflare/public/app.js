@@ -23,6 +23,7 @@ function errorText(value){
   if(value instanceof Error)return value.message||value.name||"Unbekannter Fehler";
   if(Array.isArray(value))return value.map(errorText).join("; ");
   if(typeof value==="object"){
+    if(typeof value.msg==="string")return value.msg;
     if(typeof value.detail==="string")return value.detail;
     if(value.detail!=null)return errorText(value.detail);
     if(typeof value.message==="string")return value.message;
@@ -39,7 +40,27 @@ async function readResponse(response){
 }
 function render(payload){clearMessage();$("summary").classList.remove("hidden");$("summary").innerHTML=metric(payload.summary.listings,"Anzeigen")+metric(payload.summary.cards,"Karten")+metric(payload.summary.duplicates,"Duplikate")+metric(payload.summary.card_errors,"Fehler");$("diagnostics-card").classList.remove("hidden");$("worker-version").textContent=payload.worker?.version||"Worker";$("urls").innerHTML=(payload.generated_urls||[]).map(url=>`<code>${escapeHtml(url)}</code>`).join("");$("diagnostics").innerHTML=(payload.diagnostics||[]).map(d=>`<div class="diagnostic"><span>${escapeHtml(d.state)}</span><span>${d.cards_found} Karten</span><span>${d.listings_parsed} geparst</span><span>${d.duplicates_skipped} Duplikate</span></div>`).join("");$("results").innerHTML=(payload.listings||[]).map(item=>`<article class="listing"><div class="listing-image">${item.image_url?`<img src="${escapeHtml(item.image_url)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:"KEIN BILD"}</div><div><h3><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">${escapeHtml(item.title)}</a></h3><div class="price">${item.price!==null?`${escapeHtml(item.price)} €`:escapeHtml(item.price_raw||"Preis offen")}</div><div class="meta">${escapeHtml([item.postal_code,item.place].filter(Boolean).join(" "))} · ID ${escapeHtml(item.id)}</div><p class="description">${escapeHtml(item.description||"Keine Beschreibung in der Ergebnisliste.")}</p><div class="tags">${[...(item.tags||[]),...(item.price_flags||[])].map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join("")}</div></div></article>`).join("");if(!(payload.listings||[]).length)message("Die Suche wurde verarbeitet, aber es wurden keine Anzeigen gefunden.");}
 
-async function liveSearch(){if(state.standaloneFile)return message("Live-Suchen benötigen die veröffentlichte Cloudflare-URL.",true);setBusy(true);clearMessage();const body={mode:"live",query:$("query").value.trim(),postal_code:$("postal-code").value.trim()||null,location_id:numberOrNull("location-id"),radius_km:numberOrNull("radius-km"),max_results:numberOrNull("max-results")||12};try{const response=await fetch(apiUrl("api/search"),{method:"POST",headers:{"Content-Type":"application/json",...tokenHeaders()},body:JSON.stringify(body)});const data=await readResponse(response);render(data);}catch(error){message(errorText(error),true);}finally{setBusy(false);}}
+async function liveSearch(){
+  if(state.standaloneFile)return message("Live-Suchen benötigen die veröffentlichte Cloudflare-URL.",true);
+  setBusy(true);
+  clearMessage();
+  const postalCode=$("postal-code").value.trim()||null;
+  const locationId=numberOrNull("location-id");
+  const hasLocation=Boolean(postalCode||locationId);
+  const body={
+    mode:"live",
+    query:$("query").value.trim(),
+    postal_code:postalCode,
+    location_id:locationId,
+    radius_km:hasLocation?numberOrNull("radius-km"):null,
+    max_results:numberOrNull("max-results")||12
+  };
+  try{
+    const response=await fetch(apiUrl("api/search"),{method:"POST",headers:{"Content-Type":"application/json",...tokenHeaders()},body:JSON.stringify(body)});
+    const data=await readResponse(response);
+    render(data);
+  }catch(error){message(errorText(error),true);}finally{setBusy(false);}
+}
 async function extractLocation(){if(state.standaloneFile){const match=$("location-url").value.trim().match(/(?:^|[/?])l(\d+)(?:r\d+)?(?:$|[/?#])/);if(match){$("location-id").value=match[1];return message(`Location-ID ${match[1]} lokal übernommen.`);}return message("Keine Location-ID in der URL gefunden.",true);}const url=$("location-url").value.trim();if(!url)return message("Bitte im Feld zur Ortsbestimmung zuerst eine Kleinanzeigen-URL mit Location-ID einfügen.",true);try{const response=await fetch(apiUrl("api/location-id"),{method:"POST",headers:{"Content-Type":"application/json",...tokenHeaders()},body:JSON.stringify({url})});const data=await readResponse(response);$("location-id").value=data.location_id;message(`Location-ID ${data.location_id} übernommen.`);}catch(error){message(errorText(error),true);}}
 
 $("search-button").addEventListener("click",liveSearch);$("demo-button").addEventListener("click",()=>render(demo));$("extract-location").addEventListener("click",extractLocation);$("token").value=localStorage.getItem("gp-token")||"";
