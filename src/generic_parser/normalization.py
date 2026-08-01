@@ -1,13 +1,29 @@
 from __future__ import annotations
 
 import re
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone, tzinfo
 from decimal import Decimal, InvalidOperation
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .models import Location, NormalizedPrice, PriceFlag
 
-BERLIN = ZoneInfo("Europe/Berlin")
+
+def _berlin_timezone() -> tzinfo:
+    """Liefert Europe/Berlin oder einen sicheren UTC-Fallback ohne tzdata.
+
+    Cloudflare Python Workers/Pyodide enthalten nicht zwingend die IANA-
+    Zeitzonendatenbank. Lokal bleibt deshalb die vollständige Berlin-Zeitzone
+    mit Sommer-/Winterzeit aktiv; nur in eingeschränkten Laufzeiten wird UTC
+    verwendet, damit der Worker bereits beim Import zuverlässig startet.
+    """
+
+    try:
+        return ZoneInfo("Europe/Berlin")
+    except ZoneInfoNotFoundError:
+        return timezone.utc
+
+
+BERLIN = _berlin_timezone()
 _TRANSLATION = str.maketrans(
     {
         "ä": "ae",
@@ -111,7 +127,7 @@ def parse_location(raw: str | None) -> Location:
 
 
 def parse_posted_at(raw: str | None, *, now: datetime | None = None) -> datetime | None:
-    """Wandelt Kleinanzeigen-Zeitangaben in Europe/Berlin in absolute Zeiten um."""
+    """Wandelt Kleinanzeigen-Zeitangaben in absolute Zeiten um."""
 
     original = (raw or "").strip()
     if not original:
