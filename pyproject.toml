@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generic-kleinanzeigen-parser"
-version = "0.2.0rc2"
+version = "0.2.0rc3"
 description = "Wiederverwendbarer Kleinanzeigen-Parser für Sammlungsprojekte"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [{ name = "Jan Leduc" }]
 dependencies = [
