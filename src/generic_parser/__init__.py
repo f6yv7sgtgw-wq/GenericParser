@@ -35,7 +35,7 @@ from .sources.kleinanzeigen import (
     slugify_keyword,
 )
 
-__version__ = "0.2.0b1"
+__version__ = "0.2.0rc1"
 
 __all__ = [
     "ConfigurationError",
