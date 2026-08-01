@@ -68,7 +68,8 @@ def profile_from_dict(data: Mapping[str, Any]) -> SearchProfile:
         profile = SearchProfile(
             id=str(data["id"]).strip(),
             display_name=str(data["display_name"]).strip(),
-            search_queries=_as_tuple(data["search_queries"], field_name="search_queries"),
+            search_queries=_as_tuple(data.get("search_queries"), field_name="search_queries"),
+            category_paths=_as_tuple(data.get("category_paths"), field_name="category_paths"),
             brands=_as_tuple(data.get("brands"), field_name="brands"),
             product_types=_as_tuple(data.get("product_types"), field_name="product_types"),
             model_patterns=_as_tuple(data.get("model_patterns"), field_name="model_patterns"),
@@ -77,6 +78,7 @@ def profile_from_dict(data: Mapping[str, Any]) -> SearchProfile:
             max_price=_as_decimal(data.get("max_price"), field_name="max_price"),
             market_value=_as_decimal(data.get("market_value"), field_name="market_value"),
             postal_code=_as_postal_code(data.get("postal_code")),
+            location_id=(int(data["location_id"]) if data.get("location_id") is not None else None),
             radius_km=(int(data["radius_km"]) if data.get("radius_km") is not None else None),
             shipping_allowed=_as_bool(
                 data.get("shipping_allowed"), field_name="shipping_allowed", default=True
@@ -104,6 +106,7 @@ def profile_to_dict(profile: SearchProfile) -> dict[str, Any]:
         "id": profile.id,
         "display_name": profile.display_name,
         "search_queries": list(profile.search_queries),
+        "category_paths": list(profile.category_paths),
         "brands": list(profile.brands),
         "product_types": list(profile.product_types),
         "model_patterns": list(profile.model_patterns),
@@ -112,6 +115,7 @@ def profile_to_dict(profile: SearchProfile) -> dict[str, Any]:
         "max_price": str(profile.max_price) if profile.max_price is not None else None,
         "market_value": str(profile.market_value) if profile.market_value is not None else None,
         "postal_code": profile.postal_code,
+        "location_id": profile.location_id,
         "radius_km": profile.radius_km,
         "shipping_allowed": profile.shipping_allowed,
         "accept_bundles": profile.accept_bundles,
