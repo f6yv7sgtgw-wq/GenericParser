@@ -10,3 +10,7 @@ dist/
 htmlcov/
 *.db
 .DS_Store
+
+# Local runtime data
+data/fixtures/*.html
+!data/fixtures/.gitkeep
