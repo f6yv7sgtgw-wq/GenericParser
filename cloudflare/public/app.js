@@ -7,7 +7,7 @@ const demo = {
   listings: [
     {id:"10001",title:"Evercade Sunsoft Collection 1",url:"https://www.kleinanzeigen.de",price:"29",price_raw:"29 € VB",price_flags:["verhandelbar"],postal_code:"37136",place:"Ebergötzen",posted_at:new Date().toISOString(),description:"Sehr guter Zustand, vollständig.",tags:["Versand möglich"],image_url:null},
     {id:"10002",title:"Sunsoft Collection 1 für Evercade",url:"https://www.kleinanzeigen.de",price:"34",price_raw:"34 €",price_flags:[],postal_code:"37073",place:"Göttingen",posted_at:new Date().toISOString(),description:"Geöffnet und getestet.",tags:[],image_url:null}
-  ], summary:{listings:2,cards:3,duplicates:1,card_errors:0,truncated:false}, worker:{version:"0.2.0rc1-demo"}
+  ], summary:{listings:2,cards:3,duplicates:1,card_errors:0,truncated:false}, worker:{version:"0.251-demo"}
 };
 
 function tokenHeaders(){const token=$("token").value.trim();localStorage.setItem("gp-token",token);return token?{"X-GenericParser-Token":token}:{};}
@@ -53,7 +53,7 @@ async function liveSearch(){
     postal_code:postalCode,
     location_id:locationId,
     radius_km:hasLocation?numberOrNull("radius-km"):null,
-    max_results:numberOrNull("max-results")||12
+    max_results:numberOrNull("max-results")??120
   };
   try{
     const response=await fetch(apiUrl("api/search"),{method:"POST",headers:{"Content-Type":"application/json",...tokenHeaders()},body:JSON.stringify(body)});
