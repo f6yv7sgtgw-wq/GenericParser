@@ -11,7 +11,7 @@ from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .models import Listing, SearchProfile
-from .normalization import BERLIN
+from .normalization import BERLIN, normalize_text
 from .sources.kleinanzeigen import (
     CardParseError,
     FetchedPage,
@@ -26,7 +26,7 @@ from .sources.kleinanzeigen import (
     extract_location_id,
 )
 
-VERSION = "0.2.0rc1"
+VERSION = "0.2e"
 FetchPage = Callable[[str], Awaitable[FetchedPage]]
 
 
@@ -61,8 +61,7 @@ class CloudSearchRequest(BaseModel):
     def validate_mode_and_location(self) -> "CloudSearchRequest":
         if self.mode == "html" and not (self.html or "").strip():
             raise ValueError("Im HTML-Modus muss HTML übergeben werden")
-        local_values = (self.postal_code, self.location_id, self.radius_km)
-        if any(value is not None for value in local_values):
+        if any(value is not None for value in (self.postal_code, self.location_id, self.radius_km)):
             if self.postal_code is None or self.location_id is None:
                 raise ValueError("Lokale Suchen benötigen PLZ und Location-ID")
         return self
@@ -72,16 +71,34 @@ class LocationRequest(BaseModel):
     url: str = Field(min_length=10, max_length=2000)
 
 
+def _page_debug(page: FetchedPage) -> dict[str, Any]:
+    soup = BeautifulSoup(page.text, "html.parser")
+    title = soup.title.get_text(" ", strip=True) if soup.title else None
+    text = " ".join(soup.get_text(" ", strip=True).split())
+    html_lower = page.text.lower()
+    return {
+        "message": "Keine Ergebniskarten und kein Nulltreffer-Hinweis",
+        "requested_url": page.requested_url,
+        "final_url": page.final_url,
+        "status_code": page.status_code,
+        "content_length": len(page.text),
+        "title": title,
+        "article_count": len(soup.find_all("article")),
+        "div_count": len(soup.find_all("div")),
+        "link_count": len(soup.find_all("a")),
+        "aditem_count": len(soup.select("article.aditem")),
+        "listing_link_count": len(soup.select('a[href*="/s-anzeige/"]')),
+        "has_next_data": "__next_data__" in html_lower,
+        "has_react_root": "__next" in html_lower or "react" in html_lower,
+        "has_captcha": "captcha" in normalize_text(page.text),
+        "text_preview": text[:700],
+    }
+
+
 class CloudflarePageParser(KleinanzeigenPageParser):
     """CPU-sparsame Ergebnislistenvariante für Cloudflare Workers."""
 
-    def parse(
-        self,
-        page: FetchedPage,
-        *,
-        source_query: str,
-        now: datetime | None = None,
-    ) -> ParsedPage:
+    def parse(self, page: FetchedPage, *, source_query: str, now: datetime | None = None) -> ParsedPage:
         if page.status_code in {403, 429} or KleinanzeigenHttpClient._looks_blocked(page.text):
             raise KleinanzeigenBlockedError("Geblockte oder Challenge-Seite erkannt")
 
@@ -102,11 +119,7 @@ class CloudflarePageParser(KleinanzeigenPageParser):
             return ParsedPage(listings=(), diagnostics=diagnostics)
 
         reference = now or datetime.now(BERLIN)
-        if reference.tzinfo is None:
-            reference = reference.replace(tzinfo=BERLIN)
-        else:
-            reference = reference.astimezone(BERLIN)
-
+        reference = reference.replace(tzinfo=BERLIN) if reference.tzinfo is None else reference.astimezone(BERLIN)
         seen: set[str] = set()
         listings: list[Listing] = []
         errors: list[CardParseError] = []
@@ -142,22 +155,14 @@ class CloudflarePageParser(KleinanzeigenPageParser):
 
 async def fetch_search_page(url: str) -> FetchedPage:
     headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) "
-            "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1"
-        ),
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "de-DE,de;q=0.9,en;q=0.5",
         "Cache-Control": "no-cache",
     }
     async with httpx.AsyncClient(follow_redirects=True, timeout=15.0) as client:
         response = await client.get(url, headers=headers)
-    page = FetchedPage(
-        requested_url=url,
-        final_url=str(response.url),
-        status_code=response.status_code,
-        text=response.text,
-    )
+    page = FetchedPage(url, str(response.url), response.status_code, response.text)
     if response.status_code in {403, 429} or KleinanzeigenHttpClient._looks_blocked(response.text):
         raise KleinanzeigenBlockedError(f"Kleinanzeigen blockiert den Abruf ({response.status_code})")
     if response.status_code >= 400:
@@ -208,19 +213,12 @@ def _require_token(request: Request) -> None:
     expected = _env_value(request, "APP_TOKEN")
     if expected is None:
         return
-    supplied = request.headers.get("x-genericparser-token", "")
-    if supplied != expected:
+    if request.headers.get("x-genericparser-token", "") != expected:
         raise HTTPException(status_code=401, detail="Zugriffstoken fehlt oder ist ungültig")
 
 
 def create_cloudflare_app(*, fetcher: FetchPage = fetch_search_page) -> FastAPI:
-    app = FastAPI(
-        title="GenericParser Mobile Worker",
-        version=VERSION,
-        description="Mobile Kleinanzeigen-Diagnose für Cloudflare Workers.",
-        docs_url=None,
-        redoc_url=None,
-    )
+    app = FastAPI(title="GenericParser Mobile Worker", version=VERSION, docs_url=None, redoc_url=None)
 
     @app.get("/health")
     async def health() -> dict[str, str]:
@@ -247,16 +245,17 @@ def create_cloudflare_app(*, fetcher: FetchPage = fetch_search_page) -> FastAPI:
         )
         url = KleinanzeigenUrlBuilder().keyword_url(profile, payload.query)
         parser = CloudflarePageParser()
+        page: FetchedPage | None = None
         try:
-            if payload.mode == "html":
-                page = FetchedPage("inline://html", "inline://html", 200, payload.html or "")
-            else:
-                page = await fetcher(url)
+            page = FetchedPage("inline://html", "inline://html", 200, payload.html or "") if payload.mode == "html" else await fetcher(url)
             parsed = parser.parse(page, source_query=payload.query)
         except KleinanzeigenBlockedError as exc:
             raise HTTPException(status_code=429, detail=str(exc)) from exc
         except KleinanzeigenLayoutError as exc:
-            raise HTTPException(status_code=422, detail=str(exc)) from exc
+            detail: Any = str(exc)
+            if page is not None:
+                detail = {"error": str(exc), "debug": _page_debug(page), "version": VERSION}
+            raise HTTPException(status_code=422, detail=detail) from exc
         except httpx.RequestError as exc:
             raise HTTPException(status_code=502, detail="Kleinanzeigen ist nicht erreichbar") from exc
 
@@ -273,11 +272,7 @@ def create_cloudflare_app(*, fetcher: FetchPage = fetch_search_page) -> FastAPI:
                 "card_errors": len(parsed.diagnostics.errors),
                 "truncated": len(parsed.listings) > len(listings),
             },
-            "worker": {
-                "version": VERSION,
-                "single_page": True,
-                "max_results": payload.max_results,
-            },
+            "worker": {"version": VERSION, "single_page": True, "max_results": payload.max_results},
         }
 
     return app
