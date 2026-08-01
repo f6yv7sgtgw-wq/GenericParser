@@ -18,7 +18,7 @@
 <body>
   <main class="app-shell">
     <header class="hero">
-      <div><p class="eyebrow">Kleinanzeigen · Cloud Worker</p><h1>GenericParser <span>0.2e</span></h1><p class="subtitle">Mobile Testsuchen mit erweitertem Diagnosemodus.</p></div>
+      <div><p class="eyebrow">Kleinanzeigen · Cloud Worker</p><h1>GenericParser <span>0.25</span></h1><p class="subtitle">Mobile Testsuchen mit HTML-Pfad und strukturiertem Kleinanzeigen-Fallback.</p></div>
       <div id="connection" class="status"><span></span> Prüfe Verbindung</div>
     </header>
     <section id="browser-note" class="message hidden"></section>
@@ -36,7 +36,7 @@
       <p class="hint">Dieses Feld ist nur nötig, wenn du eine Location-ID aus einer Kleinanzeigen-URL übernehmen möchtest. Für eine normale Suche leer lassen.</p>
       <label>Zugriffstoken<input id="token" type="password" placeholder="Nur nötig, wenn APP_TOKEN gesetzt ist"></label></details>
       <div class="actions"><button id="search-button" class="primary" type="button">Live-Suche starten</button><button id="demo-button" class="secondary" type="button">Demo anzeigen</button></div>
-      <p class="hint">0.2e zeigt bei Parserfehlern zusätzliche Informationen zur geladenen Kleinanzeigen-Seite.</p>
+      <p class="hint">0.25 versucht zuerst den klassischen HTML-Parser und wechselt bei der React-Suchseite automatisch auf den strukturierten Fallback.</p>
     </section>
     <section id="message" class="message hidden"></section><section id="summary" class="metrics hidden"></section>
     <section id="diagnostics-card" class="card hidden"><div class="row between"><h2>Diagnose</h2><span id="worker-version" class="chip"></span></div><div id="urls" class="urls"></div><div id="diagnostics"></div></section>
