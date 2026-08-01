@@ -88,3 +88,13 @@ Treffer werden als Datenobjekte zurückgegeben. Darstellung und Benachrichtigung
 ## 8. Späterer Hintergrundbetrieb
 
 Ab der Persistenz- und Betriebsphase wird GenericParser als zentraler Worker mit kleiner API betrieben. Evercade und SNES teilen sich dann denselben Kleinanzeigen-Zugriff, dieselbe Datenbank und dasselbe Rate-Limit-Budget.
+
+## 9. Stand 0.2c – Cloudflare Mobile
+
+Die Cloud-Version ist eine zusätzliche, bewusst begrenzte Laufzeit:
+
+```text
+Smartphone → PWA / Workers Static Assets → FastAPI Python Worker → Kleinanzeigen
+```
+
+Der Worker führt pro Anfrage nur eine Keyword-Suche aus. Netzwerkzugriff erfolgt asynchron; der HTML-Parser baut nur die relevanten Anzeigenkarten auf. Die PWA enthält keine Parserlogik und speichert lediglich ein optionales Zugriffstoken im lokalen Browser. Hintergrundläufe, Persistenz und Benachrichtigungen bleiben der späteren Worker-Phase vorbehalten.
