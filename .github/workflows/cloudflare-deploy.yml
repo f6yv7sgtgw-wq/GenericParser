@@ -1,0 +1,58 @@
+name: Deploy GenericParser Mobile
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "cloudflare/**"
+      - "cloudflare_worker.py"
+      - "src/generic_parser/cloudflare_app.py"
+      - "src/generic_parser/models.py"
+      - "src/generic_parser/normalization.py"
+      - "src/generic_parser/sources/kleinanzeigen.py"
+      - "pyproject.toml"
+      - "wrangler.jsonc"
+      - ".github/workflows/cloudflare-deploy.yml"
+
+concurrency:
+  group: generic-parser-mobile-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Install dependencies
+        run: uv sync --group cloudflare --extra dev
+      - name: Run deployment tests
+        run: uv run pytest -q tests/test_cloudflare_app.py tests/test_pwa_assets.py tests/test_deployment_02d.py
+      - name: Validate secrets
+        shell: bash
+        run: |
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID fehlt"; exit 1; }
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN fehlt"; exit 1; }
+      - name: Deploy Python Worker
+        run: uv run --group cloudflare pywrangler deploy
+      - name: Smoke-test deployed URL
+        if: ${{ vars.CLOUDFLARE_WORKER_URL != '' }}
+        env:
+          DEPLOYMENT_URL: ${{ vars.CLOUDFLARE_WORKER_URL }}
+          APP_TOKEN: ${{ secrets.APP_TOKEN }}
+        run: uv run python scripts/check_deployment.py "$DEPLOYMENT_URL"
