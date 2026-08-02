@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict
 from decimal import Decimal
 from typing import Any, Literal
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import httpx
 from fastapi import FastAPI, HTTPException, Request
@@ -11,10 +12,17 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from . import cloudflare_app as core
 from .matching import classify_listing, score_listing, sort_results
 from .models import Listing, MatchDecision, MatchResult, SearchProfile
-from .sources.kleinanzeigen import FetchedPage, KleinanzeigenBlockedError, KleinanzeigenLayoutError, KleinanzeigenUrlBuilder, extract_location_id
+from .sources.kleinanzeigen import (
+    FetchedPage,
+    KleinanzeigenBlockedError,
+    KleinanzeigenLayoutError,
+    KleinanzeigenUrlBuilder,
+    extract_location_id,
+)
 
-VERSION = "0.35.1"
+VERSION = "0.35.2"
 MAX_PAGES = 100
+MOBILE_PAGE_SIZE = 41
 
 
 class SearchRequest(BaseModel):
@@ -36,7 +44,7 @@ class SearchRequest(BaseModel):
     accept_bundles: bool = False
     accept_incomplete: bool = False
     include_review: bool = True
-    include_rejected: bool = False
+    include_rejected: bool = True
     sort_by: Literal["relevance", "date", "price_asc", "price_desc"] = "relevance"
 
     @field_validator("query")
@@ -158,6 +166,50 @@ def _token(request: Request) -> None:
         raise HTTPException(status_code=401, detail="Zugriffstoken fehlt oder ist ungültig")
 
 
+def _effective_limit(payload: SearchRequest) -> int | None:
+    return payload.max_results if payload.max_results_explicit else None
+
+
+def _html_page_url(base_url: str, page_number: int) -> str:
+    parts = urlsplit(base_url)
+    query = dict(parse_qsl(parts.query, keep_blank_values=True))
+    if page_number <= 0:
+        query.pop("pageNum", None)
+    else:
+        query["pageNum"] = str(page_number)
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+
+
+def _pagination(
+    *,
+    source: str,
+    pages_loaded: int,
+    page_size_requested: int | None,
+    page_counts: list[int],
+    new_counts: list[int],
+    stop_reason: str,
+    unique_listings: int,
+    duplicates: int,
+    payload: SearchRequest,
+    fallback_reason: str | None = None,
+) -> dict[str, Any]:
+    return {
+        "source": source,
+        "pages_loaded": pages_loaded,
+        "page_size_requested": page_size_requested,
+        "page_counts": page_counts,
+        "new_ids_per_page": new_counts,
+        "stop_reason": stop_reason,
+        "safety_page_limit": MAX_PAGES,
+        "user_limit": _effective_limit(payload),
+        "user_limit_explicit": payload.max_results_explicit,
+        "unique_listings": unique_listings,
+        "duplicates": duplicates,
+        "fallback_reason": fallback_reason,
+        "complete": stop_reason in {"empty_page", "short_page", "repeated_page", "no_new_ids", "html_mode"},
+    }
+
+
 app = FastAPI(title="GenericParser Mobile Worker", version=VERSION, docs_url=None, redoc_url=None)
 
 
@@ -176,27 +228,25 @@ async def location_id(payload: LocationRequest, request: Request) -> dict[str, i
 
 
 async def _fetch_all_mobile(payload: SearchRequest) -> tuple[Any, dict[str, Any]]:
-    effective_limit = payload.max_results if payload.max_results_explicit else None
-    page_size = min(41, effective_limit) if effective_limit else 41
-    target = effective_limit
+    target = _effective_limit(payload)
+    page_size = min(MOBILE_PAGE_SIZE, target) if target else MOBILE_PAGE_SIZE
     headers = {
         "Authorization": f"Basic {core.MOBILE_API_BASIC_AUTH}",
         "User-Agent": "okhttp/4.10.0",
         "Accept": "application/json",
         "X-EBAYK-APP": "genericparser-cloudflare",
     }
-    listings = []
+    listings: list[Listing] = []
     seen: set[str] = set()
     page_signatures: set[tuple[str, ...]] = set()
     errors = []
     cards = duplicates = pages_loaded = 0
-    page_number = 0
     page_counts: list[int] = []
     new_counts: list[int] = []
     stop_reason = "unknown"
 
     async with httpx.AsyncClient(follow_redirects=True, timeout=15.0) as client:
-        while page_number < MAX_PAGES:
+        for page_number in range(MAX_PAGES):
             response = await client.get(core._mobile_url(payload, page=page_number, size=page_size), headers=headers)
             if response.status_code in {401, 403, 429}:
                 raise KleinanzeigenBlockedError(f"Kleinanzeigen-App-API verweigert den Zugriff ({response.status_code})")
@@ -204,7 +254,8 @@ async def _fetch_all_mobile(payload: SearchRequest) -> tuple[Any, dict[str, Any]
                 raise HTTPException(status_code=502, detail=f"Kleinanzeigen-App-API antwortet mit HTTP {response.status_code}")
             parsed = core._parse_mobile(response.json(), payload.query, page=page_number)
             pages_loaded += 1
-            page_counts.append(len(parsed.listings))
+            count = len(parsed.listings)
+            page_counts.append(count)
             cards += parsed.diagnostics.cards_found
             errors.extend(parsed.diagnostics.errors)
             if not parsed.listings:
@@ -213,7 +264,7 @@ async def _fetch_all_mobile(payload: SearchRequest) -> tuple[Any, dict[str, Any]
                 break
             signature = tuple(item.id for item in parsed.listings)
             if signature in page_signatures:
-                duplicates += len(parsed.listings)
+                duplicates += count
                 new_counts.append(0)
                 stop_reason = "repeated_page"
                 break
@@ -235,7 +286,9 @@ async def _fetch_all_mobile(payload: SearchRequest) -> tuple[Any, dict[str, Any]
             if added == 0:
                 stop_reason = "no_new_ids"
                 break
-            page_number += 1
+            if count < page_size:
+                stop_reason = "short_page"
+                break
         else:
             stop_reason = "safety_page_limit"
 
@@ -252,19 +305,100 @@ async def _fetch_all_mobile(payload: SearchRequest) -> tuple[Any, dict[str, Any]
             tuple(errors),
         ),
     )
-    pagination = {
-        "pages_loaded": pages_loaded,
-        "page_size_requested": page_size,
-        "page_counts": page_counts,
-        "new_ids_per_page": new_counts,
-        "stop_reason": stop_reason,
-        "safety_page_limit": MAX_PAGES,
-        "user_limit": target,
-        "user_limit_explicit": payload.max_results_explicit,
-        "unique_listings": len(listings),
-        "duplicates": duplicates,
-    }
-    return parsed_page, pagination
+    return parsed_page, _pagination(
+        source="mobile-api",
+        pages_loaded=pages_loaded,
+        page_size_requested=page_size,
+        page_counts=page_counts,
+        new_counts=new_counts,
+        stop_reason=stop_reason,
+        unique_listings=len(listings),
+        duplicates=duplicates,
+        payload=payload,
+    )
+
+
+async def _fetch_all_html(payload: SearchRequest, base_url: str, *, fallback_reason: str) -> tuple[Any, dict[str, Any]]:
+    target = _effective_limit(payload)
+    parser = core.CloudflarePageParser()
+    listings: list[Listing] = []
+    seen: set[str] = set()
+    page_signatures: set[tuple[str, ...]] = set()
+    errors = []
+    cards = duplicates = pages_loaded = 0
+    page_counts: list[int] = []
+    new_counts: list[int] = []
+    stop_reason = "unknown"
+    last_page = None
+
+    for page_number in range(MAX_PAGES):
+        page_url = _html_page_url(base_url, page_number)
+        page = await core.fetch_search_page(page_url)
+        parsed = parser.parse(page, source_query=payload.query)
+        last_page = parsed
+        pages_loaded += 1
+        count = len(parsed.listings)
+        page_counts.append(count)
+        cards += parsed.diagnostics.cards_found
+        errors.extend(parsed.diagnostics.errors)
+        if not parsed.listings:
+            new_counts.append(0)
+            stop_reason = "empty_page"
+            break
+        signature = tuple(item.id for item in parsed.listings)
+        if signature in page_signatures:
+            duplicates += count
+            new_counts.append(0)
+            stop_reason = "repeated_page"
+            break
+        page_signatures.add(signature)
+        added = 0
+        for listing in parsed.listings:
+            if listing.id in seen:
+                duplicates += 1
+                continue
+            seen.add(listing.id)
+            listings.append(listing)
+            added += 1
+            if target is not None and len(listings) >= target:
+                break
+        new_counts.append(added)
+        if target is not None and len(listings) >= target:
+            stop_reason = "user_limit_reached"
+            break
+        if added == 0:
+            stop_reason = "no_new_ids"
+            break
+    else:
+        stop_reason = "safety_page_limit"
+
+    if last_page is None:
+        raise KleinanzeigenLayoutError("HTML-Fallback konnte keine Seite laden")
+    requested = _html_page_url(base_url, 0)
+    parsed_page = core.ParsedPage(
+        tuple(listings),
+        core.PageDiagnostics(
+            core.PageState.RESULTS if listings else core.PageState.NO_RESULTS,
+            requested,
+            requested,
+            cards,
+            len(listings),
+            duplicates,
+            tuple(errors),
+        ),
+    )
+    return parsed_page, _pagination(
+        source="html-fallback",
+        pages_loaded=pages_loaded,
+        page_size_requested=None,
+        page_counts=page_counts,
+        new_counts=new_counts,
+        stop_reason=stop_reason,
+        unique_listings=len(listings),
+        duplicates=duplicates,
+        payload=payload,
+        fallback_reason=fallback_reason,
+    )
 
 
 @app.post("/api/search")
@@ -273,56 +407,33 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
     profile = _profile(payload)
     url = KleinanzeigenUrlBuilder().keyword_url(profile, payload.query)
     parser = core.CloudflarePageParser()
-    source_used = "html"
 
     try:
         if payload.mode == "html":
             page = FetchedPage("inline://html", "inline://html", 200, payload.html or "")
             parsed = parser.parse(page, source_query=payload.query)
-            pagination: dict[str, Any] = {
-                "source": "html",
-                "pages_loaded": 1,
-                "page_counts": [len(parsed.listings)],
-                "new_ids_per_page": [len(parsed.listings)],
-                "stop_reason": "html_mode",
-                "unique_listings": len(parsed.listings),
-                "duplicates": parsed.diagnostics.duplicates_skipped,
-            }
+            pagination = _pagination(
+                source="html",
+                pages_loaded=1,
+                page_size_requested=None,
+                page_counts=[len(parsed.listings)],
+                new_counts=[len(parsed.listings)],
+                stop_reason="html_mode",
+                unique_listings=len(parsed.listings),
+                duplicates=parsed.diagnostics.duplicates_skipped,
+                payload=payload,
+            )
         else:
-            source_used = "mobile-api"
             try:
                 parsed, pagination = await _fetch_all_mobile(payload)
-            except (KleinanzeigenBlockedError, HTTPException, httpx.RequestError) as mobile_exc:
-                page = await core.fetch_search_page(url)
-                parsed = parser.parse(page, source_query=payload.query)
-                source_used = "html-fallback"
-                pagination = {
-                    "source": source_used,
-                    "pages_loaded": 1,
-                    "page_counts": [len(parsed.listings)],
-                    "new_ids_per_page": [len(parsed.listings)],
-                    "stop_reason": "mobile_error_html_fallback",
-                    "mobile_error": str(mobile_exc),
-                    "unique_listings": len(parsed.listings),
-                    "duplicates": parsed.diagnostics.duplicates_skipped,
-                }
-            else:
-                pagination["source"] = source_used
                 if not parsed.listings:
-                    page = await core.fetch_search_page(url)
-                    html_parsed = parser.parse(page, source_query=payload.query)
-                    if html_parsed.listings:
-                        parsed = html_parsed
-                        source_used = "html-fallback"
-                        pagination = {
-                            "source": source_used,
-                            "pages_loaded": 1,
-                            "page_counts": [len(parsed.listings)],
-                            "new_ids_per_page": [len(parsed.listings)],
-                            "stop_reason": "mobile_empty_html_fallback",
-                            "unique_listings": len(parsed.listings),
-                            "duplicates": parsed.diagnostics.duplicates_skipped,
-                        }
+                    parsed, pagination = await _fetch_all_html(payload, url, fallback_reason="mobile_empty")
+            except (KleinanzeigenBlockedError, HTTPException, httpx.RequestError, KleinanzeigenLayoutError) as mobile_exc:
+                parsed, pagination = await _fetch_all_html(
+                    payload,
+                    url,
+                    fallback_reason=f"{type(mobile_exc).__name__}: {mobile_exc}",
+                )
     except KleinanzeigenBlockedError as exc:
         raise HTTPException(status_code=429, detail=str(exc)) from exc
     except KleinanzeigenLayoutError as exc:
@@ -330,7 +441,7 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
     except httpx.RequestError as exc:
         raise HTTPException(status_code=502, detail="Kleinanzeigen ist nicht erreichbar") from exc
 
-    effective_limit = payload.max_results if payload.max_results_explicit else None
+    effective_limit = _effective_limit(payload)
     raw = parsed.listings if effective_limit is None else parsed.listings[:effective_limit]
     scored = [score_listing(item, profile) for item in raw]
     alerts = [item for item in scored if item.decision is MatchDecision.ALERT]
@@ -339,6 +450,9 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
     visible = alerts + (review if payload.include_review else []) + (rejected if payload.include_rejected else [])
     visible = sort_results(visible, payload.sort_by)
 
+    fetched_count = len(parsed.listings)
+    scored_count = len(scored)
+    visible_count = len(visible)
     return {
         "mode": payload.mode,
         "generated_urls": [url] if payload.mode == "live" else [],
@@ -346,31 +460,36 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
         "pagination": pagination,
         "listings": [_listing(item) for item in visible],
         "summary": {
-            "listings": len(visible),
-            "raw_listings": len(raw),
+            "listings": visible_count,
+            "raw_listings": scored_count,
+            "fetched_listings": fetched_count,
+            "scored_listings": scored_count,
+            "visible_listings": visible_count,
+            "hidden_by_filter": scored_count - visible_count,
             "alerts": len(alerts),
             "review": len(review),
             "rejected": len(rejected),
             "cards": parsed.diagnostics.cards_found,
-            "duplicates": parsed.diagnostics.duplicates_skipped,
+            "duplicates": pagination.get("duplicates", parsed.diagnostics.duplicates_skipped),
             "card_errors": len(parsed.diagnostics.errors),
-            "truncated": len(parsed.listings) > len(raw),
+            "truncated": effective_limit is not None and fetched_count > scored_count,
             "pages_loaded": pagination.get("pages_loaded", 0),
             "stop_reason": pagination.get("stop_reason", "unknown"),
-            "source": pagination.get("source", source_used),
+            "source": pagination.get("source", "unknown"),
             "requested_user_limit": payload.max_results,
             "effective_user_limit": effective_limit,
             "user_limit_explicit": payload.max_results_explicit,
-            "page_size_requested": pagination.get("page_size_requested", 41),
+            "page_size_requested": pagination.get("page_size_requested"),
+            "data_consistent": fetched_count == pagination.get("unique_listings", fetched_count),
         },
         "worker": {
             "version": VERSION,
             "single_page": False,
             "primary_source": "mobile-api",
-            "source_used": pagination.get("source", source_used),
-            "fallback": "html-only-on-mobile-failure-or-empty",
-            "matching": "score-v1",
-            "api_contract": "match-v1",
+            "source_used": pagination.get("source", "unknown"),
+            "fallback": "multi-page-html-on-mobile-failure-or-empty",
+            "matching": "score-v1-non-destructive-default",
+            "api_contract": "match-v2-counts",
             "sort_by": payload.sort_by,
         },
     }
