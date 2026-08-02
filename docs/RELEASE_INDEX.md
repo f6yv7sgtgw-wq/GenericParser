@@ -4,6 +4,10 @@ Dieser Index ordnet die produktiven Versionsstände ihren Build-IDs und Abschlus
 
 | Version | Build-ID | Technischer Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
+| 0.42.7 | `gp-0427-20260803-1` | `119a05985d11017940b775bb2c6cc7bc6acd992a` | Free-Tarif: virtuelle Arbeitspakete, max. 7 Karten je Invocation, 5-Sekunden-Pause |
+| 0.42.6 | `gp-0426-20260802-1` | `9607acd28752e571d322cada01c66c20c5f1035f` | Eigenständiger Readiness-Bootstrap und Diagnosebasis |
+| 0.42.5 | `gp-0425-20260802-1` | `81bcedec1bf485faf49264c57af418a958fa8531` | Experimenteller FFI-Transport; wegen Regression verworfen |
+| 0.42.4 | `gp-0424-20260802-1` | `e54d33649371f7c2ca9099fd7d2712c2744b7817` | Gemeinsame Build-Identität einschließlich Eventlog |
 | 0.42.3 | `gp-0423-20260802-1` | `9c8841fecac53ffaa127a7ed83ca94492a260a88` | Pagination-Stopp bei erreichter Gesamtzahl und kurzer HTML-Seite |
 | 0.42.2 | `gp-0422-20260802-1` | `05c77b77d31a34c88dd2721f975492a6bac899fb` | App-freier Ein-Seiten-Service, Datenfluss- und Konsistenzprüfung |
 | 0.42.1 | `gp-0421-20260802-1` | `6cdb40edcc3ef0faf2ba73a62086a68fc6452d85` | Zentraler UI-Zustand und aktivierter Suchbutton |
@@ -21,20 +25,20 @@ Dieser Index ordnet die produktiven Versionsstände ihren Build-IDs und Abschlus
 ## Aktueller Produktionsstand
 
 ```text
-Version:      0.42.3
-Paketversion: 0.42.3
-Build-ID:     gp-0423-20260802-1
+Version:      0.42.7
+Paketversion: 0.42.7
+Build-ID:     gp-0427-20260803-1
 API-Vertrag:  match-v6.1-page-worker
-Worker:       bootstrap+app-free-one-page-service
-Code-Commit:  9c8841fecac53ffaa127a7ed83ca94492a260a88
+Worker:       standalone-bootstrap+free-cpu-work-packets
+Code-Commit:  119a05985d11017940b775bb2c6cc7bc6acd992a
 ```
 
 ## Downloadformat
 
-Der technisch abgeschlossene Stand 0.42.3 kann direkt geladen werden:
+Der technisch abgeschlossene Stand 0.42.7 kann direkt geladen werden:
 
 ```text
-https://github.com/f6yv7sgtgw-wq/GenericParser/archive/9c8841fecac53ffaa127a7ed83ca94492a260a88.zip
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/119a05985d11017940b775bb2c6cc7bc6acd992a.zip
 ```
 
 Der aktuelle Hauptbranch einschließlich nachgezogener Dokumentation ist unter folgendem Standardpfad verfügbar:
