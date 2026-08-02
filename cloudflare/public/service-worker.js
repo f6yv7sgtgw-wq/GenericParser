@@ -1,5 +1,5 @@
-const CACHE="generic-parser-mobile-0.34";
-const ASSETS=["./","./app.css?v=0.34","./app.js?v=0.34","./manifest.webmanifest?v=0.34","./icons/icon.svg"];
+const CACHE="generic-parser-mobile-0.35";
+const ASSETS=["./","./app.css","./app.js","./manifest.webmanifest","./icons/icon.svg"];
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener("fetch",event=>{
