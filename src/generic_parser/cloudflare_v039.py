@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import httpx
@@ -25,38 +26,45 @@ class SearchRequest(legacy.SearchRequest):
 
 
 def _valid_listing(item: Listing) -> bool:
-    """Reject malformed parser output instead of exposing raw HTML as a listing."""
     title = (item.title or "").strip()
     url = (item.url or "").strip()
     return bool(item.id and title and url and "<" not in title and ">" not in title and "<" not in url)
 
 
+def _html_reported_total(text: str) -> int | None:
+    patterns = (
+        r"Mehr\s+als\s+([\d.]+)\s+Ergebnisse",
+        r"([\d.]+)\s+Ergebnisse",
+        r'"total(?:ResultCount|Results|Count)"\s*:\s*(\d+)',
+    )
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            try:
+                return int(match.group(1).replace(".", ""))
+            except ValueError:
+                pass
+    return None
+
+
 def _page_contract(*, source: str, page: int, count: int, complete: bool, stop_reason: str,
                    reported_total: int | None, fallback_reason: str | None = None) -> dict[str, Any]:
     return {
-        "source": source,
-        "page": page,
-        "pages_loaded": 1,
-        "page_counts": [count],
-        "new_ids_per_page": [count],
-        "unique_listings": count,
-        "duplicates": 0,
-        "complete": complete,
-        "partial": not complete,
+        "source": source, "page": page, "pages_loaded": 1,
+        "page_counts": [count], "new_ids_per_page": [count],
+        "unique_listings": count, "duplicates": 0,
+        "complete": complete, "partial": not complete,
         "continuation_available": not complete,
         "next_page": None if complete else page + 1,
-        "stop_reason": stop_reason,
-        "reported_total": reported_total,
-        "fallback_reason": fallback_reason,
-        "worker_unit": "one-page",
+        "stop_reason": stop_reason, "reported_total": reported_total,
+        "fallback_reason": fallback_reason, "worker_unit": "one-page",
     }
 
 
 async def _mobile_page(payload: SearchRequest) -> tuple[Any, int | None]:
     headers = {
         "Authorization": f"Basic {core.MOBILE_API_BASIC_AUTH}",
-        "User-Agent": "okhttp/4.10.0",
-        "Accept": "application/json",
+        "User-Agent": "okhttp/4.10.0", "Accept": "application/json",
         "X-EBAYK-APP": "genericparser-cloudflare",
     }
     async with httpx.AsyncClient(follow_redirects=True, timeout=10.0) as client:
@@ -66,14 +74,14 @@ async def _mobile_page(payload: SearchRequest) -> tuple[Any, int | None]:
     if response.status_code >= 400:
         raise HTTPException(status_code=502, detail=f"Kleinanzeigen-App-API antwortet mit HTTP {response.status_code}")
     data = response.json()
-    parsed = core._parse_mobile(data, payload.query, page=payload.page)
-    return parsed, scope._extract_reported_total(data)
+    return core._parse_mobile(data, payload.query, page=payload.page), scope._extract_reported_total(data)
 
 
-async def _html_page(payload: SearchRequest, url: str) -> Any:
+async def _html_page(payload: SearchRequest, url: str) -> tuple[Any, int | None]:
     page_url = dynamic._html_page_url(url, payload.page)
     page = await core.fetch_search_page(page_url)
-    return core.CloudflarePageParser().parse(page, source_query=payload.query)
+    parsed = core.CloudflarePageParser().parse(page, source_query=payload.query)
+    return parsed, _html_reported_total(page.text)
 
 
 app = FastAPI(title="GenericParser Page Worker", version=VERSION, docs_url=None, redoc_url=None)
@@ -102,9 +110,10 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
         if payload.mode == "html":
             page = core.FetchedPage("inline://html", "inline://html", 200, payload.html or "")
             parsed = core.CloudflarePageParser().parse(page, source_query=payload.query)
+            reported_total = _html_reported_total(payload.html or "")
             source_used = "html"
         elif payload.source == "html-fallback":
-            parsed = await _html_page(payload, url)
+            parsed, reported_total = await _html_page(payload, url)
             source_used = "html-fallback"
         else:
             try:
@@ -112,7 +121,7 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
                 source_used = "mobile-api"
             except (KleinanzeigenBlockedError, HTTPException, httpx.RequestError, KleinanzeigenLayoutError, ValueError) as exc:
                 fallback_reason = f"{type(exc).__name__}: {exc}"
-                parsed = await _html_page(payload, url)
+                parsed, reported_total = await _html_page(payload, url)
                 source_used = "html-fallback"
     except KleinanzeigenBlockedError as exc:
         raise HTTPException(status_code=429, detail=str(exc)) from exc
@@ -150,19 +159,13 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
         "pagination": pagination,
         "listings": [legacy._listing(item) for item in visible],
         "summary": {
-            "reported_total": reported_total,
-            "fetched_listings": count,
-            "visible_listings": len(visible),
-            "hidden_by_filter": len(scored) - len(visible),
+            "reported_total": reported_total, "fetched_listings": count,
+            "visible_listings": len(visible), "hidden_by_filter": len(scored) - len(visible),
             "alerts": len(alerts), "review": len(review), "rejected": len(rejected),
-            "malformed_rejected": malformed,
-            "data_consistent": count == len(scored),
+            "malformed_rejected": malformed, "data_consistent": count == len(scored),
         },
         "worker": {
-            "version": VERSION,
-            "worker_unit": "one-page",
-            "source_used": source_used,
-            "api_contract": "match-v6-page-worker",
-            "matching": "score-v1-non-destructive-default",
+            "version": VERSION, "worker_unit": "one-page", "source_used": source_used,
+            "api_contract": "match-v6-page-worker", "matching": "score-v1-non-destructive-default",
         },
     }
