@@ -1,88 +1,14 @@
-const $ = (id) => document.getElementById(id);
-const state = { installPrompt: null, standaloneFile: window.location.protocol === "file:" };
-const apiUrl = (path) => state.standaloneFile ? null : new URL(path.replace(/^\//, ""), window.location.href).toString();
-const demo = {
-  mode: "demo", generated_urls: ["https://www.kleinanzeigen.de/s-evercade-sunsoft-collection-1/k0?sortingField=SORTING_DATE"],
-  diagnostics: [{state:"results",cards_found:3,listings_parsed:2,duplicates_skipped:1,errors:[]}],
-  listings: [
-    {id:"10001",title:"Evercade Sunsoft Collection 1",url:"https://www.kleinanzeigen.de",price:"29",price_raw:"29 € VB",price_flags:["verhandelbar"],postal_code:"37136",place:"Ebergötzen",posted_at:new Date().toISOString(),description:"Sehr guter Zustand, vollständig.",tags:["Versand möglich"],image_url:null},
-    {id:"10002",title:"Sunsoft Collection 1 für Evercade",url:"https://www.kleinanzeigen.de",price:"34",price_raw:"34 €",price_flags:[],postal_code:"37073",place:"Göttingen",posted_at:new Date().toISOString(),description:"Geöffnet und getestet.",tags:[],image_url:null}
-  ], summary:{listings:2,cards:3,duplicates:1,card_errors:0,truncated:false}, worker:{version:"0.251-demo"}
-};
-
-function tokenHeaders(){const token=$("token").value.trim();localStorage.setItem("gp-token",token);return token?{"X-GenericParser-Token":token}:{};}
-function numberOrNull(id){const value=$(id).value.trim();return value===""?null:Number(value);}
-function message(text,error=false){const box=$("message");box.textContent=String(text??"");box.className=`message${error?" error":""}`;}
-function clearMessage(){$("message").className="message hidden";}
-function setBusy(value){$("search-button").classList.toggle("busy",value);$("search-button").textContent=value?"Suche läuft …":"Live-Suche starten";}
-function metric(value,label){return `<div class="metric"><strong>${value}</strong><span>${label}</span></div>`;}
-function escapeHtml(value){return String(value??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));}
-function errorText(value){
-  if(value==null)return "Unbekannter Fehler";
-  if(typeof value==="string")return value;
-  if(value instanceof Error)return value.message||value.name||"Unbekannter Fehler";
-  if(Array.isArray(value))return value.map(errorText).join("; ");
-  if(typeof value==="object"){
-    if(typeof value.msg==="string")return value.msg;
-    if(typeof value.detail==="string")return value.detail;
-    if(value.detail!=null)return errorText(value.detail);
-    if(typeof value.message==="string")return value.message;
-    try{return JSON.stringify(value);}catch{return "Unbekannter Fehler";}
-  }
-  return String(value);
-}
-async function readResponse(response){
-  const raw=await response.text();
-  let data=null;
-  if(raw){try{data=JSON.parse(raw);}catch{data=raw;}}
-  if(!response.ok){throw new Error(`HTTP ${response.status}: ${errorText(data)||response.statusText||"Anfrage fehlgeschlagen"}`);}
-  return data;
-}
-function render(payload){clearMessage();$("summary").classList.remove("hidden");$("summary").innerHTML=metric(payload.summary.listings,"Anzeigen")+metric(payload.summary.cards,"Karten")+metric(payload.summary.duplicates,"Duplikate")+metric(payload.summary.card_errors,"Fehler");$("diagnostics-card").classList.remove("hidden");$("worker-version").textContent=payload.worker?.version||"Worker";$("urls").innerHTML=(payload.generated_urls||[]).map(url=>`<code>${escapeHtml(url)}</code>`).join("");$("diagnostics").innerHTML=(payload.diagnostics||[]).map(d=>`<div class="diagnostic"><span>${escapeHtml(d.state)}</span><span>${d.cards_found} Karten</span><span>${d.listings_parsed} geparst</span><span>${d.duplicates_skipped} Duplikate</span></div>`).join("");$("results").innerHTML=(payload.listings||[]).map(item=>`<article class="listing"><div class="listing-image">${item.image_url?`<img src="${escapeHtml(item.image_url)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:"KEIN BILD"}</div><div><h3><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">${escapeHtml(item.title)}</a></h3><div class="price">${item.price!==null?`${escapeHtml(item.price)} €`:escapeHtml(item.price_raw||"Preis offen")}</div><div class="meta">${escapeHtml([item.postal_code,item.place].filter(Boolean).join(" "))} · ID ${escapeHtml(item.id)}</div><p class="description">${escapeHtml(item.description||"Keine Beschreibung in der Ergebnisliste.")}</p><div class="tags">${[...(item.tags||[]),...(item.price_flags||[])].map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join("")}</div></div></article>`).join("");if(!(payload.listings||[]).length)message("Die Suche wurde verarbeitet, aber es wurden keine Anzeigen gefunden.");}
-
-async function liveSearch(){
-  if(state.standaloneFile)return message("Live-Suchen benötigen die veröffentlichte Cloudflare-URL.",true);
-  setBusy(true);
-  clearMessage();
-  const postalCode=$("postal-code").value.trim()||null;
-  const locationId=numberOrNull("location-id");
-  const hasLocation=Boolean(postalCode||locationId);
-  const body={
-    mode:"live",
-    query:$("query").value.trim(),
-    postal_code:postalCode,
-    location_id:locationId,
-    radius_km:hasLocation?numberOrNull("radius-km"):null,
-    max_results:numberOrNull("max-results")??120
-  };
-  try{
-    const response=await fetch(apiUrl("api/search"),{method:"POST",headers:{"Content-Type":"application/json",...tokenHeaders()},body:JSON.stringify(body)});
-    const data=await readResponse(response);
-    render(data);
-  }catch(error){message(errorText(error),true);}finally{setBusy(false);}
-}
-async function extractLocation(){if(state.standaloneFile){const match=$("location-url").value.trim().match(/(?:^|[/?])l(\d+)(?:r\d+)?(?:$|[/?#])/);if(match){$("location-id").value=match[1];return message(`Location-ID ${match[1]} lokal übernommen.`);}return message("Keine Location-ID in der URL gefunden.",true);}const url=$("location-url").value.trim();if(!url)return message("Bitte im Feld zur Ortsbestimmung zuerst eine Kleinanzeigen-URL mit Location-ID einfügen.",true);try{const response=await fetch(apiUrl("api/location-id"),{method:"POST",headers:{"Content-Type":"application/json",...tokenHeaders()},body:JSON.stringify({url})});const data=await readResponse(response);$("location-id").value=data.location_id;message(`Location-ID ${data.location_id} übernommen.`);}catch(error){message(errorText(error),true);}}
-
-$("search-button").addEventListener("click",liveSearch);$("demo-button").addEventListener("click",()=>render(demo));$("extract-location").addEventListener("click",extractLocation);$("token").value=localStorage.getItem("gp-token")||"";
-window.addEventListener("online",()=>{$("connection").className="status";$("connection").innerHTML="<span></span> Online";});window.addEventListener("offline",()=>{$("connection").className="status offline";$("connection").innerHTML="<span></span> Offline";});
-window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();state.installPrompt=event;$("install-button").classList.remove("hidden");});$("install-button").addEventListener("click",async()=>{if(!state.installPrompt)return;state.installPrompt.prompt();await state.installPrompt.userChoice;state.installPrompt=null;$("install-button").classList.add("hidden");});
-if("serviceWorker" in navigator && window.location.protocol.startsWith("http")) navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
-
-function initialiseBrowserMode(){
-  const connection=$("connection");
-  if(state.standaloneFile){
-    connection.className="status offline";
-    connection.innerHTML="<span></span> Demo-Datei";
-    $("search-button").disabled=true;
-    $("search-button").title="Live-Suchen benötigen die veröffentlichte Cloudflare-URL";
-    $("health-link").classList.add("hidden");
-    const note=$("browser-note");
-    note.className="message";
-    note.textContent="Diese Datei läuft vollständig lokal im Demo-Modus. Für echte Suchen öffne nach dem Deployment die workers.dev-URL.";
-    render(demo);
-  }else{
-    connection.className=navigator.onLine?"status":"status offline";
-    connection.innerHTML=navigator.onLine?"<span></span> Online":"<span></span> Offline";
-  }
-}
-initialiseBrowserMode();
+const $=id=>document.getElementById(id);const apiUrl=p=>new URL(p.replace(/^\//,''),location.href).toString();
+const list=id=>$(id).value.split(',').map(x=>x.trim()).filter(Boolean);const num=id=>$(id).value.trim()===''?null:Number($(id).value);
+function msg(t,e=false){$('message').textContent=t;$('message').className='message'+(e?' error':'');}function clear(){ $('message').className='message hidden'; }
+function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function headers(){const t=$('token').value.trim();localStorage.setItem('gp-token',t);return {'Content-Type':'application/json',...(t?{'X-GenericParser-Token':t}:{})};}
+function metric(v,l){return `<div class="metric"><strong>${v}</strong><span>${l}</span></div>`;}
+function body(){const pc=$('postal-code').value.trim()||null,li=num('location-id'),local=!!(pc||li);return {mode:'live',query:$('query').value.trim(),postal_code:pc,location_id:li,radius_km:local?num('radius-km'):null,max_results:num('max-results')??120,required_terms:list('required-terms'),excluded_terms:list('excluded-terms'),model_patterns:list('model-patterns'),brands:list('brands'),product_types:[],max_price:num('max-price'),market_value:num('market-value'),accept_bundles:$('accept-bundles').checked,accept_incomplete:$('accept-incomplete').checked,include_review:$('include-review').checked,include_rejected:$('include-rejected').checked,sort_by:$('sort-by').value};}
+function render(p){clear();$('summary').classList.remove('hidden');$('summary').innerHTML=metric(p.summary.listings,'sichtbar')+metric(p.summary.raw_listings,'Rohfunde')+metric(p.summary.alerts,'Treffer')+metric(p.summary.review,'Prüfen')+metric(p.summary.rejected,'abgelehnt')+metric(p.summary.duplicates,'Duplikate');$('diagnostics-card').classList.remove('hidden');$('worker-version').textContent=p.worker.version;$('urls').innerHTML=(p.generated_urls||[]).map(u=>`<code>${esc(u)}</code>`).join('');$('diagnostics').innerHTML=(p.diagnostics||[]).map(d=>`<div class="diagnostic"><span>${esc(d.state)}</span><span>${d.cards_found} Karten</span><span>${d.listings_parsed} geparst</span></div>`).join('');$('results').innerHTML=(p.listings||[]).map(x=>`<article class="listing"><div class="listing-image">${x.image_url?`<img src="${esc(x.image_url)}" loading="lazy">`:'KEIN BILD'}</div><div><div class="row between"><span class="chip">${esc(x.listing_class)}</span><strong>${x.score}/100 · ${esc(x.decision)}</strong></div><h3><a href="${esc(x.url)}" target="_blank">${esc(x.title)}</a></h3><div class="price">${x.price!==null?esc(x.price)+' €':esc(x.price_raw||'Preis offen')}</div><div class="meta">${esc([x.postal_code,x.place].filter(Boolean).join(' '))}</div><p>${esc(x.reason)}</p><div class="tags">${[...(x.positive_signals||[]),...(x.warnings||[])].map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div></div></article>`).join('');if(!p.listings.length)msg('Keine Treffer entsprechen dem aktuellen Profil.');}
+async function search(){clear();$('search-button').textContent='Suche läuft …';$('search-button').disabled=true;try{const r=await fetch(apiUrl("api/search"),{method:'POST',headers:headers(),body:JSON.stringify(body())});const raw=await r.text();let d;try{d=JSON.parse(raw)}catch{d=raw}if(!r.ok)throw new Error(typeof d==='string'?d:(d.detail?.[0]?.msg||d.detail||JSON.stringify(d)));render(d);}catch(e){msg(e.message,true)}finally{$('search-button').textContent='Live-Suche starten';$('search-button').disabled=false}}
+const ids=['query','required-terms','excluded-terms','model-patterns','brands','max-price','market-value','postal-code','location-id','radius-km','max-results','sort-by','accept-bundles','accept-incomplete','include-review','include-rejected'];
+function refreshProfiles(){const s=$('profiles');s.innerHTML='<option value="">– auswählen –</option>';Object.keys(localStorage).filter(k=>k.startsWith('gp-profile:')).sort().forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k.slice(11);s.appendChild(o)});}
+function saveProfile(){const name=$('profile-name').value.trim()||'Meine Suche';const data={};ids.forEach(id=>data[id]=$(id).type==='checkbox'?$(id).checked:$(id).value);localStorage.setItem('gp-profile:'+name,JSON.stringify(data));refreshProfiles();msg(`Profil „${name}“ gespeichert.`)}
+$('profiles').addEventListener('change',e=>{if(!e.target.value)return;const d=JSON.parse(localStorage.getItem(e.target.value));Object.entries(d).forEach(([id,v])=>{if($(id).type==='checkbox')$(id).checked=v;else $(id).value=v});$('profile-name').value=e.target.value.slice(11)});$('search-button').addEventListener('click',search);$('save-profile').addEventListener('click',saveProfile);$('demo-button').addEventListener('click',()=>msg('Demo entfällt in 0.3: Bitte eine Live-Suche oder ein gespeichertes Profil verwenden.'));$('token').value=localStorage.getItem('gp-token')||'';refreshProfiles();
+const standaloneFile = window.location.protocol === "file:";if('serviceWorker'in navigator)navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
