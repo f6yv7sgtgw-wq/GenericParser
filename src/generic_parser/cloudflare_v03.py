@@ -10,10 +10,10 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from . import cloudflare_app as core
 from .matching import classify_listing, score_listing, sort_results
-from .models import Listing, MatchDecision, MatchResult, SearchProfile
+from .models import MatchDecision, MatchResult, SearchProfile
 from .sources.kleinanzeigen import FetchedPage, KleinanzeigenBlockedError, KleinanzeigenLayoutError, KleinanzeigenUrlBuilder, extract_location_id
 
-VERSION = "0.32.0"
+VERSION = "0.32.1"
 
 
 class SearchRequest(BaseModel):
@@ -22,15 +22,15 @@ class SearchRequest(BaseModel):
     postal_code: str | None = None
     location_id: int | None = Field(default=None, gt=0)
     radius_km: int | None = Field(default=None, ge=0, le=200)
-    max_results: int | None = Field(default=None, ge=0)
+    max_results: int | None = Field(default=None, ge=1)
     html: str | None = Field(default=None, max_length=2_000_000)
     required_terms: list[str] = Field(default_factory=list, max_length=30)
     excluded_terms: list[str] = Field(default_factory=list, max_length=30)
     model_patterns: list[str] = Field(default_factory=list, max_length=30)
     brands: list[str] = Field(default_factory=list, max_length=20)
     product_types: list[str] = Field(default_factory=list, max_length=20)
-    max_price: Decimal | None = Field(default=None, ge=0)
-    market_value: Decimal | None = Field(default=None, ge=0)
+    max_price: Decimal | None = Field(default=None, gt=0)
+    market_value: Decimal | None = Field(default=None, gt=0)
     accept_bundles: bool = False
     accept_incomplete: bool = False
     include_review: bool = True
@@ -54,6 +54,11 @@ class SearchRequest(BaseModel):
         if len(value) != 5 or not value.isdigit():
             raise ValueError("postal_code muss eine fünfstellige deutsche PLZ sein")
         return value
+
+    @field_validator("required_terms", "excluded_terms", "model_patterns", "brands", "product_types")
+    @classmethod
+    def clean_terms(cls, values: list[str]) -> list[str]:
+        return [value.strip() for value in values if value.strip() and value.strip() != "0"]
 
     @model_validator(mode="after")
     def validate_location(self) -> "SearchRequest":
@@ -169,7 +174,7 @@ async def location_id(payload: LocationRequest, request: Request) -> dict[str, i
 
 
 async def _fetch_all_mobile(payload: SearchRequest):
-    """Load mobile API pages until Kleinanzeigen returns a partial or empty page."""
+    """Load pages until an empty page or a page without new listing IDs is returned."""
     page_size = min(41, payload.max_results) if payload.max_results else 41
     target = payload.max_results
     headers = {
@@ -180,6 +185,7 @@ async def _fetch_all_mobile(payload: SearchRequest):
     }
     listings = []
     seen: set[str] = set()
+    page_signatures: set[tuple[str, ...]] = set()
     errors = []
     cards = duplicates = pages_loaded = 0
     page_number = 0
@@ -196,6 +202,13 @@ async def _fetch_all_mobile(payload: SearchRequest):
             errors.extend(parsed.diagnostics.errors)
             if not parsed.listings:
                 break
+
+            signature = tuple(item.id for item in parsed.listings)
+            if signature in page_signatures:
+                duplicates += len(parsed.listings)
+                break
+            page_signatures.add(signature)
+
             added = 0
             for listing in parsed.listings:
                 if listing.id in seen:
@@ -206,11 +219,23 @@ async def _fetch_all_mobile(payload: SearchRequest):
                 added += 1
                 if target is not None and len(listings) >= target:
                     break
-            if (target is not None and len(listings) >= target) or added == 0 or len(parsed.listings) < page_size:
+            if (target is not None and len(listings) >= target) or added == 0:
                 break
             page_number += 1
+
     url = f"mobile-api://pages/{pages_loaded}"
-    return core.ParsedPage(tuple(listings), core.PageDiagnostics(core.PageState.RESULTS if listings else core.PageState.NO_RESULTS, url, url, cards, len(listings), duplicates, tuple(errors)))
+    return core.ParsedPage(
+        tuple(listings),
+        core.PageDiagnostics(
+            core.PageState.RESULTS if listings else core.PageState.NO_RESULTS,
+            url,
+            url,
+            cards,
+            len(listings),
+            duplicates,
+            tuple(errors),
+        ),
+    )
 
 
 @app.post("/api/search")
@@ -252,8 +277,11 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
         "diagnostics": [_diagnostic(parsed.diagnostics)],
         "listings": [_listing(item) for item in visible],
         "summary": {
-            "listings": len(visible), "raw_listings": len(raw), "alerts": len(alerts),
-            "review": len(review), "rejected": len(rejected),
+            "listings": len(visible),
+            "raw_listings": len(raw),
+            "alerts": len(alerts),
+            "review": len(review),
+            "rejected": len(rejected),
             "cards": parsed.diagnostics.cards_found,
             "duplicates": parsed.diagnostics.duplicates_skipped,
             "card_errors": len(parsed.diagnostics.errors),
@@ -262,7 +290,7 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
         "worker": {
             "version": VERSION,
             "single_page": False,
-            "fallback": "mobile-api-pagination",
+            "fallback": "mobile-api-pagination-until-empty",
             "matching": "score-v1",
             "api_contract": "match-v1",
             "sort_by": payload.sort_by,
