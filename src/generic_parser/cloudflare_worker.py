@@ -1,4 +1,4 @@
-"""Cloudflare-Python-Worker-Einstiegspunkt für GenericParser 0.2d.2."""
+"""Cloudflare-Python-Worker-Einstiegspunkt für GenericParser 0.34."""
 
 from __future__ import annotations
 
@@ -12,7 +12,6 @@ from workers import WorkerEntrypoint
 
 def _load_generic_parser_package():
     """Rekonstruiert das src-Paket in Pywranglers flacher Modulumgebung."""
-
     package_name = "generic_parser"
     if package_name in sys.modules:
         return sys.modules[package_name]
@@ -35,10 +34,11 @@ def _load_generic_parser_package():
 
 _load_generic_parser_package()
 
-from generic_parser import cloudflare_app  # noqa: E402
+# Produktiver Einstiegspunkt: aktuelle Matching-/Pagination-API.
+from generic_parser import cloudflare_v03  # noqa: E402
 
-cloudflare_app.VERSION = "0.2.0rc3"
-app = cloudflare_app.app
+cloudflare_v03.VERSION = "0.34.0"
+app = cloudflare_v03.app
 
 
 class Default(WorkerEntrypoint):
