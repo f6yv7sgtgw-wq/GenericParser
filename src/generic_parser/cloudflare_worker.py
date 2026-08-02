@@ -1,4 +1,4 @@
-"""Cloudflare-Python-Worker-Einstiegspunkt für GenericParser 0.34."""
+"""Cloudflare-Python-Worker-Einstiegspunkt für GenericParser 0.35."""
 
 from __future__ import annotations
 
@@ -34,11 +34,7 @@ def _load_generic_parser_package():
 
 _load_generic_parser_package()
 
-# Produktiver Einstiegspunkt: aktuelle Matching-/Pagination-API.
-from generic_parser import cloudflare_v03  # noqa: E402
-
-cloudflare_v03.VERSION = "0.34.0"
-app = cloudflare_v03.app
+from generic_parser.cloudflare_v03 import app  # noqa: E402
 
 
 class Default(WorkerEntrypoint):
