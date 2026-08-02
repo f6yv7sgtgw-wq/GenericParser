@@ -4,11 +4,11 @@ Wiederverwendbarer Python-Parser und mobile PWA für Kleinanzeigen-Suchen, entwi
 
 ## Aktueller Stand
 
-- **Produktversion:** `0.42.2`
-- **Paketversion:** `0.42.2`
-- **Build-ID:** `gp-0422-20260802-1`
+- **Produktversion:** `0.42.3`
+- **Paketversion:** `0.42.3`
+- **Build-ID:** `gp-0423-20260802-1`
 - **API-Vertrag:** `match-v6.1-page-worker`
-- **Produktions-Commit:** `05c77b77d31a34c88dd2721f975492a6bac899fb`
+- **Technischer Abschluss-Commit:** `9c8841fecac53ffaa127a7ed83ca94492a260a88`
 - **Worker-Modell:** app-freier Ein-Seiten-Suchservice mit minimalem Bootstrap
 
 ## Kernfunktionen
@@ -22,8 +22,9 @@ Wiederverwendbarer Python-Parser und mobile PWA für Kleinanzeigen-Suchen, entwi
 - Eventlog mit Request-, Seiten-, Versions- und Fehlerdaten
 - Deployment-Handshake zwischen UI, Controller und Worker
 - PWA für Mobilgeräte
+- Abschluss der Pagination, sobald die gemeldete Gesamtzahl erreicht ist
 
-## Architektur 0.42.2
+## Architektur 0.42.3
 
 ```text
 Browser/PWA
@@ -32,10 +33,13 @@ Browser/PWA
 → app-freier Search-Service
 → genau eine Kleinanzeigen-Ergebnisseite
 → Matching und Konsistenzprüfung
+→ Abschlussprüfung gegen reported_total und Seitengröße
 → strukturierte JSON-Antwort
 ```
 
 UI, Controller, Worker, Eventlog und PWA-Cache verwenden dieselbe Version, Build-ID und denselben API-Vertrag. Eine Live-Suche wird nur freigegeben, wenn der Handshake vollständig konsistent ist.
+
+0.42.3 verhindert unnötige Folgeseiten: Sobald die bisher abgedeckte Ergebnismenge die von Kleinanzeigen gemeldete Gesamtzahl erreicht, wird die Suche mit `reported_total_reached` beendet. Eine kurze HTML-Seite beendet die Suche mit `short_html_page`.
 
 ## Cloud-Version lokal testen
 
