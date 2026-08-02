@@ -14,18 +14,21 @@
     return `${Date.now().toString(36)}-${generation.toString(36)}`;
   }
 
+  function triggerOriginalStop() {
+    const stopButton = document.getElementById('stop-button');
+    if (stopButton && !stopButton.disabled) stopButton.click();
+  }
+
   async function cancelActive(reason = 'superseded') {
     if (!activeRun) return;
-    try {
-      window.stopRequested = true;
-    } catch {}
+    triggerOriginalStop();
     if (activeController && !activeController.signal.aborted) {
       activeController.abort(reason);
     }
     try {
       await activeRun;
     } catch {
-      // The previous search may reject because its request was intentionally aborted.
+      // Intentional cancellation may reject the old request.
     }
     activeRun = null;
     activeController = null;
@@ -36,8 +39,7 @@
     if (!activeController || !/\/api\/search(?:\?|$)/.test(url)) {
       return nativeFetch(input, init);
     }
-    const merged = {...init, signal: activeController.signal};
-    return nativeFetch(input, merged);
+    return nativeFetch(input, {...init, signal:activeController.signal});
   };
 
   window.runSearch = async function sessionRunSearch(state, resume = false) {
@@ -77,9 +79,8 @@
 
   const searchButton = document.getElementById('search-button');
   searchButton?.addEventListener('click', () => {
-    if (activeRun) {
-      try { window.stopRequested = true; } catch {}
-      activeController?.abort('replaced-by-new-search');
+    if (activeRun && activeController && !activeController.signal.aborted) {
+      activeController.abort('replaced-by-new-search');
     }
   }, true);
 
