@@ -10,6 +10,7 @@ from . import cloudflare_v039 as page_worker
 
 VERSION = "0.41.1"
 BUILD_ID = "gp-0411-20260802-1"
+BUILD_REVISION = BUILD_ID
 API_CONTRACT = "match-v6.1-page-worker"
 
 # Use the proven one-page worker directly. 0.41 resource middleware is
@@ -37,12 +38,14 @@ async def build_identity_headers(
                 "worker": {
                     "version": VERSION,
                     "build_id": BUILD_ID,
+                    "build_revision": BUILD_REVISION,
                     "api_contract": API_CONTRACT,
                 },
             },
         )
     response.headers["X-GenericParser-Version"] = VERSION
     response.headers["X-GenericParser-Build"] = BUILD_ID
+    response.headers["X-GenericParser-Commit"] = BUILD_REVISION
     response.headers["X-GenericParser-Contract"] = API_CONTRACT
     return response
 
@@ -54,6 +57,7 @@ async def api_version() -> dict[str, Any]:
         "status": "ok",
         "version": VERSION,
         "build_id": BUILD_ID,
+        "build_revision": BUILD_REVISION,
         "api_contract": API_CONTRACT,
         "worker_unit": "one-page",
         "search_ready": True,
@@ -67,9 +71,10 @@ async def resource_status_0411() -> dict[str, Any]:
         "status": "ok",
         "version": VERSION,
         "build_id": BUILD_ID,
+        "build_revision": BUILD_REVISION,
         "resource_diagnostics": "disabled_for_stability",
         "memory": "runtime_not_exposed",
     }
 
 
-__all__ = ["app", "VERSION", "BUILD_ID", "API_CONTRACT"]
+__all__ = ["app", "VERSION", "BUILD_ID", "BUILD_REVISION", "API_CONTRACT"]
