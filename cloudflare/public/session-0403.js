@@ -56,7 +56,7 @@
     state.sessionId = sessionId;
     state.sessionQuery = activeQuery;
     activeController = new AbortController();
-    document.getElementById('worker-version').textContent = '0.40.3';
+    document.getElementById('worker-version').textContent = '0.40.4';
     workerState('Neue Suche startet', `Session ${sessionId.slice(-6)} · ${activeQuery}`, 'working');
     const promise = Promise.resolve(originalRunSearch(state, resume));
     activeRun = promise;
