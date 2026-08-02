@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generic-kleinanzeigen-parser"
-version = "0.42.7"
-description = "Kleinanzeigen-Parser mit CPU-schonenden Arbeitspaketen für Cloudflare Workers Free"
+version = "0.42.8"
+description = "Kleinanzeigen-Parser mit CPU-schonenden Arbeitspaketen und natürlichem Pagination-Ende für Cloudflare Workers Free"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
