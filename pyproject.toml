@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generic-kleinanzeigen-parser"
-version = "0.42.4"
+version = "0.42.5"
 description = "Kleinanzeigen-Parser mit seitenweiser Cloudflare-Suche, Matching, Scoring und mobiler PWA"
 readme = "README.md"
 requires-python = ">=3.13"
