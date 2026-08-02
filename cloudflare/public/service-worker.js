@@ -1,5 +1,5 @@
-const CACHE="generic-parser-mobile-0.42.3-gp-0423-20260802-1";
-const ASSETS=["./","./eventlog.html","./app.css?v=0.423","./layout-0409.css?v=0.423","./app.js?v=0.423","./controller-0423.js?v=0.423","./controller-0411.js?v=0.423-source","./handshake-0423.js?v=0.423","./eventlog-0423.js?v=0.423","./manifest.webmanifest?v=0.423","./icons/icon.svg"];
+const CACHE="generic-parser-mobile-0.42.4-gp-0424-20260802-1";
+const ASSETS=["./","./eventlog.html?v=0.424","./app.css?v=0.424","./layout-0409.css?v=0.424","./build-identity-0424.js?v=0.424","./app.js?v=0.424","./controller-0424.js?v=0.424","./controller-0411.js?v=0.424-source","./handshake-0424.js?v=0.424","./eventlog-0424.js?v=0.424","./manifest.webmanifest?v=0.424","./icons/icon.svg"];
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener("fetch",event=>{const url=new URL(event.request.url);if(event.request.method!=="GET"||url.pathname.includes("/api/"))return;event.respondWith(fetch(event.request,{cache:"no-store"}).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));}return response;}).catch(async()=>await caches.match(event.request)||await caches.match("./")));});
