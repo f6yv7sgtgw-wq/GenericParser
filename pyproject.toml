@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generic-kleinanzeigen-parser"
-version = "0.42.8"
-description = "Kleinanzeigen-Parser mit CPU-schonenden Arbeitspaketen und natürlichem Pagination-Ende für Cloudflare Workers Free"
+version = "0.42.9"
+description = "Kleinanzeigen-Parser mit CPU-schonenden Arbeitspaketen, natürlichem Pagination-Ende und Trefferabdeckungs-Diagnose"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [{ name = "Jan Leduc" }]
-keywords = ["kleinanzeigen", "parser", "cloudflare-workers", "pwa", "matching", "scoring", "free-plan"]
+keywords = ["kleinanzeigen", "parser", "cloudflare-workers", "pwa", "matching", "scoring", "free-plan", "diagnostics"]
 dependencies = [
   "PyYAML>=6.0",
   "beautifulsoup4>=4.12",
