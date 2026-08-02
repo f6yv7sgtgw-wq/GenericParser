@@ -1,19 +1,19 @@
 {
   "product": "GenericParser",
-  "version": "0.42.3",
-  "package_version": "0.42.3",
-  "build_id": "gp-0423-20260802-1",
+  "version": "0.42.4",
+  "package_version": "0.42.4",
+  "build_id": "gp-0424-20260802-1",
   "api_contract": "match-v6.1-page-worker",
-  "worker_unit": "bootstrap+app-free-one-page-service",
+  "worker_unit": "bootstrap+app-free-one-page-service+pagination-guard+shared-identity",
   "release_date": "2026-08-02",
-  "code_release_commit": "9c8841fecac53ffaa127a7ed83ca94492a260a88",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "live-user-tested-with-pagination-fix",
-  "live_cloudflare_test": true,
+  "status": "implementation-complete-static-consistency-checked",
+  "live_cloudflare_test": false,
   "fixes": [
-    "reported_total_reached",
-    "short_html_page",
-    "avoid_unnecessary_followup_request"
+    "shared_build_identity",
+    "eventlog_worker_version_self_check",
+    "eventlog_cache_busting",
+    "single_eventlog_storage_key"
   ],
   "metadata_schema": 2
 }
