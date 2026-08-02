@@ -1,45 +1,62 @@
 # GenericParser
 
-Wiederverwendbarer Python-Parser und mobile PWA für Kleinanzeigen-Suchen, entwickelt für die Einbindung in **Evercade** und **SNES-PAL-Sammlung**.
+Wiederverwendbarer Kleinanzeigen-Parser und mobile PWA für die Einbindung in **Evercade** und **SNES-PAL-Sammlung**.
 
 ## Aktueller Stand
 
-- **Produktversion:** `0.42.3`
-- **Paketversion:** `0.42.3`
-- **Build-ID:** `gp-0423-20260802-1`
+- **Produktversion:** `0.42.7`
+- **Paketversion:** `0.42.7`
+- **Build-ID:** `gp-0427-20260803-1`
 - **API-Vertrag:** `match-v6.1-page-worker`
-- **Technischer Abschluss-Commit:** `9c8841fecac53ffaa127a7ed83ca94492a260a88`
-- **Worker-Modell:** app-freier Ein-Seiten-Suchservice mit minimalem Bootstrap
+- **Zielplattform:** Cloudflare Workers Free
+- **Worker-Modell:** CPU-schonende virtuelle Arbeitspakete
 
-## Kernfunktionen
+## Ursache der bisherigen Abbrüche
 
-- Suche über Kleinanzeigen mit Mobile-API und HTML-Fallback
-- seitenweise Verarbeitung ohne feste Ergebnisbegrenzung
-- Matching, Scoring und Filterung
-- Deduplizierung und konsistente kumulative Ergebnisliste
-- Suchstand speichern und fortsetzen
-- sanfter Suchstopp und Session-Isolation
-- Eventlog mit Request-, Seiten-, Versions- und Fehlerdaten
-- Deployment-Handshake zwischen UI, Controller und Worker
-- PWA für Mobilgeräte
-- Abschluss der Pagination, sobald die gemeldete Gesamtzahl erreicht ist
+Die Cloudflare-Traces weisen den Fehler eindeutig als `Worker exceeded CPU time limit` aus. Der frühere Python-Pfad baute für jede Kleinanzeigen-Seite einen vollständigen BeautifulSoup-DOM auf, normalisierte und bewertete alle Karten und überschritt dadurch das CPU-Budget des Free-Tarifs.
 
-## Architektur 0.42.3
+## Architektur 0.42.7
 
 ```text
 Browser/PWA
-→ Controller und Deployment-Handshake
+→ konsistenter Versions-Handshake
+→ 5 Sekunden Pause zwischen Aufrufen
 → minimaler Cloudflare-ASGI-Bootstrap
-→ app-freier Search-Service
-→ genau eine Kleinanzeigen-Ergebnisseite
-→ Matching und Konsistenzprüfung
-→ Abschlussprüfung gegen reported_total und Seitengröße
-→ strukturierte JSON-Antwort
+→ CPU-schonender Search-Service
+→ eine Kleinanzeigen-Quellseite wird in vier virtuelle Arbeitspakete zerlegt
+→ höchstens sieben Karten pro Worker-Aufruf
+→ einfache, begrenzte HTML-Extraktion ohne vollständigen DOM
+→ Suchstand nach jedem Paket speichern
+→ nächstes Paket als eigener Worker-Aufruf
 ```
 
-UI, Controller, Worker, Eventlog und PWA-Cache verwenden dieselbe Version, Build-ID und denselben API-Vertrag. Eine Live-Suche wird nur freigegeben, wenn der Handshake vollständig konsistent ist.
+Die Ausführung ist bewusst langsam. Eine Quellseite mit ungefähr 25 Anzeigen benötigt bis zu vier einzelne Worker-Aufrufe. Der Browser wartet zwischen den Aufrufen fünf Sekunden und kann den gespeicherten Stand später fortsetzen.
 
-0.42.3 verhindert unnötige Folgeseiten: Sobald die bisher abgedeckte Ergebnismenge die von Kleinanzeigen gemeldete Gesamtzahl erreicht, wird die Suche mit `reported_total_reached` beendet. Eine kurze HTML-Seite beendet die Suche mit `short_html_page`.
+## Kernfunktionen
+
+- Kleinanzeigen-Suche in kleinen CPU-schonenden Arbeitspaketen
+- höchstens sieben Karten pro Worker-Invocation
+- keine vollständige BeautifulSoup-DOM-Rekonstruktion im Free-Tarif-Pfad
+- persistenter Suchstand und Fortsetzung
+- Deduplizierung über alle Arbeitspakete
+- Pflicht- und Ausschlussbegriffe sowie Maximalpreis im leichten Matching
+- sanfter Suchstopp und Session-Isolation
+- Eventlog mit Request-, Paket-, Versions- und Fehlerdaten
+- Deployment-Handshake zwischen UI, Controller und Worker
+- PWA für Mobilgeräte
+- Abschluss, sobald die gemeldete Gesamtzahl oder eine kurze Quellseite erreicht ist
+
+## Versionskonsistenz
+
+UI, Controller, Worker, Eventlog und PWA-Cache verwenden gemeinsam:
+
+```text
+Version:     0.42.7
+Build-ID:    gp-0427-20260803-1
+API-Vertrag: match-v6.1-page-worker
+```
+
+Eine Live-Suche wird nur freigegeben, wenn der Handshake vollständig konsistent ist.
 
 ## Cloud-Version lokal testen
 
