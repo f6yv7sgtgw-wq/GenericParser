@@ -1,11 +1,11 @@
-const CACHE="generic-parser-mobile-0.32";
-const ASSETS=["./","./app.css","./app.js?v=0.32","./manifest.webmanifest","./icons/icon.svg"];
+const CACHE="generic-parser-mobile-0.321";
+const ASSETS=["./","./app.css?v=0.321","./app.js?v=0.321","./manifest.webmanifest?v=0.321","./icons/icon.svg"];
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener("fetch",event=>{
   const url=new URL(event.request.url);
   if(event.request.method!=="GET"||url.pathname.includes("/api/"))return;
-  event.respondWith(fetch(event.request).then(response=>{
+  event.respondWith(fetch(event.request,{cache:"no-store"}).then(response=>{
     if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));}
     return response;
   }).catch(async()=>await caches.match(event.request)||await caches.match("./")));
