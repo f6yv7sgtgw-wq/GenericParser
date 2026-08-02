@@ -1,4 +1,4 @@
-"""Cloudflare-Python-Worker-Einstiegspunkt für GenericParser 0.35."""
+"""Cloudflare-Python-Worker-Einstiegspunkt für GenericParser 0.351."""
 
 from __future__ import annotations
 
