@@ -1,11 +1,13 @@
 const $ = id => document.getElementById(id);
 const apiUrl = path => new URL(path.replace(/^\//, ''), location.href).toString();
-const list = id => $(id).value.split(',').map(value => value.trim()).filter(value => value && value !== '0');
+const list = id => $(id).value.split(',').map(v => v.trim()).filter(v => v && v !== '0');
 const num = id => $(id).value.trim() === '' ? null : Number($(id).value);
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 let maxResultsExplicit = false;
 let stopRequested = false;
+let activeState = null;
+let activeWorker = null;
 
 function msg(text, error = false) {
   $('message').textContent = text;
@@ -13,14 +15,16 @@ function msg(text, error = false) {
 }
 function clearMessage() { $('message').className = 'message hidden'; }
 function esc(value) {
-  return String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+  return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 }
 function headers() {
   const token = $('token').value.trim();
   localStorage.setItem('gp-token', token);
   return {'Content-Type':'application/json', ...(token ? {'X-GenericParser-Token':token} : {})};
 }
-function metric(value, label) { return `<div class="metric"><strong>${esc(value)}</strong><span>${esc(label)}</span></div>`; }
+function metric(value, label) {
+  return `<div class="metric"><strong>${esc(value)}</strong><span>${esc(label)}</span></div>`;
+}
 function workerState(title, detail, kind = '') {
   const box = $('worker-state-text');
   box.className = 'diagnostic ' + kind;
@@ -62,7 +66,7 @@ function matchOf(item) {
 }
 function card(item) {
   const match = matchOf(item);
-  return `<article class="listing"><div class="listing-image">${item.image_url ? `<img src="${esc(item.image_url)}" loading="lazy">` : 'KEIN BILD'}</div><div><div class="row between"><span class="chip">${esc(match.listingClass)}</span><strong>${match.score}/100 · ${esc(match.decision)}</strong></div><h3><a href="${esc(item.url)}" target="_blank">${esc(item.title)}</a></h3><div class="price">${item.price != null ? esc(item.price) + ' €' : esc(item.price_raw || 'Preis offen')}</div><div class="meta">${esc([item.postal_code,item.place].filter(Boolean).join(' '))}</div><p>${esc(match.reason)}</p></div></article>`;
+  return `<article class="listing"><div class="listing-image">${item.image_url ? `<img src="${esc(item.image_url)}" loading="lazy">` : 'KEIN BILD'}</div><div><div class="row between"><span class="chip">${esc(match.listingClass)}</span><strong>${match.score}/100 · ${esc(match.decision)}</strong></div><h3><a href="${esc(item.url)}" target="_blank" rel="noopener">${esc(item.title)}</a></h3><div class="price">${item.price != null ? esc(item.price) + ' €' : esc(item.price_raw || 'Preis offen')}</div><div class="meta">${esc([item.postal_code,item.place].filter(Boolean).join(' '))}</div><p>${esc(match.reason)}</p></div></article>`;
 }
 function sorted(items, mode) {
   const result = [...items];
@@ -71,20 +75,49 @@ function sorted(items, mode) {
   if (mode === 'price_desc') return result.sort((a,b) => (Number(b.price) || -Infinity) - (Number(a.price) || -Infinity));
   return result.sort((a,b) => Number(b.score || b.match?.score || 0) - Number(a.score || a.match?.score || 0));
 }
+function resourceTrend(ms) {
+  if (ms < 1500) return 'niedrig';
+  if (ms < 3000) return 'mittel';
+  return 'hoch';
+}
+function adaptiveDelay(baseMs, latencyMs, failures) {
+  const latencyDelay = latencyMs < 1000 ? 250 : latencyMs < 2000 ? 700 : latencyMs < 4000 ? 1500 : 4000;
+  return Math.min(15000, Math.max(baseMs, latencyDelay) * Math.max(1, failures + 1));
+}
+function consistencyOf(state) {
+  const expected = state.items.size + state.duplicates + state.hidden;
+  return {
+    ok: state.fetched === expected,
+    expected,
+    label: state.fetched === expected ? 'konsistent' : `Abweichung ${state.fetched - expected}`
+  };
+}
 
 function renderState(state, worker) {
-  const items = sorted([...state.items.values()], $('sort-by').value);
+  activeState = state;
+  activeWorker = worker;
+  const allItems = sorted([...state.items.values()], $('sort-by').value);
+  const shownItems = allItems.slice(0, state.renderLimit);
+  const consistency = consistencyOf(state);
   $('summary').classList.remove('hidden');
   let metrics = '';
   if (state.reportedTotal != null) metrics += metric(state.reportedTotal.toLocaleString('de-DE'), 'Kleinanzeigen meldet');
-  metrics += metric(items.length, 'eindeutig') + metric(state.pages, 'Seiten') + metric(state.requests, 'Anfragen') + metric(state.duplicates, 'Duplikate') + metric(state.malformed, 'verworfen');
+  metrics += metric(allItems.length, 'eindeutig') + metric(state.pages, 'Seiten') + metric(state.requests, 'Anfragen') + metric(state.duplicates, 'Duplikate') + metric(state.malformed, 'verworfen') + metric(state.avgLatency ? `${Math.round(state.avgLatency)} ms` : '–', 'Ø Antwort') + metric(consistency.ok ? '✓' : '!', 'Datenkonsistenz');
   $('summary').innerHTML = metrics;
   $('diagnostics-card').classList.remove('hidden');
-  $('worker-version').textContent = worker?.version ?? '0.39.2';
+  $('worker-version').textContent = worker?.version ?? '0.39.3';
   $('urls').innerHTML = state.url ? `<code>${esc(state.url)}</code>` : '';
   const status = state.error ? 'Fehler' : state.running ? 'arbeitet' : state.stopped ? 'gestoppt' : state.complete ? 'vollständig' : 'bereit';
-  $('diagnostics').innerHTML = `<div class="diagnostic"><span>Quelle: ${esc(state.source)}</span><span>Status: ${status}</span><span>Aktuelle Seite: ${state.page + 1}</span><span>Seitenziel: ${state.pageLimit >= 500 ? 'bis Ende' : state.pageLimit}</span><span>Anfragen: ${state.requests}</span><span>Stopp: ${esc(state.stopReason || '–')}</span></div>` + state.history.map(entry => `<div class="diagnostic"><span>Seite ${entry.page + 1}</span><span>${entry.count} gültig</span><span>${entry.malformed} verworfen</span><span>${esc(entry.reason)}</span></div>`).join('');
-  $('results').innerHTML = items.map(card).join('');
+  const trend = resourceTrend(state.lastLatency || 0);
+  $('diagnostics').innerHTML = `<div class="diagnostic"><span>Quelle: ${esc(state.source)}</span><span>Status: ${status}</span><span>Aktuelle Seite: ${state.page + 1}</span><span>Seitenziel: ${state.pageLimit >= 500 ? 'bis Ende' : state.pageLimit}</span><span>Anfragen: ${state.requests}</span><span>Letzte Antwort: ${state.lastLatency ? Math.round(state.lastLatency) + ' ms' : '–'}</span><span>Ressourcentrend: ${trend}</span><span>Adaptive Pause: ${state.nextDelay} ms</span><span>Konsistenz: ${esc(consistency.label)}</span><span>Stopp: ${esc(state.stopReason || '–')}</span></div>` + state.history.map(entry => `<div class="diagnostic"><span>Seite ${entry.page + 1}</span><span>${entry.count} abgerufen</span><span>${entry.visible} sichtbar</span><span>${entry.hidden} ausgeblendet</span><span>${entry.malformed} verworfen</span><span>${Math.round(entry.latency)} ms</span><span>${esc(entry.reason)}</span></div>`).join('');
+  $('results').innerHTML = shownItems.map(card).join('');
+  const more = $('show-more');
+  if (allItems.length > shownItems.length) {
+    more.classList.remove('hidden');
+    more.textContent = `Weitere Ergebnisse anzeigen (${shownItems.length}/${allItems.length})`;
+  } else {
+    more.classList.add('hidden');
+  }
 }
 
 function safeError(status, text, data) {
@@ -97,23 +130,65 @@ function safeError(status, text, data) {
   return text.slice(0, 300) || `API-Fehler ${status}`;
 }
 async function requestPage(payload) {
+  const started = performance.now();
   const response = await fetch(apiUrl('api/search'), {method:'POST', headers:headers(), body:JSON.stringify(payload)});
   const text = await response.text();
+  const latency = performance.now() - started;
   let data = null;
   try { data = JSON.parse(text); } catch {}
-  if (!response.ok) throw new Error(safeError(response.status, text, data));
-  if (!data || !Array.isArray(data.listings) || !data.pagination) throw new Error('Der Worker lieferte keine gültige Seitenantwort.');
+  if (!response.ok) {
+    const error = new Error(safeError(response.status, text, data));
+    error.status = response.status;
+    error.latency = latency;
+    throw error;
+  }
+  if (!data || !Array.isArray(data.listings) || !data.pagination || !data.summary) throw new Error('Der Worker lieferte keine gültige Seitenantwort.');
+  data._latency = latency;
   return data;
 }
 
-async function pauseWithStatus(milliseconds, nextPage, loaded) {
+async function pauseWithStatus(milliseconds, nextPage, loaded, reason = 'Nächste Seite') {
   const started = Date.now();
   while (!stopRequested) {
     const remaining = milliseconds - (Date.now() - started);
     if (remaining <= 0) break;
-    workerState('Worker wartet', `Nächste Seite ${nextPage + 1} in ${(remaining / 1000).toFixed(1).replace('.', ',')} s · ${loaded} Ergebnisse geladen`, 'working');
+    workerState('Worker wartet', `${reason} ${nextPage + 1} in ${(remaining / 1000).toFixed(1).replace('.', ',')} s · ${loaded} Ergebnisse geladen`, 'working');
     await sleep(Math.min(100, remaining));
   }
+}
+async function requestWithBackoff(payload, state) {
+  const waits = [0, 2000, 5000];
+  let lastError;
+  for (let attempt = 0; attempt < waits.length; attempt++) {
+    if (stopRequested) throw new Error('Suche wurde gestoppt.');
+    if (waits[attempt] > 0) {
+      state.retries++;
+      await pauseWithStatus(waits[attempt], state.page, state.items.size, `Wiederholung ${attempt}`);
+    }
+    try {
+      return await requestPage(payload);
+    } catch (error) {
+      lastError = error;
+      if (error.status === 400 || error.status === 401 || error.status === 422) break;
+      workerState('Worker pausiert', `Seite ${state.page + 1} fehlgeschlagen · Wiederholung wird vorbereitet`, 'working');
+    }
+  }
+  throw lastError;
+}
+
+function validatePage(data) {
+  const fetched = Number(data.summary.fetched_listings || 0);
+  const visible = Number(data.summary.visible_listings || data.listings.length || 0);
+  const hidden = Number(data.summary.hidden_by_filter || 0);
+  const pageCount = Number(data.pagination.unique_listings || 0);
+  const ids = data.listings.map(item => String(item.id));
+  const duplicateIds = ids.length - new Set(ids).size;
+  const issues = [];
+  if (fetched !== pageCount) issues.push(`abgerufen ${fetched} ≠ Seitensumme ${pageCount}`);
+  if (visible !== data.listings.length) issues.push(`sichtbar ${visible} ≠ geliefert ${data.listings.length}`);
+  if (fetched !== visible + hidden) issues.push(`abgerufen ${fetched} ≠ sichtbar ${visible} + ausgeblendet ${hidden}`);
+  if (duplicateIds > 0) issues.push(`${duplicateIds} doppelte IDs innerhalb der Seite`);
+  return {ok:issues.length === 0, issues, fetched, visible, hidden};
 }
 
 async function search() {
@@ -127,43 +202,38 @@ async function search() {
   const base = baseBody();
   const resultLimit = maxResultsExplicit && num('max-results') > 0 ? num('max-results') : null;
   const pageLimit = Number($('search-scope').value || 20);
-  const pageDelay = Number($('page-delay').value || 400);
-  const state = {items:new Map(), page:0, pages:0, requests:0, duplicates:0, malformed:0, source:'auto', reportedTotal:null, complete:false, running:true, stopped:false, error:false, stopReason:'', url:'', history:[], pageLimit};
+  const baseDelay = Number($('page-delay').value || 400);
+  const state = {items:new Map(), page:0, pages:0, requests:0, retries:0, duplicates:0, malformed:0, hidden:0, fetched:0, source:'auto', reportedTotal:null, complete:false, running:true, stopped:false, error:false, stopReason:'', url:'', history:[], pageLimit, renderLimit:80, lastLatency:0, totalLatency:0, avgLatency:0, nextDelay:baseDelay, consistencyIssues:[]};
   let worker = null;
 
   try {
     while (!state.complete && state.pages < pageLimit && state.page < 500) {
-      if (stopRequested) {
-        state.stopped = true;
-        state.stopReason = 'user_stopped';
-        break;
-      }
-      if (resultLimit !== null && state.items.size >= resultLimit) {
-        state.complete = true;
-        state.stopReason = 'user_limit_reached';
-        break;
-      }
+      if (stopRequested) { state.stopped = true; state.stopReason = 'user_stopped'; break; }
+      if (resultLimit !== null && state.items.size >= resultLimit) { state.complete = true; state.stopReason = 'user_limit_reached'; break; }
 
       workerState('Worker arbeitet', `Seite ${state.page + 1} wird verarbeitet · ${state.items.size} Ergebnisse geladen`, 'working');
       const payload = {...base, page:state.page, source:state.source};
-      let data;
-      try {
-        data = await requestPage(payload);
-      } catch (firstError) {
-        workerState('Worker wiederholt', `Seite ${state.page + 1} wird nach kurzer Pause erneut versucht`, 'working');
-        await pauseWithStatus(800, state.page, state.items.size);
-        if (stopRequested) throw firstError;
-        data = await requestPage(payload);
+      const data = await requestWithBackoff(payload, state);
+      const check = validatePage(data);
+      if (!check.ok) {
+        state.consistencyIssues.push(...check.issues.map(issue => `Seite ${state.page + 1}: ${issue}`));
+        throw new Error(`Dateninkonsistenz erkannt: ${check.issues.join('; ')}`);
       }
 
       worker = data.worker;
       state.requests++;
       state.pages++;
+      state.lastLatency = Number(data._latency || 0);
+      state.totalLatency += state.lastLatency;
+      state.avgLatency = state.totalLatency / state.requests;
+      state.nextDelay = Math.round(adaptiveDelay(baseDelay, state.lastLatency, 0));
       state.source = data.pagination.source || state.source;
       state.stopReason = data.pagination.stop_reason || '';
       state.url = (data.generated_urls || [])[0] || state.url;
-      if (data.summary?.reported_total != null) state.reportedTotal = Number(data.summary.reported_total);
-      state.malformed += Number(data.summary?.malformed_rejected || 0);
+      if (data.summary.reported_total != null) state.reportedTotal = Number(data.summary.reported_total);
+      state.malformed += Number(data.summary.malformed_rejected || 0);
+      state.hidden += check.hidden;
+      state.fetched += check.fetched;
 
       let added = 0;
       for (const item of data.listings) {
@@ -171,40 +241,34 @@ async function search() {
         if (!state.items.has(id)) { state.items.set(id, item); added++; }
         else state.duplicates++;
       }
-      state.history.push({page:state.page, count:Number(data.pagination.unique_listings || 0), malformed:Number(data.summary?.malformed_rejected || 0), reason:state.stopReason});
-      workerState('Worker fertig', `Seite ${state.page + 1} abgeschlossen · ${added} neue Ergebnisse`, 'done');
+      state.history.push({page:state.page, count:check.fetched, visible:check.visible, hidden:check.hidden, malformed:Number(data.summary.malformed_rejected || 0), latency:state.lastLatency, reason:state.stopReason});
+      workerState('Worker fertig', `Seite ${state.page + 1} abgeschlossen · ${added} neue Ergebnisse · Ressourcentrend ${resourceTrend(state.lastLatency)}`, 'done');
       state.complete = data.pagination.complete === true || data.pagination.next_page == null;
       state.page = data.pagination.next_page ?? state.page;
       renderState(state, worker);
 
-      if (resultLimit !== null && state.items.size >= resultLimit) {
-        state.complete = true;
-        state.stopReason = 'user_limit_reached';
-      }
+      if (resultLimit !== null && state.items.size >= resultLimit) { state.complete = true; state.stopReason = 'user_limit_reached'; }
       if (!state.complete && state.pages < pageLimit) {
-        msg(`Kurze Pause vor Seite ${state.page + 1} · ${state.items.size} eindeutige Ergebnisse`);
-        await pauseWithStatus(pageDelay, state.page, state.items.size);
+        msg(`Adaptive Pause vor Seite ${state.page + 1} · ${state.items.size} eindeutige Ergebnisse`);
+        await pauseWithStatus(state.nextDelay, state.page, state.items.size);
       }
     }
 
-    if (stopRequested) {
-      state.stopped = true;
-      state.stopReason = 'user_stopped';
-    } else if (!state.complete && state.pages >= pageLimit) {
-      state.stopped = true;
-      state.stopReason = 'page_limit_reached';
-    }
+    if (stopRequested) { state.stopped = true; state.stopReason = 'user_stopped'; }
+    else if (!state.complete && state.pages >= pageLimit) { state.stopped = true; state.stopReason = 'page_limit_reached'; }
 
     state.running = false;
     renderState(state, worker);
+    const consistency = consistencyOf(state);
+    if (!consistency.ok) throw new Error(`Kumulative Dateninkonsistenz: abgerufen ${state.fetched}, erwartet ${consistency.expected}`);
     if (state.stopped) {
-      workerState('Worker fertig', `Suche beendet · ${state.items.size} Ergebnisse nach ${state.pages} Seiten`, 'done');
+      workerState('Worker fertig', `Suche beendet · ${state.items.size} Ergebnisse nach ${state.pages} Seiten · Daten konsistent`, 'done');
       msg(`Suche nach ${state.pages} Seiten beendet. ${state.items.size}${state.reportedTotal ? ` von ${state.reportedTotal.toLocaleString('de-DE')}` : ''} Ergebnisse geladen.`);
     } else if (!state.items.size) {
-      workerState('Worker fertig', 'Keine Ergebnisse gefunden', 'done');
+      workerState('Worker fertig', 'Keine Ergebnisse gefunden · Daten konsistent', 'done');
       msg('Keine Ergebnisse gefunden.');
     } else {
-      workerState('Worker fertig', `Suche vollständig · ${state.items.size} eindeutige Ergebnisse`, 'done');
+      workerState('Worker fertig', `Suche vollständig · ${state.items.size} eindeutige Ergebnisse · Daten konsistent`, 'done');
       msg(`${state.items.size}${state.reportedTotal ? ` von ${state.reportedTotal.toLocaleString('de-DE')}` : ''} Ergebnissen verarbeitet.`);
     }
   } catch (error) {
@@ -257,6 +321,11 @@ $('stop-button').addEventListener('click', () => {
   $('stop-button').disabled = true;
   workerState('Worker stoppt', 'Die aktuelle Seite wird beendet; danach wird nicht fortgesetzt.', 'working');
 });
+$('show-more').addEventListener('click', () => {
+  if (!activeState) return;
+  activeState.renderLimit += 80;
+  renderState(activeState, activeWorker);
+});
 $('save-profile').addEventListener('click', saveProfile);
 $('max-results').addEventListener('input', event => { if (event.isTrusted) maxResultsExplicit = event.target.value.trim() !== ''; });
 $('demo-button').addEventListener('click', () => msg('Bitte eine Live-Suche starten.'));
@@ -267,4 +336,4 @@ $('query').value = '';
 $('token').value = localStorage.getItem('gp-token') || '';
 maxResultsExplicit = false;
 refreshProfiles();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js?v=0.392').catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js?v=0.393').catch(() => {});
