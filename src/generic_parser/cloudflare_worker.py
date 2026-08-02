@@ -1,4 +1,4 @@
-"""Cloudflare-Python-Worker-Einstiegspunkt für GenericParser 0.353."""
+"""Cloudflare-Python-Worker-Einstiegspunkt für GenericParser 0.36."""
 
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ def _load_generic_parser_package():
 
 _load_generic_parser_package()
 
-from generic_parser.cloudflare_v03 import app  # noqa: E402
+from generic_parser.cloudflare_v036 import app  # noqa: E402
 
 
 class Default(WorkerEntrypoint):
