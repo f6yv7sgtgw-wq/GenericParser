@@ -1,5 +1,7 @@
 from generic_parser.cloudflare_v03 import (
-    MAX_PAGES,
+    HTML_REQUEST_PAGE_BUDGET,
+    MOBILE_REQUEST_PAGE_BUDGET,
+    SAFETY_PAGE_LIMIT,
     VERSION,
     SearchRequest,
     _effective_limit,
@@ -8,9 +10,11 @@ from generic_parser.cloudflare_v03 import (
 )
 
 
-def test_version_and_safety_limit() -> None:
-    assert VERSION == "0.35.2"
-    assert MAX_PAGES == 100
+def test_version_and_resource_limits() -> None:
+    assert VERSION == "0.35.3"
+    assert SAFETY_PAGE_LIMIT == 100
+    assert MOBILE_REQUEST_PAGE_BUDGET == 6
+    assert HTML_REQUEST_PAGE_BUDGET == 3
 
 
 def test_empty_result_limit_is_not_effective() -> None:
@@ -43,28 +47,44 @@ def test_html_pagination_uses_page_num_without_losing_filters() -> None:
     assert "pageNum=2" in third
 
 
-def test_pagination_contract_is_consistent() -> None:
+def test_resource_budget_result_is_partial_and_consistent() -> None:
+    payload = SearchRequest(query="snes")
+    result = _pagination(
+        source="mobile-api",
+        pages_loaded=6,
+        page_size_requested=41,
+        page_counts=[41, 41, 41, 41, 41, 41],
+        new_counts=[41, 41, 40, 41, 39, 41],
+        stop_reason="resource_budget_reached",
+        unique_listings=243,
+        duplicates=3,
+        payload=payload,
+        request_page_budget=6,
+    )
+    assert result["partial"] is True
+    assert result["complete"] is False
+    assert result["unique_listings"] == sum(result["new_ids_per_page"])
+
+
+def test_natural_end_is_complete() -> None:
     payload = SearchRequest(query="evercade")
     result = _pagination(
-        source="html-fallback",
-        pages_loaded=3,
-        page_size_requested=None,
-        page_counts=[27, 27, 10],
-        new_counts=[27, 25, 10],
-        stop_reason="empty_page",
-        unique_listings=62,
-        duplicates=2,
+        source="mobile-api",
+        pages_loaded=2,
+        page_size_requested=41,
+        page_counts=[41, 12],
+        new_counts=[41, 12],
+        stop_reason="short_page",
+        unique_listings=53,
+        duplicates=0,
         payload=payload,
-        fallback_reason="mobile_empty",
+        request_page_budget=6,
     )
-    assert result["unique_listings"] == sum(result["new_ids_per_page"])
-    assert result["user_limit"] is None
-    assert result["user_limit_explicit"] is False
     assert result["complete"] is True
-    assert result["fallback_reason"] == "mobile_empty"
+    assert result["partial"] is False
 
 
-def test_user_limit_stop_is_transparent() -> None:
+def test_explicit_user_limit_is_transparent() -> None:
     payload = SearchRequest(query="evercade", max_results=50, max_results_explicit=True)
     result = _pagination(
         source="mobile-api",
@@ -76,7 +96,8 @@ def test_user_limit_stop_is_transparent() -> None:
         unique_listings=50,
         duplicates=0,
         payload=payload,
+        request_page_budget=6,
     )
     assert result["user_limit"] == 50
     assert result["user_limit_explicit"] is True
-    assert result["complete"] is False
+    assert result["partial"] is False
