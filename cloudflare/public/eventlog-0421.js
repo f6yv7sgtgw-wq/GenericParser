@@ -1,0 +1,16 @@
+(() => {
+  'use strict';
+  const KEY='generic-parser-eventlog-0421';
+  const BUILD='gp-0421-20260802-1';
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function rows(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}}
+  function render(){
+    const data=rows().slice().reverse();
+    document.getElementById('log-summary').innerHTML=`<span>${data.length} Ereignisse</span><span>${data[0]?new Date(data[0].time).toLocaleString('de-DE'):'Noch leer'}</span><span>Build ${BUILD}</span>`;
+    document.getElementById('event-log').innerHTML=data.map(x=>`<div class="diagnostic"><span><strong>${esc(new Date(x.time).toLocaleString('de-DE'))}</strong></span><span>${esc(x.type)}</span><span>${esc(x.message)}</span>${Object.entries(x).filter(([k])=>!['time','epoch','type','message','signature'].includes(k)).map(([k,v])=>`<span>${esc(k)}: ${esc(typeof v==='object'?JSON.stringify(v):v)}</span>`).join('')}</div>`).join('')||'<div class="diagnostic"><span>Noch keine Ereignisse protokolliert.</span></div>';
+  }
+  document.getElementById('refresh-log').onclick=render;
+  document.getElementById('clear-log').onclick=()=>{localStorage.removeItem(KEY);render()};
+  document.getElementById('copy-log').onclick=async()=>{await navigator.clipboard.writeText(JSON.stringify(rows(),null,2));document.getElementById('copy-log').textContent='Kopiert'};
+  render();setInterval(render,3000);
+})();
