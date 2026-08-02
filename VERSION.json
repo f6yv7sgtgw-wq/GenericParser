@@ -1,20 +1,28 @@
 {
   "product": "GenericParser",
-  "version": "0.42.5",
-  "package_version": "0.42.5",
-  "build_id": "gp-0425-20260802-1",
+  "version": "0.42.7",
+  "package_version": "0.42.7",
+  "build_id": "gp-0427-20260803-1",
   "api_contract": "match-v6.1-page-worker",
-  "worker_unit": "bootstrap+app-free-one-page-service+native-workers-fetch+pagination-guard",
-  "release_date": "2026-08-02",
+  "worker_unit": "standalone-bootstrap+free-cpu-work-packets",
+  "release_date": "2026-08-03",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "implementation-complete-static-consistency-checked",
+  "status": "implementation-complete-static-consistency-checked-live-test-required",
   "live_cloudflare_test": false,
   "fixes": [
-    "native_workers_fetch_via_python_js_ffi",
-    "retain_official_asgi_entrypoint",
-    "absolute_version_endpoint_url",
-    "cloudflare_error_headers_capture",
-    "pagination_guard"
+    "split_each_source_page_into_virtual_work_packets",
+    "maximum_seven_cards_per_worker_invocation",
+    "replace_beautifulsoup_dom_with_bounded_lightweight_extraction",
+    "five_second_pause_between_requests",
+    "preserve_persistent_resume_state",
+    "shared_version_build_and_contract_identity"
   ],
+  "constraints": {
+    "target_plan": "Cloudflare Workers Free",
+    "cpu_limit_observed": "Worker exceeded CPU time limit",
+    "time_critical": false,
+    "packet_size": 7,
+    "pause_ms": 5000
+  },
   "metadata_schema": 2
 }
