@@ -13,7 +13,7 @@ from .matching import classify_listing, score_listing, sort_results
 from .models import Listing, MatchDecision, MatchResult, SearchProfile
 from .sources.kleinanzeigen import FetchedPage, KleinanzeigenBlockedError, KleinanzeigenLayoutError, KleinanzeigenUrlBuilder, extract_location_id
 
-VERSION = "0.35.0"
+VERSION = "0.35.1"
 MAX_PAGES = 100
 
 
@@ -24,6 +24,7 @@ class SearchRequest(BaseModel):
     location_id: int | None = Field(default=None, gt=0)
     radius_km: int | None = Field(default=None, ge=0, le=200)
     max_results: int | None = Field(default=None, ge=1)
+    max_results_explicit: bool = False
     html: str | None = Field(default=None, max_length=2_000_000)
     required_terms: list[str] = Field(default_factory=list, max_length=30)
     excluded_terms: list[str] = Field(default_factory=list, max_length=30)
@@ -175,8 +176,9 @@ async def location_id(payload: LocationRequest, request: Request) -> dict[str, i
 
 
 async def _fetch_all_mobile(payload: SearchRequest) -> tuple[Any, dict[str, Any]]:
-    page_size = min(41, payload.max_results) if payload.max_results else 41
-    target = payload.max_results
+    effective_limit = payload.max_results if payload.max_results_explicit else None
+    page_size = min(41, effective_limit) if effective_limit else 41
+    target = effective_limit
     headers = {
         "Authorization": f"Basic {core.MOBILE_API_BASIC_AUTH}",
         "User-Agent": "okhttp/4.10.0",
@@ -258,6 +260,7 @@ async def _fetch_all_mobile(payload: SearchRequest) -> tuple[Any, dict[str, Any]
         "stop_reason": stop_reason,
         "safety_page_limit": MAX_PAGES,
         "user_limit": target,
+        "user_limit_explicit": payload.max_results_explicit,
         "unique_listings": len(listings),
         "duplicates": duplicates,
     }
@@ -327,7 +330,8 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
     except httpx.RequestError as exc:
         raise HTTPException(status_code=502, detail="Kleinanzeigen ist nicht erreichbar") from exc
 
-    raw = parsed.listings if payload.max_results is None else parsed.listings[:payload.max_results]
+    effective_limit = payload.max_results if payload.max_results_explicit else None
+    raw = parsed.listings if effective_limit is None else parsed.listings[:effective_limit]
     scored = [score_listing(item, profile) for item in raw]
     alerts = [item for item in scored if item.decision is MatchDecision.ALERT]
     review = [item for item in scored if item.decision is MatchDecision.REVIEW]
@@ -354,6 +358,10 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
             "pages_loaded": pagination.get("pages_loaded", 0),
             "stop_reason": pagination.get("stop_reason", "unknown"),
             "source": pagination.get("source", source_used),
+            "requested_user_limit": payload.max_results,
+            "effective_user_limit": effective_limit,
+            "user_limit_explicit": payload.max_results_explicit,
+            "page_size_requested": pagination.get("page_size_requested", 41),
         },
         "worker": {
             "version": VERSION,
