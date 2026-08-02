@@ -1,13 +1,9 @@
-"""Cloudflare-Python-Worker-Einstiegspunkt für GenericParser 0.2d."""
+"""Cloudflare-Python-Worker-Einstiegspunkt für GenericParser 0.3."""
 
 import asgi
 from workers import WorkerEntrypoint
 
-import generic_parser.cloudflare_app as cloudflare_app
-
-# Die Deployment-Fassung meldet die Release-Candidate-Version von 0.2d.
-cloudflare_app.VERSION = "0.2.0rc2"
-app = cloudflare_app.app
+from generic_parser.cloudflare_v03 import app
 
 
 class Default(WorkerEntrypoint):
