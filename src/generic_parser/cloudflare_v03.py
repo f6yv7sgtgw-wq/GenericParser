@@ -13,7 +13,7 @@ from .matching import classify_listing, score_listing, sort_results
 from .models import Listing, MatchDecision, MatchResult, SearchProfile
 from .sources.kleinanzeigen import FetchedPage, KleinanzeigenBlockedError, KleinanzeigenLayoutError, KleinanzeigenUrlBuilder, extract_location_id
 
-VERSION = "0.31.0"
+VERSION = "0.32.0"
 
 
 class SearchRequest(BaseModel):
@@ -22,7 +22,7 @@ class SearchRequest(BaseModel):
     postal_code: str | None = None
     location_id: int | None = Field(default=None, gt=0)
     radius_km: int | None = Field(default=None, ge=0, le=200)
-    max_results: int = Field(default=120, ge=0, le=500)
+    max_results: int | None = Field(default=None, ge=0)
     html: str | None = Field(default=None, max_length=2_000_000)
     required_terms: list[str] = Field(default_factory=list, max_length=30)
     excluded_terms: list[str] = Field(default_factory=list, max_length=30)
@@ -97,15 +97,6 @@ def _decimal(value: Decimal | None) -> str | None:
 def _listing(result: MatchResult) -> dict[str, Any]:
     listing = result.listing
     listing_class, terms = classify_listing(listing)
-    match = {
-        "score": result.score,
-        "decision": result.decision.value,
-        "positive_signals": list(result.positive_signals),
-        "warnings": list(result.warnings),
-        "reason": result.reason,
-        "listing_class": listing_class.value,
-        "class_terms": list(terms),
-    }
     return {
         "id": listing.id,
         "title": listing.title,
@@ -121,8 +112,22 @@ def _listing(result: MatchResult) -> dict[str, Any]:
         "source_query": listing.source_query,
         "tags": list(listing.tags),
         "image_url": listing.image_url,
-        **match,
-        "match": match,
+        "score": result.score,
+        "decision": result.decision.value,
+        "positive_signals": list(result.positive_signals),
+        "warnings": list(result.warnings),
+        "reason": result.reason,
+        "listing_class": listing_class.value,
+        "class_terms": list(terms),
+        "match": {
+            "score": result.score,
+            "decision": result.decision.value,
+            "positive_signals": list(result.positive_signals),
+            "warnings": list(result.warnings),
+            "reason": result.reason,
+            "listing_class": listing_class.value,
+            "class_terms": list(terms),
+        },
     }
 
 
@@ -163,6 +168,51 @@ async def location_id(payload: LocationRequest, request: Request) -> dict[str, i
     return {"location_id": value}
 
 
+async def _fetch_all_mobile(payload: SearchRequest):
+    """Load mobile API pages until Kleinanzeigen returns a partial or empty page."""
+    page_size = min(41, payload.max_results) if payload.max_results else 41
+    target = payload.max_results
+    headers = {
+        "Authorization": f"Basic {core.MOBILE_API_BASIC_AUTH}",
+        "User-Agent": "okhttp/4.10.0",
+        "Accept": "application/json",
+        "X-EBAYK-APP": "genericparser-cloudflare",
+    }
+    listings = []
+    seen: set[str] = set()
+    errors = []
+    cards = duplicates = pages_loaded = 0
+    page_number = 0
+    async with httpx.AsyncClient(follow_redirects=True, timeout=15.0) as client:
+        while True:
+            response = await client.get(core._mobile_url(payload, page=page_number, size=page_size), headers=headers)
+            if response.status_code in {401, 403, 429}:
+                raise KleinanzeigenBlockedError(f"Kleinanzeigen-App-API verweigert den Zugriff ({response.status_code})")
+            if response.status_code >= 400:
+                raise HTTPException(status_code=502, detail=f"Kleinanzeigen-App-API antwortet mit HTTP {response.status_code}")
+            parsed = core._parse_mobile(response.json(), payload.query, page=page_number)
+            pages_loaded += 1
+            cards += parsed.diagnostics.cards_found
+            errors.extend(parsed.diagnostics.errors)
+            if not parsed.listings:
+                break
+            added = 0
+            for listing in parsed.listings:
+                if listing.id in seen:
+                    duplicates += 1
+                    continue
+                seen.add(listing.id)
+                listings.append(listing)
+                added += 1
+                if target is not None and len(listings) >= target:
+                    break
+            if (target is not None and len(listings) >= target) or added == 0 or len(parsed.listings) < page_size:
+                break
+            page_number += 1
+    url = f"mobile-api://pages/{pages_loaded}"
+    return core.ParsedPage(tuple(listings), core.PageDiagnostics(core.PageState.RESULTS if listings else core.PageState.NO_RESULTS, url, url, cards, len(listings), duplicates, tuple(errors)))
+
+
 @app.post("/api/search")
 async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
     _token(request)
@@ -176,10 +226,10 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
         except KleinanzeigenLayoutError:
             if payload.mode != "live":
                 raise
-            parsed = await core.fetch_mobile_api(payload)
+            parsed = await _fetch_all_mobile(payload)
         else:
-            if payload.mode == "live" and (payload.max_results == 0 or len(parsed.listings) < payload.max_results):
-                mobile = await core.fetch_mobile_api(payload)
+            if payload.mode == "live" and (payload.max_results is None or len(parsed.listings) < payload.max_results):
+                mobile = await _fetch_all_mobile(payload)
                 if len(mobile.listings) > len(parsed.listings):
                     parsed = mobile
     except KleinanzeigenBlockedError as exc:
@@ -189,7 +239,7 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
     except httpx.RequestError as exc:
         raise HTTPException(status_code=502, detail="Kleinanzeigen ist nicht erreichbar") from exc
 
-    raw = parsed.listings if payload.max_results == 0 else parsed.listings[:payload.max_results]
+    raw = parsed.listings if payload.max_results is None else parsed.listings[:payload.max_results]
     scored = [score_listing(item, profile) for item in raw]
     alerts = [item for item in scored if item.decision is MatchDecision.ALERT]
     review = [item for item in scored if item.decision is MatchDecision.REVIEW]
@@ -202,11 +252,8 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
         "diagnostics": [_diagnostic(parsed.diagnostics)],
         "listings": [_listing(item) for item in visible],
         "summary": {
-            "listings": len(visible),
-            "raw_listings": len(raw),
-            "alerts": len(alerts),
-            "review": len(review),
-            "rejected": len(rejected),
+            "listings": len(visible), "raw_listings": len(raw), "alerts": len(alerts),
+            "review": len(review), "rejected": len(rejected),
             "cards": parsed.diagnostics.cards_found,
             "duplicates": parsed.diagnostics.duplicates_skipped,
             "card_errors": len(parsed.diagnostics.errors),
