@@ -2,6 +2,14 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 0.42.3 – 2026-08-02
+
+- Pagination beendet die Suche, sobald `reported_total` erreicht ist.
+- Kurze HTML-Ergebnisseiten werden als Abschluss erkannt.
+- Unnötige Folgeseiten und dadurch ausgelöste 503/1101-Ketten werden vermieden.
+- UI, Controller, Handshake, Worker, Eventlog und PWA-Cache auf `0.42.3` / `gp-0423-20260802-1` vereinheitlicht.
+- Technischer Abschluss-Commit: `9c8841fecac53ffaa127a7ed83ca94492a260a88`.
+
 ## 0.42.2 – 2026-08-02
 
 - Suchlogik aus älteren FastAPI-Worker-Apps herausgelöst.
