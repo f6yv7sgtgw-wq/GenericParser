@@ -2,6 +2,14 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 0.42.4 – 2026-08-02
+
+- Gemeinsame Build-Identität für Suchseite, Controller, Handshake, Worker und Eventlog eingeführt.
+- Das Eventlog prüft seine Version und Build-ID beim Öffnen gegen `/api/version`.
+- Das Eventlog verwendet einen eigenen 0.42.4-Speicherschlüssel und kann nicht mehr unbemerkt alte 0.42.2-Einträge anzeigen.
+- Eventlog-Link, Assets und Service-Worker-Cache mit `v=0.424` cachegebustet.
+- Produktionsstand: `0.42.4` / `gp-0424-20260802-1` / `match-v6.1-page-worker`.
+
 ## 0.42.3 – 2026-08-02
 
 - Pagination beendet die Suche, sobald `reported_total` erreicht ist.
@@ -87,16 +95,6 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 ## 0.2.0rc2 – 2026-08-01
 
 Produktionsreifes Cloudflare-Deployment für Meilenstein 0.2d.
-
-### Neu
-
-- GitHub-Actions-Pipeline für Test und Deployment
-- Cloudflare Account-ID und API-Token ausschließlich als Secrets
-- optionaler Produktions-Smoke-Test gegen die Worker-URL
-- Health-, Startseiten- und PWA-Manifest-Prüfung
-- dokumentierter Workers-Builds-Erststart
-- Rollback-Skript für letzte oder gezielte Worker-Version
-- Produktions-Environment und Schutz gegen parallele Deployments
 
 ## 0.2.0rc1 – 2026-08-01
 
