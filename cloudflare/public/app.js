@@ -1,339 +1,45 @@
-const $ = id => document.getElementById(id);
-const apiUrl = path => new URL(path.replace(/^\//, ''), location.href).toString();
-const list = id => $(id).value.split(',').map(v => v.trim()).filter(v => v && v !== '0');
-const num = id => $(id).value.trim() === '' ? null : Number($(id).value);
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const $=id=>document.getElementById(id),sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const apiUrl=p=>new URL(p.replace(/^\//,''),location.href).toString();
+const list=id=>$(id).value.split(',').map(v=>v.trim()).filter(v=>v&&v!=='0');
+const num=id=>$(id).value.trim()===''?null:Number($(id).value);
+let stopRequested=false,maxResultsExplicit=false,activeState=null,activeWorker=null;
+const VERSION='0.40.0',DB_NAME='generic-parser-040',STORE='searches',ACTIVE_KEY='active';
 
-let maxResultsExplicit = false;
-let stopRequested = false;
-let activeState = null;
-let activeWorker = null;
+function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function msg(t,e=false){$('message').textContent=t;$('message').className='message'+(e?' error':'');}
+function clearMessage(){$('message').className='message hidden';}
+function metric(v,l){return `<div class="metric"><strong>${esc(v)}</strong><span>${esc(l)}</span></div>`;}
+function workerState(t,d,k=''){const b=$('worker-state-text');b.className='diagnostic '+k;b.innerHTML=`<span><strong>${esc(t)}</strong></span><span>${esc(d)}</span>`;}
+function headers(){const t=$('token').value.trim();localStorage.setItem('gp-token',t);return {'Content-Type':'application/json',...(t?{'X-GenericParser-Token':t}:{})};}
+function dbOpen(){return new Promise((res,rej)=>{const q=indexedDB.open(DB_NAME,1);q.onupgradeneeded=()=>q.result.createObjectStore(STORE);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});}
+async function dbPut(v){const db=await dbOpen();return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(v,ACTIVE_KEY);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
+async function dbGet(){const db=await dbOpen();return new Promise((res,rej)=>{const q=db.transaction(STORE).objectStore(STORE).get(ACTIVE_KEY);q.onsuccess=()=>res(q.result||null);q.onerror=()=>rej(q.error);});}
+async function dbClear(){const db=await dbOpen();return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(ACTIVE_KEY);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
 
-function msg(text, error = false) {
-  $('message').textContent = text;
-  $('message').className = 'message' + (error ? ' error' : '');
-}
-function clearMessage() { $('message').className = 'message hidden'; }
-function esc(value) {
-  return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-}
-function headers() {
-  const token = $('token').value.trim();
-  localStorage.setItem('gp-token', token);
-  return {'Content-Type':'application/json', ...(token ? {'X-GenericParser-Token':token} : {})};
-}
-function metric(value, label) {
-  return `<div class="metric"><strong>${esc(value)}</strong><span>${esc(label)}</span></div>`;
-}
-function workerState(title, detail, kind = '') {
-  const box = $('worker-state-text');
-  box.className = 'diagnostic ' + kind;
-  box.innerHTML = `<span><strong>${esc(title)}</strong></span><span>${esc(detail)}</span>`;
-}
+function baseBody(){const p={mode:'live',query:$('query').value.trim()},add=(k,v)=>{if(v!==null&&v!==''&&!(Array.isArray(v)&&!v.length))p[k]=v};const pc=$('postal-code').value.trim(),li=num('location-id');add('postal_code',pc);add('location_id',li);if(pc||li)add('radius_km',num('radius-km'));add('required_terms',list('required-terms'));add('excluded_terms',list('excluded-terms'));add('model_patterns',list('model-patterns'));add('brands',list('brands'));if(num('max-price')>0)add('max_price',num('max-price'));if(num('market-value')>0)add('market_value',num('market-value'));p.accept_bundles=$('accept-bundles').checked;p.accept_incomplete=$('accept-incomplete').checked;p.include_review=$('include-review').checked;p.include_rejected=$('include-rejected').checked;p.sort_by=$('sort-by').value;return p;}
+function signature(base){return JSON.stringify(base,Object.keys(base).sort());}
+function matchOf(x){const m=x&&typeof x.match==='object'&&x.match?x.match:{};return{score:Number(m.score??x.score??0),decision:String(m.decision??x.decision??'review'),listingClass:String(m.listing_class??x.listing_class??'produkt'),reason:String(m.reason??x.reason??'Keine Bewertungsdetails verfügbar')}}
+function card(x){const m=matchOf(x);return `<article class="listing"><div class="listing-image">${x.image_url?`<img src="${esc(x.image_url)}" loading="lazy">`:'KEIN BILD'}</div><div><div class="row between"><span class="chip">${esc(m.listingClass)}</span><strong>${m.score}/100 · ${esc(m.decision)}</strong></div><h3><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a></h3><div class="price">${x.price!=null?esc(x.price)+' €':esc(x.price_raw||'Preis offen')}</div><div class="meta">${esc([x.postal_code,x.place].filter(Boolean).join(' '))}</div><p>${esc(m.reason)}</p></div></article>`}
+function sorted(items,mode){const a=[...items];if(mode==='date')return a.sort((x,y)=>String(y.posted_at||'').localeCompare(String(x.posted_at||'')));if(mode==='price_asc')return a.sort((x,y)=>(Number(x.price)||Infinity)-(Number(y.price)||Infinity));if(mode==='price_desc')return a.sort((x,y)=>(Number(y.price)||-Infinity)-(Number(x.price)||-Infinity));return a.sort((x,y)=>Number(y.score||y.match?.score||0)-Number(x.score||x.match?.score||0));}
+function trend(ms){return ms<1500?'niedrig':ms<3000?'mittel':'hoch';}
+function adaptiveDelay(base,latency,failures=0){const d=latency<1000?300:latency<2000?800:latency<4000?2000:5000;return Math.min(30000,Math.max(base,d)*(failures+1));}
+function consistency(s){const expected=s.items.size+s.duplicates+s.hidden;return{ok:s.fetched===expected,label:s.fetched===expected?'konsistent':`Abweichung ${s.fetched-expected}`};}
+function serializable(s){return{...s,items:[...s.items.entries()],running:false,error:false,renderLimit:80,savedAt:Date.now()};}
+function restored(v){return{...v,items:new Map(v.items||[]),running:false,error:false,renderLimit:v.renderLimit||80};}
+async function persist(s){try{await dbPut(serializable(s));$('resume-button').classList.remove('hidden');}catch(e){console.warn('Fortschritt konnte nicht gespeichert werden',e);}}
 
-function baseBody() {
-  const payload = {mode:'live', query:$('query').value.trim()};
-  const add = (key, value) => {
-    if (value !== null && value !== '' && !(Array.isArray(value) && !value.length)) payload[key] = value;
-  };
-  const postalCode = $('postal-code').value.trim();
-  const locationId = num('location-id');
-  add('postal_code', postalCode);
-  add('location_id', locationId);
-  if (postalCode || locationId) add('radius_km', num('radius-km'));
-  add('required_terms', list('required-terms'));
-  add('excluded_terms', list('excluded-terms'));
-  add('model_patterns', list('model-patterns'));
-  add('brands', list('brands'));
-  if (num('max-price') > 0) add('max_price', num('max-price'));
-  if (num('market-value') > 0) add('market_value', num('market-value'));
-  payload.accept_bundles = $('accept-bundles').checked;
-  payload.accept_incomplete = $('accept-incomplete').checked;
-  payload.include_review = $('include-review').checked;
-  payload.include_rejected = $('include-rejected').checked;
-  payload.sort_by = $('sort-by').value;
-  return payload;
-}
-
-function matchOf(item) {
-  const match = item && typeof item.match === 'object' && item.match ? item.match : {};
-  return {
-    score:Number(match.score ?? item.score ?? 0),
-    decision:String(match.decision ?? item.decision ?? 'review'),
-    listingClass:String(match.listing_class ?? item.listing_class ?? 'produkt'),
-    reason:String(match.reason ?? item.reason ?? 'Keine Bewertungsdetails verfügbar')
-  };
-}
-function card(item) {
-  const match = matchOf(item);
-  return `<article class="listing"><div class="listing-image">${item.image_url ? `<img src="${esc(item.image_url)}" loading="lazy">` : 'KEIN BILD'}</div><div><div class="row between"><span class="chip">${esc(match.listingClass)}</span><strong>${match.score}/100 · ${esc(match.decision)}</strong></div><h3><a href="${esc(item.url)}" target="_blank" rel="noopener">${esc(item.title)}</a></h3><div class="price">${item.price != null ? esc(item.price) + ' €' : esc(item.price_raw || 'Preis offen')}</div><div class="meta">${esc([item.postal_code,item.place].filter(Boolean).join(' '))}</div><p>${esc(match.reason)}</p></div></article>`;
-}
-function sorted(items, mode) {
-  const result = [...items];
-  if (mode === 'date') return result.sort((a,b) => String(b.posted_at || '').localeCompare(String(a.posted_at || '')));
-  if (mode === 'price_asc') return result.sort((a,b) => (Number(a.price) || Infinity) - (Number(b.price) || Infinity));
-  if (mode === 'price_desc') return result.sort((a,b) => (Number(b.price) || -Infinity) - (Number(a.price) || -Infinity));
-  return result.sort((a,b) => Number(b.score || b.match?.score || 0) - Number(a.score || a.match?.score || 0));
-}
-function resourceTrend(ms) {
-  if (ms < 1500) return 'niedrig';
-  if (ms < 3000) return 'mittel';
-  return 'hoch';
-}
-function adaptiveDelay(baseMs, latencyMs, failures) {
-  const latencyDelay = latencyMs < 1000 ? 250 : latencyMs < 2000 ? 700 : latencyMs < 4000 ? 1500 : 4000;
-  return Math.min(15000, Math.max(baseMs, latencyDelay) * Math.max(1, failures + 1));
-}
-function consistencyOf(state) {
-  const expected = state.items.size + state.duplicates + state.hidden;
-  return {
-    ok: state.fetched === expected,
-    expected,
-    label: state.fetched === expected ? 'konsistent' : `Abweichung ${state.fetched - expected}`
-  };
-}
-
-function renderState(state, worker) {
-  activeState = state;
-  activeWorker = worker;
-  const allItems = sorted([...state.items.values()], $('sort-by').value);
-  const shownItems = allItems.slice(0, state.renderLimit);
-  const consistency = consistencyOf(state);
-  $('summary').classList.remove('hidden');
-  let metrics = '';
-  if (state.reportedTotal != null) metrics += metric(state.reportedTotal.toLocaleString('de-DE'), 'Kleinanzeigen meldet');
-  metrics += metric(allItems.length, 'eindeutig') + metric(state.pages, 'Seiten') + metric(state.requests, 'Anfragen') + metric(state.duplicates, 'Duplikate') + metric(state.malformed, 'verworfen') + metric(state.avgLatency ? `${Math.round(state.avgLatency)} ms` : '–', 'Ø Antwort') + metric(consistency.ok ? '✓' : '!', 'Datenkonsistenz');
-  $('summary').innerHTML = metrics;
-  $('diagnostics-card').classList.remove('hidden');
-  $('worker-version').textContent = worker?.version ?? '0.39.3';
-  $('urls').innerHTML = state.url ? `<code>${esc(state.url)}</code>` : '';
-  const status = state.error ? 'Fehler' : state.running ? 'arbeitet' : state.stopped ? 'gestoppt' : state.complete ? 'vollständig' : 'bereit';
-  const trend = resourceTrend(state.lastLatency || 0);
-  $('diagnostics').innerHTML = `<div class="diagnostic"><span>Quelle: ${esc(state.source)}</span><span>Status: ${status}</span><span>Aktuelle Seite: ${state.page + 1}</span><span>Seitenziel: ${state.pageLimit >= 500 ? 'bis Ende' : state.pageLimit}</span><span>Anfragen: ${state.requests}</span><span>Letzte Antwort: ${state.lastLatency ? Math.round(state.lastLatency) + ' ms' : '–'}</span><span>Ressourcentrend: ${trend}</span><span>Adaptive Pause: ${state.nextDelay} ms</span><span>Konsistenz: ${esc(consistency.label)}</span><span>Stopp: ${esc(state.stopReason || '–')}</span></div>` + state.history.map(entry => `<div class="diagnostic"><span>Seite ${entry.page + 1}</span><span>${entry.count} abgerufen</span><span>${entry.visible} sichtbar</span><span>${entry.hidden} ausgeblendet</span><span>${entry.malformed} verworfen</span><span>${Math.round(entry.latency)} ms</span><span>${esc(entry.reason)}</span></div>`).join('');
-  $('results').innerHTML = shownItems.map(card).join('');
-  const more = $('show-more');
-  if (allItems.length > shownItems.length) {
-    more.classList.remove('hidden');
-    more.textContent = `Weitere Ergebnisse anzeigen (${shownItems.length}/${allItems.length})`;
-  } else {
-    more.classList.add('hidden');
-  }
-}
-
-function safeError(status, text, data) {
-  if (data && typeof data === 'object') {
-    const detail = data.detail;
-    return Array.isArray(detail) ? detail.map(item => item.msg || String(item)).join(', ') : String(detail || `API-Fehler ${status}`);
-  }
-  if (/worker exceeded resource limits/i.test(text)) return 'Cloudflare-Ressourcenlimit erreicht.';
-  if (/<html|<!doctype/i.test(text)) return `HTML-Fehlerseite statt Suchdaten (HTTP ${status}).`;
-  return text.slice(0, 300) || `API-Fehler ${status}`;
-}
-async function requestPage(payload) {
-  const started = performance.now();
-  const response = await fetch(apiUrl('api/search'), {method:'POST', headers:headers(), body:JSON.stringify(payload)});
-  const text = await response.text();
-  const latency = performance.now() - started;
-  let data = null;
-  try { data = JSON.parse(text); } catch {}
-  if (!response.ok) {
-    const error = new Error(safeError(response.status, text, data));
-    error.status = response.status;
-    error.latency = latency;
-    throw error;
-  }
-  if (!data || !Array.isArray(data.listings) || !data.pagination || !data.summary) throw new Error('Der Worker lieferte keine gültige Seitenantwort.');
-  data._latency = latency;
-  return data;
-}
-
-async function pauseWithStatus(milliseconds, nextPage, loaded, reason = 'Nächste Seite') {
-  const started = Date.now();
-  while (!stopRequested) {
-    const remaining = milliseconds - (Date.now() - started);
-    if (remaining <= 0) break;
-    workerState('Worker wartet', `${reason} ${nextPage + 1} in ${(remaining / 1000).toFixed(1).replace('.', ',')} s · ${loaded} Ergebnisse geladen`, 'working');
-    await sleep(Math.min(100, remaining));
-  }
-}
-async function requestWithBackoff(payload, state) {
-  const waits = [0, 2000, 5000];
-  let lastError;
-  for (let attempt = 0; attempt < waits.length; attempt++) {
-    if (stopRequested) throw new Error('Suche wurde gestoppt.');
-    if (waits[attempt] > 0) {
-      state.retries++;
-      await pauseWithStatus(waits[attempt], state.page, state.items.size, `Wiederholung ${attempt}`);
-    }
-    try {
-      return await requestPage(payload);
-    } catch (error) {
-      lastError = error;
-      if (error.status === 400 || error.status === 401 || error.status === 422) break;
-      workerState('Worker pausiert', `Seite ${state.page + 1} fehlgeschlagen · Wiederholung wird vorbereitet`, 'working');
-    }
-  }
-  throw lastError;
-}
-
-function validatePage(data) {
-  const fetched = Number(data.summary.fetched_listings || 0);
-  const visible = Number(data.summary.visible_listings || data.listings.length || 0);
-  const hidden = Number(data.summary.hidden_by_filter || 0);
-  const pageCount = Number(data.pagination.unique_listings || 0);
-  const ids = data.listings.map(item => String(item.id));
-  const duplicateIds = ids.length - new Set(ids).size;
-  const issues = [];
-  if (fetched !== pageCount) issues.push(`abgerufen ${fetched} ≠ Seitensumme ${pageCount}`);
-  if (visible !== data.listings.length) issues.push(`sichtbar ${visible} ≠ geliefert ${data.listings.length}`);
-  if (fetched !== visible + hidden) issues.push(`abgerufen ${fetched} ≠ sichtbar ${visible} + ausgeblendet ${hidden}`);
-  if (duplicateIds > 0) issues.push(`${duplicateIds} doppelte IDs innerhalb der Seite`);
-  return {ok:issues.length === 0, issues, fetched, visible, hidden};
-}
-
-async function search() {
-  clearMessage();
-  stopRequested = false;
-  $('search-button').textContent = 'Suche läuft …';
-  $('search-button').disabled = true;
-  $('stop-button').classList.remove('hidden');
-  $('stop-button').disabled = false;
-
-  const base = baseBody();
-  const resultLimit = maxResultsExplicit && num('max-results') > 0 ? num('max-results') : null;
-  const pageLimit = Number($('search-scope').value || 20);
-  const baseDelay = Number($('page-delay').value || 400);
-  const state = {items:new Map(), page:0, pages:0, requests:0, retries:0, duplicates:0, malformed:0, hidden:0, fetched:0, source:'auto', reportedTotal:null, complete:false, running:true, stopped:false, error:false, stopReason:'', url:'', history:[], pageLimit, renderLimit:80, lastLatency:0, totalLatency:0, avgLatency:0, nextDelay:baseDelay, consistencyIssues:[]};
-  let worker = null;
-
-  try {
-    while (!state.complete && state.pages < pageLimit && state.page < 500) {
-      if (stopRequested) { state.stopped = true; state.stopReason = 'user_stopped'; break; }
-      if (resultLimit !== null && state.items.size >= resultLimit) { state.complete = true; state.stopReason = 'user_limit_reached'; break; }
-
-      workerState('Worker arbeitet', `Seite ${state.page + 1} wird verarbeitet · ${state.items.size} Ergebnisse geladen`, 'working');
-      const payload = {...base, page:state.page, source:state.source};
-      const data = await requestWithBackoff(payload, state);
-      const check = validatePage(data);
-      if (!check.ok) {
-        state.consistencyIssues.push(...check.issues.map(issue => `Seite ${state.page + 1}: ${issue}`));
-        throw new Error(`Dateninkonsistenz erkannt: ${check.issues.join('; ')}`);
-      }
-
-      worker = data.worker;
-      state.requests++;
-      state.pages++;
-      state.lastLatency = Number(data._latency || 0);
-      state.totalLatency += state.lastLatency;
-      state.avgLatency = state.totalLatency / state.requests;
-      state.nextDelay = Math.round(adaptiveDelay(baseDelay, state.lastLatency, 0));
-      state.source = data.pagination.source || state.source;
-      state.stopReason = data.pagination.stop_reason || '';
-      state.url = (data.generated_urls || [])[0] || state.url;
-      if (data.summary.reported_total != null) state.reportedTotal = Number(data.summary.reported_total);
-      state.malformed += Number(data.summary.malformed_rejected || 0);
-      state.hidden += check.hidden;
-      state.fetched += check.fetched;
-
-      let added = 0;
-      for (const item of data.listings) {
-        const id = String(item.id);
-        if (!state.items.has(id)) { state.items.set(id, item); added++; }
-        else state.duplicates++;
-      }
-      state.history.push({page:state.page, count:check.fetched, visible:check.visible, hidden:check.hidden, malformed:Number(data.summary.malformed_rejected || 0), latency:state.lastLatency, reason:state.stopReason});
-      workerState('Worker fertig', `Seite ${state.page + 1} abgeschlossen · ${added} neue Ergebnisse · Ressourcentrend ${resourceTrend(state.lastLatency)}`, 'done');
-      state.complete = data.pagination.complete === true || data.pagination.next_page == null;
-      state.page = data.pagination.next_page ?? state.page;
-      renderState(state, worker);
-
-      if (resultLimit !== null && state.items.size >= resultLimit) { state.complete = true; state.stopReason = 'user_limit_reached'; }
-      if (!state.complete && state.pages < pageLimit) {
-        msg(`Adaptive Pause vor Seite ${state.page + 1} · ${state.items.size} eindeutige Ergebnisse`);
-        await pauseWithStatus(state.nextDelay, state.page, state.items.size);
-      }
-    }
-
-    if (stopRequested) { state.stopped = true; state.stopReason = 'user_stopped'; }
-    else if (!state.complete && state.pages >= pageLimit) { state.stopped = true; state.stopReason = 'page_limit_reached'; }
-
-    state.running = false;
-    renderState(state, worker);
-    const consistency = consistencyOf(state);
-    if (!consistency.ok) throw new Error(`Kumulative Dateninkonsistenz: abgerufen ${state.fetched}, erwartet ${consistency.expected}`);
-    if (state.stopped) {
-      workerState('Worker fertig', `Suche beendet · ${state.items.size} Ergebnisse nach ${state.pages} Seiten · Daten konsistent`, 'done');
-      msg(`Suche nach ${state.pages} Seiten beendet. ${state.items.size}${state.reportedTotal ? ` von ${state.reportedTotal.toLocaleString('de-DE')}` : ''} Ergebnisse geladen.`);
-    } else if (!state.items.size) {
-      workerState('Worker fertig', 'Keine Ergebnisse gefunden · Daten konsistent', 'done');
-      msg('Keine Ergebnisse gefunden.');
-    } else {
-      workerState('Worker fertig', `Suche vollständig · ${state.items.size} eindeutige Ergebnisse · Daten konsistent`, 'done');
-      msg(`${state.items.size}${state.reportedTotal ? ` von ${state.reportedTotal.toLocaleString('de-DE')}` : ''} Ergebnissen verarbeitet.`);
-    }
-  } catch (error) {
-    state.running = false;
-    state.error = true;
-    renderState(state, worker);
-    workerState('Worker abgebrochen', `${error.message} · ${state.items.size} Ergebnisse bleiben sichtbar`, 'error');
-    msg(`${error.message} Bereits geladene Ergebnisse bleiben sichtbar.`, true);
-  } finally {
-    $('search-button').textContent = 'Live-Suche starten';
-    $('search-button').disabled = false;
-    $('stop-button').classList.add('hidden');
-    $('stop-button').disabled = false;
-  }
-}
-
-const ids = ['query','required-terms','excluded-terms','model-patterns','brands','max-price','market-value','postal-code','location-id','radius-km','max-results','sort-by','search-scope','page-delay','accept-bundles','accept-incomplete','include-review','include-rejected'];
-function refreshProfiles() {
-  const select = $('profiles');
-  select.innerHTML = '<option value="">– auswählen –</option>';
-  Object.keys(localStorage).filter(key => key.startsWith('gp-profile:')).sort().forEach(key => {
-    const option = document.createElement('option');
-    option.value = key;
-    option.textContent = key.slice(11);
-    select.appendChild(option);
-  });
-}
-function saveProfile() {
-  const name = $('profile-name').value.trim() || 'Meine Suche';
-  const data = {};
-  ids.forEach(id => data[id] = $(id).type === 'checkbox' ? $(id).checked : $(id).value);
-  localStorage.setItem('gp-profile:' + name, JSON.stringify(data));
-  refreshProfiles();
-  msg(`Profil „${name}“ gespeichert.`);
-}
-
-$('profiles').addEventListener('change', event => {
-  if (!event.target.value) return;
-  const data = JSON.parse(localStorage.getItem(event.target.value));
-  Object.entries(data).forEach(([id,value]) => {
-    if ($(id)) $(id).type === 'checkbox' ? $(id).checked = Boolean(value) : $(id).value = value;
-  });
-  const value = String(data['max-results'] ?? '').trim();
-  maxResultsExplicit = value !== '' && Number(value) > 0;
-  $('profile-name').value = event.target.value.slice(11);
-});
-$('search-button').addEventListener('click', search);
-$('stop-button').addEventListener('click', () => {
-  stopRequested = true;
-  $('stop-button').disabled = true;
-  workerState('Worker stoppt', 'Die aktuelle Seite wird beendet; danach wird nicht fortgesetzt.', 'working');
-});
-$('show-more').addEventListener('click', () => {
-  if (!activeState) return;
-  activeState.renderLimit += 80;
-  renderState(activeState, activeWorker);
-});
-$('save-profile').addEventListener('click', saveProfile);
-$('max-results').addEventListener('input', event => { if (event.isTrusted) maxResultsExplicit = event.target.value.trim() !== ''; });
-$('demo-button').addEventListener('click', () => msg('Bitte eine Live-Suche starten.'));
-
-const optional = ['profile-name','required-terms','excluded-terms','model-patterns','brands','max-price','market-value','postal-code','location-id','radius-km','max-results'];
-optional.forEach(id => $(id).value = '');
-$('query').value = '';
-$('token').value = localStorage.getItem('gp-token') || '';
-maxResultsExplicit = false;
-refreshProfiles();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js?v=0.393').catch(() => {});
+function renderState(s,w){activeState=s;activeWorker=w;const all=sorted([...s.items.values()],$('sort-by').value),shown=all.slice(0,s.renderLimit),c=consistency(s);$('summary').classList.remove('hidden');let m='';if(s.reportedTotal!=null)m+=metric(s.reportedTotal.toLocaleString('de-DE'),'Kleinanzeigen meldet');m+=metric(all.length,'eindeutig')+metric(s.pages,'Seiten')+metric(s.requests,'Anfragen')+metric(s.retries,'Retries')+metric(s.duplicates,'Duplikate')+metric(s.malformed,'verworfen')+metric(s.avgLatency?`${Math.round(s.avgLatency)} ms`:'–','Ø Antwort')+metric(c.ok?'✓':'!','Datenkonsistenz');$('summary').innerHTML=m;$('diagnostics-card').classList.remove('hidden');$('worker-version').textContent=w?.version??VERSION;$('urls').innerHTML=s.url?`<code>${esc(s.url)}</code>`:'';const status=s.error?'Fehler':s.running?'arbeitet':s.paused?'pausiert':s.stopped?'gestoppt':s.complete?'vollständig':'bereit';$('diagnostics').innerHTML=`<div class="diagnostic"><span>Quelle: ${esc(s.source)}</span><span>Status: ${status}</span><span>Nächste Seite: ${s.page+1}</span><span>Seitenziel: ${s.pageLimit>=500?'bis Ende':s.pageLimit}</span><span>Anfragen: ${s.requests}</span><span>Letzte Antwort: ${s.lastLatency?Math.round(s.lastLatency)+' ms':'–'}</span><span>Ressourcentrend: ${trend(s.lastLatency||0)}</span><span>Nächste Pause: ${s.nextDelay} ms</span><span>Konsistenz: ${esc(c.label)}</span><span>Stopp: ${esc(s.stopReason||'–')}</span></div>`+s.history.slice(-20).map(h=>`<div class="diagnostic"><span>Seite ${h.page+1}</span><span>${h.count} abgerufen</span><span>${h.added} neu</span><span>${h.duplicates} doppelt</span><span>${h.hidden} ausgeblendet</span><span>${Math.round(h.latency)} ms</span><span>${esc(h.reason)}</span></div>`).join('');$('results').innerHTML=shown.map(card).join('');if(all.length>shown.length){$('show-more').classList.remove('hidden');$('show-more').textContent=`Weitere Ergebnisse anzeigen (${shown.length}/${all.length})`;}else $('show-more').classList.add('hidden');}
+function safeError(status,text,data){const d=data&&typeof data==='object'?data.detail:null;return{message:Array.isArray(d)?d.map(x=>x.msg||String(x)).join(', '):String(d||(/<html|<!doctype/i.test(text)?`HTML-Fehlerseite statt Suchdaten (HTTP ${status}).`:text.slice(0,300)||`API-Fehler ${status}`)),retryable:Boolean(data?.retryable)||status===429||status>=500,retryAfter:Number(data?.retry_after||0)};}
+async function requestPage(payload){const started=performance.now(),r=await fetch(apiUrl('api/search'),{method:'POST',headers:headers(),body:JSON.stringify(payload)}),text=await r.text(),latency=performance.now()-started;let data=null;try{data=JSON.parse(text)}catch{}if(!r.ok){const info=safeError(r.status,text,data),e=new Error(info.message);e.status=r.status;e.retryable=info.retryable;e.retryAfter=Number(r.headers.get('Retry-After')||info.retryAfter||0);e.latency=latency;throw e;}if(!data||!Array.isArray(data.listings)||!data.pagination||!data.summary)throw new Error('Der Worker lieferte keine gültige Seitenantwort.');data._latency=latency;return data;}
+async function countdown(ms,page,loaded,label='Nächste Seite'){const start=Date.now();while(!stopRequested){const rest=ms-(Date.now()-start);if(rest<=0)break;workerState('Worker wartet',`${label} ${page+1} in ${(rest/1000).toFixed(1).replace('.',',')} s · ${loaded} Ergebnisse gespeichert`,'working');await sleep(Math.min(200,rest));}}
+async function requestWithBackoff(payload,s){const waits=[0,15000,30000,60000];let last;for(let i=0;i<waits.length;i++){if(stopRequested)throw new Error('Suche wurde gestoppt.');if(waits[i]){s.retries++;s.paused=true;await persist(s);await countdown(Math.max(waits[i],(last?.retryAfter||0)*1000),s.page,s.items.size,`Retry ${i}`);s.paused=false;}try{return await requestPage(payload);}catch(e){last=e;if(!e.retryable||[400,401,422].includes(e.status))break;workerState('Worker pausiert',`Seite ${s.page+1} fehlgeschlagen · Fortschritt gespeichert · nächster Versuch folgt`,'working');}}throw last;}
+function validate(data){const fetched=Number(data.summary.fetched_listings||0),visible=Number(data.summary.visible_listings??data.listings.length),hidden=Number(data.summary.hidden_by_filter||0),pageCount=Number(data.pagination.unique_listings||0),ids=data.listings.map(x=>String(x.id)),inside=ids.length-new Set(ids).size,issues=[];if(fetched!==pageCount)issues.push(`abgerufen ${fetched} ≠ Seitensumme ${pageCount}`);if(visible!==data.listings.length)issues.push(`sichtbar ${visible} ≠ geliefert ${data.listings.length}`);if(fetched!==visible+hidden)issues.push(`abgerufen ${fetched} ≠ sichtbar ${visible} + ausgeblendet ${hidden}`);if(inside)issues.push(`${inside} doppelte IDs innerhalb der Seite`);return{ok:!issues.length,issues,fetched,visible,hidden};}
+function newState(base){return{base,signature:signature(base),items:new Map(),page:0,pages:0,requests:0,retries:0,duplicates:0,malformed:0,hidden:0,fetched:0,source:'auto',reportedTotal:null,complete:false,running:true,paused:false,stopped:false,error:false,stopReason:'',url:'',history:[],pageLimit:Number($('search-scope').value||20),renderLimit:80,lastLatency:0,totalLatency:0,avgLatency:0,nextDelay:Number($('page-delay').value||400)};}
+async function runSearch(s,resume=false){stopRequested=false;s.running=true;s.error=false;s.paused=false;$('search-button').disabled=true;$('search-button').textContent='Suche läuft …';$('stop-button').classList.remove('hidden');$('resume-button').classList.add('hidden');const baseDelay=Number($('page-delay').value||400),resultLimit=maxResultsExplicit&&num('max-results')>0?num('max-results'):null;let worker=activeWorker;try{while(!s.complete&&s.pages<s.pageLimit&&s.page<500){if(stopRequested){s.stopped=true;s.stopReason='user_stopped';break;}if(resultLimit!==null&&s.items.size>=resultLimit){s.complete=true;s.stopReason='user_limit_reached';break;}workerState('Worker arbeitet',`Seite ${s.page+1} · ${s.items.size} Ergebnisse gespeichert${resume?' · fortgesetzt':''}`,'working');const data=await requestWithBackoff({...s.base,page:s.page,source:s.source},s),check=validate(data);if(!check.ok)throw new Error(`Dateninkonsistenz: ${check.issues.join('; ')}`);worker=data.worker;s.requests++;s.pages++;s.lastLatency=Number(data._latency||0);s.totalLatency+=s.lastLatency;s.avgLatency=s.totalLatency/s.requests;s.nextDelay=Math.round(adaptiveDelay(baseDelay,s.lastLatency,0));s.source=data.pagination.source||s.source;s.stopReason=data.pagination.stop_reason||'';s.url=(data.generated_urls||[])[0]||s.url;if(data.summary.reported_total!=null)s.reportedTotal=Number(data.summary.reported_total);s.malformed+=Number(data.summary.malformed_rejected||0);s.hidden+=check.hidden;s.fetched+=check.fetched;let added=0,dups=0;for(const item of data.listings){const id=String(item.id);if(!s.items.has(id)){s.items.set(id,item);added++;}else{s.duplicates++;dups++;}}s.history.push({page:s.page,count:check.fetched,added,duplicates:dups,hidden:check.hidden,latency:s.lastLatency,reason:s.stopReason});s.complete=data.pagination.complete===true||data.pagination.next_page==null;s.page=data.pagination.next_page??s.page;await persist(s);renderState(s,worker);if(!consistency(s).ok)throw new Error('Kumulative Datenkonsistenz verletzt.');if(!s.complete&&s.pages<s.pageLimit)await countdown(s.nextDelay,s.page,s.items.size);}if(!s.complete&&s.pages>=s.pageLimit){s.stopped=true;s.stopReason='page_limit_reached';}s.running=false;await persist(s);renderState(s,worker);if(s.stopped){workerState('Worker fertig',`Fortsetzbarer Stand gespeichert · Seite ${s.page+1} · ${s.items.size} Ergebnisse`,'done');msg(`Suche pausiert. ${s.items.size} Ergebnisse gespeichert. Mit „Letzte Suche fortsetzen“ geht es ab Seite ${s.page+1} weiter.`);$('resume-button').classList.remove('hidden');}else if(!s.items.size){workerState('Worker fertig','Keine Ergebnisse gefunden','done');msg('Keine Ergebnisse gefunden.');await dbClear();}else{workerState('Worker fertig',`Suche vollständig · ${s.items.size} eindeutige Ergebnisse`,'done');msg(`${s.items.size}${s.reportedTotal?` von ${s.reportedTotal.toLocaleString('de-DE')}`:''} Ergebnissen verarbeitet.`);await dbClear();}}catch(e){s.running=false;s.error=true;s.paused=true;s.stopReason='retry_exhausted';await persist(s);renderState(s,worker);workerState('Worker pausiert',`${e.message} · Fortschritt gespeichert · Fortsetzen möglich`,'error');msg(`${e.message} Der Stand mit ${s.items.size} Ergebnissen wurde gespeichert.`,true);$('resume-button').classList.remove('hidden');}finally{$('search-button').disabled=false;$('search-button').textContent='Live-Suche starten';$('stop-button').classList.add('hidden');}}
+async function start(){clearMessage();const base=baseBody();if(!base.query){msg('Bitte einen Suchbegriff eingeben.',true);return;}const s=newState(base);activeState=s;activeWorker=null;await persist(s);await runSearch(s,false);}
+async function resume(){const raw=await dbGet();if(!raw){msg('Kein gespeicherter Suchstand vorhanden.',true);return;}const s=restored(raw);activeState=s;Object.entries(s.base||{}).forEach(([k,v])=>{const map={query:'query',postal_code:'postal-code',location_id:'location-id',radius_km:'radius-km',max_price:'max-price',market_value:'market-value',required_terms:'required-terms',excluded_terms:'excluded-terms',model_patterns:'model-patterns',brands:'brands'};const id=map[k];if(id&&$(id))$(id).value=Array.isArray(v)?v.join(', '):v;});await runSearch(s,true);}
+const ids=['query','required-terms','excluded-terms','model-patterns','brands','max-price','market-value','postal-code','location-id','radius-km','max-results','sort-by','search-scope','page-delay','accept-bundles','accept-incomplete','include-review','include-rejected'];
+function refreshProfiles(){const s=$('profiles');s.innerHTML='<option value="">– auswählen –</option>';Object.keys(localStorage).filter(k=>k.startsWith('gp-profile:')).sort().forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k.slice(11);s.appendChild(o);});}
+function saveProfile(){const n=$('profile-name').value.trim()||'Meine Suche',d={};ids.forEach(id=>d[id]=$(id).type==='checkbox'?$(id).checked:$(id).value);localStorage.setItem('gp-profile:'+n,JSON.stringify(d));refreshProfiles();msg(`Profil „${n}“ gespeichert.`);}
+$('search-button').addEventListener('click',start);$('resume-button').addEventListener('click',resume);$('clear-progress').addEventListener('click',async()=>{await dbClear();$('resume-button').classList.add('hidden');msg('Gespeicherter Suchstand gelöscht.');});$('stop-button').addEventListener('click',()=>{stopRequested=true;$('stop-button').disabled=true;workerState('Worker stoppt','Aktuelle Seite wird beendet; Fortschritt bleibt gespeichert.','working');});$('show-more').addEventListener('click',()=>{if(activeState){activeState.renderLimit+=80;renderState(activeState,activeWorker);}});$('save-profile').addEventListener('click',saveProfile);$('profiles').addEventListener('change',e=>{if(!e.target.value)return;const d=JSON.parse(localStorage.getItem(e.target.value));Object.entries(d).forEach(([id,v])=>{if($(id))$(id).type==='checkbox'?$(id).checked=Boolean(v):$(id).value=v;});$('profile-name').value=e.target.value.slice(11);});$('max-results').addEventListener('input',e=>{if(e.isTrusted)maxResultsExplicit=e.target.value.trim()!=='';});$('demo-button').addEventListener('click',()=>msg('Bitte eine Live-Suche starten.'));
+const optional=['profile-name','required-terms','excluded-terms','model-patterns','brands','max-price','market-value','postal-code','location-id','radius-km','max-results'];optional.forEach(id=>$(id).value='');$('query').value='';$('token').value=localStorage.getItem('gp-token')||'';refreshProfiles();dbGet().then(v=>{if(v){$('resume-button').classList.remove('hidden');workerState('Fortsetzung verfügbar',`${(v.items||[]).length} Ergebnisse gespeichert · nächste Seite ${(v.page||0)+1}`,'done');}}).catch(()=>{});if('serviceWorker'in navigator)navigator.serviceWorker.register('./service-worker.js?v=0.40').catch(()=>{});
