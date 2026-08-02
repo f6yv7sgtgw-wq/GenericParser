@@ -1,4 +1,4 @@
-"""Cloudflare-Python-Worker-Einstiegspunkt für GenericParser 0.42.0."""
+"""Cloudflare-Python-Worker-Einstiegspunkt für GenericParser 0.42.1."""
 
 from __future__ import annotations
 
@@ -27,9 +27,9 @@ def _load_generic_parser_package():
 
 _load_generic_parser_package()
 
-# 0.42.0 imports only the minimal bootstrap app here. Parser, matching,
-# httpx and source modules are loaded lazily inside /api/search.
-from generic_parser.cloudflare_v042 import app  # noqa: E402
+# 0.42.1 keeps the minimal lazy bootstrap. Parser, matching, HTTP and source
+# modules are loaded only inside /api/search.
+from generic_parser.cloudflare_v0421 import app  # noqa: E402
 
 
 class Default(WorkerEntrypoint):
