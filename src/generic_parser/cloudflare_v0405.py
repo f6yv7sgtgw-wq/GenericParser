@@ -61,21 +61,15 @@ page_worker._html_page = _diagnostic_html_page
 
 @app.middleware("http")
 async def diagnostic_context(request: Request, call_next: Callable[[Request], Awaitable[Any]]):
+    """Attach phase metadata without consuming the request body.
+
+    Query and page are captured inside the instrumented page functions after
+    FastAPI has decoded and validated the request payload.
+    """
     started = time.perf_counter()
     token_phase = _phase.set("request_received")
     token_context = _context.set({"path": request.url.path, "method": request.method})
     try:
-        if request.url.path.endswith("/api/search"):
-            try:
-                payload = await request.json()
-                _set_phase(
-                    "payload_decoded",
-                    query=str(payload.get("query", "")),
-                    page=payload.get("page", 0),
-                    requested_source=payload.get("source", "auto"),
-                )
-            except Exception:
-                _set_phase("payload_decode_failed")
         response = await call_next(request)
         response.headers["X-GenericParser-Version"] = VERSION
         response.headers["X-GenericParser-Phase"] = _phase.get()
@@ -94,7 +88,7 @@ async def diagnostic_context(request: Request, call_next: Callable[[Request], Aw
                 "phase": _phase.get(),
                 "query": context.get("query"),
                 "page": context.get("page"),
-                "source": context.get("source") or context.get("requested_source"),
+                "source": context.get("source"),
                 "target_url": context.get("target_url"),
                 "elapsed_ms": elapsed,
                 "ray_id": ray_id,
@@ -120,7 +114,6 @@ async def diagnostic_runtime() -> dict[str, Any]:
         "diagnostic_build": True,
         "phases": [
             "request_received",
-            "payload_decoded",
             "mobile_url_build",
             "mobile_http_request",
             "mobile_response_parsed",
