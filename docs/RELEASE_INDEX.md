@@ -1,9 +1,10 @@
 # GenericParser Release-Index
 
-Dieser Index ordnet die produktiven Versionsstände ihren Build-IDs und Abschluss-Commits zu. Ein Abschluss-Commit bezeichnet den letzten Commit des jeweiligen dokumentierten Release-Bündels; die Version kann aus mehreren vorhergehenden technischen Commits bestehen.
+Dieser Index ordnet die produktiven Versionsstände ihren Build-IDs und Abschluss-Commits zu. Ein Abschluss-Commit bezeichnet den letzten technischen Commit des jeweiligen Release-Bündels; spätere reine Metadaten-Commits ändern diesen technischen Stand nicht.
 
-| Version | Build-ID | Abschluss-Commit | Schwerpunkt |
+| Version | Build-ID | Technischer Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
+| 0.42.3 | `gp-0423-20260802-1` | `9c8841fecac53ffaa127a7ed83ca94492a260a88` | Pagination-Stopp bei erreichter Gesamtzahl und kurzer HTML-Seite |
 | 0.42.2 | `gp-0422-20260802-1` | `05c77b77d31a34c88dd2721f975492a6bac899fb` | App-freier Ein-Seiten-Service, Datenfluss- und Konsistenzprüfung |
 | 0.42.1 | `gp-0421-20260802-1` | `6cdb40edcc3ef0faf2ba73a62086a68fc6452d85` | Zentraler UI-Zustand und aktivierter Suchbutton |
 | 0.42.0 | `gp-0420-20260802-1` | `f6fe54a2878a13f357633f603199021890d05c75` | Lazy-Bootstrap und importstabiler Readiness-Pfad |
@@ -20,22 +21,23 @@ Dieser Index ordnet die produktiven Versionsstände ihren Build-IDs und Abschlus
 ## Aktueller Produktionsstand
 
 ```text
-Version:      0.42.2
-Paketversion: 0.42.2
-Build-ID:     gp-0422-20260802-1
+Version:      0.42.3
+Paketversion: 0.42.3
+Build-ID:     gp-0423-20260802-1
 API-Vertrag:  match-v6.1-page-worker
 Worker:       bootstrap+app-free-one-page-service
+Code-Commit:  9c8841fecac53ffaa127a7ed83ca94492a260a88
 ```
 
 ## Downloadformat
 
-Ein bestimmter Stand kann über das GitHub-Archiv des Abschluss-Commits geladen werden:
+Der technisch abgeschlossene Stand 0.42.3 kann direkt geladen werden:
 
 ```text
-https://github.com/f6yv7sgtgw-wq/GenericParser/archive/<COMMIT>.zip
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/9c8841fecac53ffaa127a7ed83ca94492a260a88.zip
 ```
 
-Der aktuelle Hauptbranch ist unter folgendem Standardpfad verfügbar:
+Der aktuelle Hauptbranch einschließlich nachgezogener Dokumentation ist unter folgendem Standardpfad verfügbar:
 
 ```text
 https://github.com/f6yv7sgtgw-wq/GenericParser/archive/refs/heads/main.zip
@@ -49,9 +51,10 @@ Bei jedem neuen Versionsstand müssen gemeinsam aktualisiert werden:
 2. `CHANGELOG.md`
 3. `pyproject.toml`
 4. dieser Release-Index
-5. UI-Version und Build-ID
-6. Controller und Handshake
-7. Worker-Version, Build-ID und API-Vertrag
-8. Eventlog-Schlüssel und Eventlog-Anzeige
-9. Service-Worker-Cache
-10. statische Versions- und Datenflussprüfungen
+5. `VERSION.json`
+6. UI-Version und Build-ID
+7. Controller und Handshake
+8. Worker-Version, Build-ID und API-Vertrag
+9. Eventlog-Schlüssel und Eventlog-Anzeige
+10. Service-Worker-Cache
+11. statische Versions- und Datenflussprüfungen
