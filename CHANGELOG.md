@@ -2,6 +2,28 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 0.42.7 – 2026-08-03
+
+- Cloudflare-Trace als eindeutige Ursache ausgewertet: `Worker exceeded CPU time limit`.
+- Free-Tarif-Pfad vollständig auf kleine virtuelle Arbeitspakete umgestellt.
+- Eine Kleinanzeigen-Quellseite wird in bis zu vier Pakete mit höchstens sieben Karten zerlegt.
+- Vollständige BeautifulSoup-DOM-Rekonstruktion und schweres Legacy-Scoring aus dem produktiven Free-Pfad entfernt.
+- Browser wartet fünf Sekunden zwischen den Paketen und speichert nach jedem Paket den Suchstand.
+- Gemeinsame Identität `0.42.7` / `gp-0427-20260803-1` / `match-v6.1-page-worker` für Worker, UI, Controller, Handshake, Eventlog und Cache.
+- Technischer Abschluss-Commit: `119a05985d11017940b775bb2c6cc7bc6acd992a`.
+
+## 0.42.6 – 2026-08-02
+
+- Experimentellen FFI-Transport zurückgenommen.
+- Eigenständigen minimalen Readiness-Bootstrap eingeführt.
+- `/api/version` von Search-Service-Importen entkoppelt.
+- Cloudflare-Observability zur Diagnose des tatsächlichen Laufzeitfehlers genutzt.
+
+## 0.42.5 – 2026-08-02
+
+- Experimenteller Workers-Fetch über Python-JavaScript-FFI.
+- Die Änderung erwies sich im Live-Betrieb als Regression und wurde in 0.42.6 entfernt.
+
 ## 0.42.4 – 2026-08-02
 
 - Gemeinsame Build-Identität für Suchseite, Controller, Handshake, Worker und Eventlog eingeführt.
