@@ -10,10 +10,10 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from . import cloudflare_app as core
 from .matching import classify_listing, score_listing, sort_results
-from .models import MatchDecision, MatchResult, SearchProfile
+from .models import Listing, MatchDecision, MatchResult, SearchProfile
 from .sources.kleinanzeigen import FetchedPage, KleinanzeigenBlockedError, KleinanzeigenLayoutError, KleinanzeigenUrlBuilder, extract_location_id
 
-VERSION = "0.33.0"
+VERSION = "0.35.0"
 MAX_PAGES = 100
 
 
@@ -175,7 +175,6 @@ async def location_id(payload: LocationRequest, request: Request) -> dict[str, i
 
 
 async def _fetch_all_mobile(payload: SearchRequest) -> tuple[Any, dict[str, Any]]:
-    """Load pages until the API is empty, repeats a page, adds no IDs, reaches a user limit, or hits the safety cap."""
     page_size = min(41, payload.max_results) if payload.max_results else 41
     target = payload.max_results
     headers = {
@@ -201,18 +200,15 @@ async def _fetch_all_mobile(payload: SearchRequest) -> tuple[Any, dict[str, Any]
                 raise KleinanzeigenBlockedError(f"Kleinanzeigen-App-API verweigert den Zugriff ({response.status_code})")
             if response.status_code >= 400:
                 raise HTTPException(status_code=502, detail=f"Kleinanzeigen-App-API antwortet mit HTTP {response.status_code}")
-
             parsed = core._parse_mobile(response.json(), payload.query, page=page_number)
             pages_loaded += 1
             page_counts.append(len(parsed.listings))
             cards += parsed.diagnostics.cards_found
             errors.extend(parsed.diagnostics.errors)
-
             if not parsed.listings:
                 new_counts.append(0)
                 stop_reason = "empty_page"
                 break
-
             signature = tuple(item.id for item in parsed.listings)
             if signature in page_signatures:
                 duplicates += len(parsed.listings)
@@ -220,7 +216,6 @@ async def _fetch_all_mobile(payload: SearchRequest) -> tuple[Any, dict[str, Any]
                 stop_reason = "repeated_page"
                 break
             page_signatures.add(signature)
-
             added = 0
             for listing in parsed.listings:
                 if listing.id in seen:
@@ -232,14 +227,12 @@ async def _fetch_all_mobile(payload: SearchRequest) -> tuple[Any, dict[str, Any]
                 if target is not None and len(listings) >= target:
                     break
             new_counts.append(added)
-
             if target is not None and len(listings) >= target:
                 stop_reason = "user_limit_reached"
                 break
             if added == 0:
                 stop_reason = "no_new_ids"
                 break
-
             page_number += 1
         else:
             stop_reason = "safety_page_limit"
@@ -277,47 +270,56 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
     profile = _profile(payload)
     url = KleinanzeigenUrlBuilder().keyword_url(profile, payload.query)
     parser = core.CloudflarePageParser()
-    pagination: dict[str, Any] = {
-        "pages_loaded": 1,
-        "page_counts": [],
-        "new_ids_per_page": [],
-        "stop_reason": "html_mode",
-        "unique_listings": 0,
-        "duplicates": 0,
-    }
+    source_used = "html"
 
     try:
-        page = FetchedPage("inline://html", "inline://html", 200, payload.html or "") if payload.mode == "html" else await core.fetch_search_page(url)
-        try:
+        if payload.mode == "html":
+            page = FetchedPage("inline://html", "inline://html", 200, payload.html or "")
             parsed = parser.parse(page, source_query=payload.query)
-        except KleinanzeigenLayoutError:
-            if payload.mode != "live":
-                raise
-            parsed, pagination = await _fetch_all_mobile(payload)
+            pagination: dict[str, Any] = {
+                "source": "html",
+                "pages_loaded": 1,
+                "page_counts": [len(parsed.listings)],
+                "new_ids_per_page": [len(parsed.listings)],
+                "stop_reason": "html_mode",
+                "unique_listings": len(parsed.listings),
+                "duplicates": parsed.diagnostics.duplicates_skipped,
+            }
         else:
-            if payload.mode == "live" and (payload.max_results is None or len(parsed.listings) < payload.max_results):
-                mobile, mobile_pagination = await _fetch_all_mobile(payload)
-                if len(mobile.listings) >= len(parsed.listings):
-                    parsed = mobile
-                    pagination = mobile_pagination
-                else:
-                    pagination = {
-                        "pages_loaded": 1,
-                        "page_counts": [len(parsed.listings)],
-                        "new_ids_per_page": [len(parsed.listings)],
-                        "stop_reason": "html_more_complete",
-                        "unique_listings": len(parsed.listings),
-                        "duplicates": parsed.diagnostics.duplicates_skipped,
-                    }
-            else:
+            source_used = "mobile-api"
+            try:
+                parsed, pagination = await _fetch_all_mobile(payload)
+            except (KleinanzeigenBlockedError, HTTPException, httpx.RequestError) as mobile_exc:
+                page = await core.fetch_search_page(url)
+                parsed = parser.parse(page, source_query=payload.query)
+                source_used = "html-fallback"
                 pagination = {
+                    "source": source_used,
                     "pages_loaded": 1,
                     "page_counts": [len(parsed.listings)],
                     "new_ids_per_page": [len(parsed.listings)],
-                    "stop_reason": "html_only",
+                    "stop_reason": "mobile_error_html_fallback",
+                    "mobile_error": str(mobile_exc),
                     "unique_listings": len(parsed.listings),
                     "duplicates": parsed.diagnostics.duplicates_skipped,
                 }
+            else:
+                pagination["source"] = source_used
+                if not parsed.listings:
+                    page = await core.fetch_search_page(url)
+                    html_parsed = parser.parse(page, source_query=payload.query)
+                    if html_parsed.listings:
+                        parsed = html_parsed
+                        source_used = "html-fallback"
+                        pagination = {
+                            "source": source_used,
+                            "pages_loaded": 1,
+                            "page_counts": [len(parsed.listings)],
+                            "new_ids_per_page": [len(parsed.listings)],
+                            "stop_reason": "mobile_empty_html_fallback",
+                            "unique_listings": len(parsed.listings),
+                            "duplicates": parsed.diagnostics.duplicates_skipped,
+                        }
     except KleinanzeigenBlockedError as exc:
         raise HTTPException(status_code=429, detail=str(exc)) from exc
     except KleinanzeigenLayoutError as exc:
@@ -351,11 +353,14 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
             "truncated": len(parsed.listings) > len(raw),
             "pages_loaded": pagination.get("pages_loaded", 0),
             "stop_reason": pagination.get("stop_reason", "unknown"),
+            "source": pagination.get("source", source_used),
         },
         "worker": {
             "version": VERSION,
             "single_page": False,
-            "fallback": "mobile-api-pagination-diagnostics",
+            "primary_source": "mobile-api",
+            "source_used": pagination.get("source", source_used),
+            "fallback": "html-only-on-mobile-failure-or-empty",
             "matching": "score-v1",
             "api_contract": "match-v1",
             "sort_by": payload.sort_by,
