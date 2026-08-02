@@ -1,0 +1,16 @@
+/* GenericParser 0.40.9 responsive layout guards */
+html,body{max-width:100%;overflow-x:hidden}
+.app-shell,.card,.message,.metrics,.metric,.diagnostic,.diagnostic span,.urls,.urls code,.results,.listing,.listing>div{min-width:0;max-width:100%}
+.message{position:relative;display:block;clear:both;margin:16px 0 18px;overflow-wrap:anywhere;word-break:break-word;white-space:normal;line-height:1.45}
+.metrics{position:relative;clear:both;margin-top:0}
+#diagnostics-card{clear:both;overflow:hidden}
+.diagnostic{align-items:flex-start;overflow:hidden}
+.diagnostic span{display:inline-block;max-width:100%;overflow-wrap:anywhere;word-break:break-word;white-space:normal}
+.urls code{max-width:100%;overflow-x:auto;overflow-y:hidden;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-all}
+#event-log{min-width:0;max-width:100%;overflow:hidden}
+#event-log .diagnostic{display:grid;grid-template-columns:minmax(0,1fr);width:100%;border:1px solid var(--line);border-radius:14px;padding:10px;margin-top:10px}
+#event-log .diagnostic span{border:0;border-radius:0;padding:2px 0;width:100%;max-width:100%;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap}
+#event-log .diagnostic span code,#event-log pre,#event-log code{display:block;max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-all}
+.actions>a.secondary{display:flex;align-items:center;justify-content:center;text-decoration:none;border-radius:13px;padding:13px 15px;font-weight:850;min-width:0;text-align:center}
+.listing h3,.listing h3 a,.meta,.price,.description{overflow-wrap:anywhere;word-break:break-word}
+@media(max-width:560px){.app-shell{padding-left:12px;padding-right:12px}.card{padding:16px}.message{margin-bottom:16px}.metrics{gap:10px}.metric{min-height:76px}.diagnostic{gap:6px}.diagnostic span{font-size:.68rem}.listing{grid-template-columns:76px minmax(0,1fr);gap:10px}.listing-image{width:76px;height:76px}.actions>a.secondary{width:100%}}
