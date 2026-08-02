@@ -10,10 +10,10 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from . import cloudflare_app as core
 from .matching import classify_listing, score_listing, sort_results
-from .models import MatchDecision, MatchResult, SearchProfile
+from .models import Listing, MatchDecision, MatchResult, SearchProfile
 from .sources.kleinanzeigen import FetchedPage, KleinanzeigenBlockedError, KleinanzeigenLayoutError, KleinanzeigenUrlBuilder, extract_location_id
 
-VERSION = "0.3.0"
+VERSION = "0.31.0"
 
 
 class SearchRequest(BaseModel):
@@ -71,7 +71,23 @@ class LocationRequest(BaseModel):
 
 def _profile(payload: SearchRequest) -> SearchProfile:
     clean = lambda values: tuple(value.strip() for value in values if value.strip())
-    return SearchProfile(id="cloudflare-mobile", display_name="Cloudflare Mobile", search_queries=(payload.query,), postal_code=payload.postal_code, location_id=payload.location_id, radius_km=payload.radius_km, required_any=clean(payload.required_terms), excluded_terms=clean(payload.excluded_terms), model_patterns=clean(payload.model_patterns), brands=clean(payload.brands), product_types=clean(payload.product_types), max_price=payload.max_price, market_value=payload.market_value, accept_bundles=payload.accept_bundles, accept_incomplete=payload.accept_incomplete)
+    return SearchProfile(
+        id="cloudflare-mobile",
+        display_name="Cloudflare Mobile",
+        search_queries=(payload.query,),
+        postal_code=payload.postal_code,
+        location_id=payload.location_id,
+        radius_km=payload.radius_km,
+        required_any=clean(payload.required_terms),
+        excluded_terms=clean(payload.excluded_terms),
+        model_patterns=clean(payload.model_patterns),
+        brands=clean(payload.brands),
+        product_types=clean(payload.product_types),
+        max_price=payload.max_price,
+        market_value=payload.market_value,
+        accept_bundles=payload.accept_bundles,
+        accept_incomplete=payload.accept_incomplete,
+    )
 
 
 def _decimal(value: Decimal | None) -> str | None:
@@ -81,7 +97,33 @@ def _decimal(value: Decimal | None) -> str | None:
 def _listing(result: MatchResult) -> dict[str, Any]:
     listing = result.listing
     listing_class, terms = classify_listing(listing)
-    return {"id": listing.id, "title": listing.title, "url": listing.url, "price": _decimal(listing.price.amount), "price_raw": listing.price.raw, "price_flags": sorted(flag.value for flag in listing.price.flags), "postal_code": listing.location.postal_code, "place": listing.location.place, "distance_km": _decimal(listing.location.distance_km), "posted_at": listing.posted_at.isoformat() if listing.posted_at else None, "description": listing.description, "source_query": listing.source_query, "tags": list(listing.tags), "image_url": listing.image_url, "score": result.score, "decision": result.decision.value, "positive_signals": list(result.positive_signals), "warnings": list(result.warnings), "reason": result.reason, "listing_class": listing_class.value, "class_terms": list(terms)}
+    match = {
+        "score": result.score,
+        "decision": result.decision.value,
+        "positive_signals": list(result.positive_signals),
+        "warnings": list(result.warnings),
+        "reason": result.reason,
+        "listing_class": listing_class.value,
+        "class_terms": list(terms),
+    }
+    return {
+        "id": listing.id,
+        "title": listing.title,
+        "url": listing.url,
+        "price": _decimal(listing.price.amount),
+        "price_raw": listing.price.raw,
+        "price_flags": sorted(flag.value for flag in listing.price.flags),
+        "postal_code": listing.location.postal_code,
+        "place": listing.location.place,
+        "distance_km": _decimal(listing.location.distance_km),
+        "posted_at": listing.posted_at.isoformat() if listing.posted_at else None,
+        "description": listing.description,
+        "source_query": listing.source_query,
+        "tags": list(listing.tags),
+        "image_url": listing.image_url,
+        **match,
+        "match": match,
+    }
 
 
 def _diagnostic(value) -> dict[str, Any]:
@@ -154,4 +196,28 @@ async def search(payload: SearchRequest, request: Request) -> dict[str, Any]:
     rejected = [item for item in scored if item.decision is MatchDecision.REJECT]
     visible = alerts + (review if payload.include_review else []) + (rejected if payload.include_rejected else [])
     visible = sort_results(visible, payload.sort_by)
-    return {"mode": payload.mode, "generated_urls": [url] if payload.mode == "live" else [], "diagnostics": [_diagnostic(parsed.diagnostics)], "listings": [_listing(item) for item in visible], "summary": {"listings": len(visible), "raw_listings": len(raw), "alerts": len(alerts), "review": len(review), "rejected": len(rejected), "cards": parsed.diagnostics.cards_found, "duplicates": parsed.diagnostics.duplicates_skipped, "card_errors": len(parsed.diagnostics.errors), "truncated": len(parsed.listings) > len(raw)}, "worker": {"version": VERSION, "single_page": False, "fallback": "mobile-api-pagination", "matching": "score-v1", "sort_by": payload.sort_by}}
+    return {
+        "mode": payload.mode,
+        "generated_urls": [url] if payload.mode == "live" else [],
+        "diagnostics": [_diagnostic(parsed.diagnostics)],
+        "listings": [_listing(item) for item in visible],
+        "summary": {
+            "listings": len(visible),
+            "raw_listings": len(raw),
+            "alerts": len(alerts),
+            "review": len(review),
+            "rejected": len(rejected),
+            "cards": parsed.diagnostics.cards_found,
+            "duplicates": parsed.diagnostics.duplicates_skipped,
+            "card_errors": len(parsed.diagnostics.errors),
+            "truncated": len(parsed.listings) > len(raw),
+        },
+        "worker": {
+            "version": VERSION,
+            "single_page": False,
+            "fallback": "mobile-api-pagination",
+            "matching": "score-v1",
+            "api_contract": "match-v1",
+            "sort_by": payload.sort_by,
+        },
+    }
