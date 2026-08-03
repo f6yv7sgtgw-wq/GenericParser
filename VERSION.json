@@ -1,14 +1,14 @@
 {
   "product": "GenericParser",
-  "version": "0.43.5",
-  "package_version": "0.43.5",
-  "build_id": "gp-0435-20260803-1",
-  "api_contract": "match-v6.7-title-evidence-worker",
+  "version": "0.43.6",
+  "package_version": "0.43.6",
+  "build_id": "gp-0436-20260803-1",
+  "api_contract": "match-v6.8-robust-title-worker",
   "entrypoint": "generic_parser.cloudflare_worker:Default.fetch",
-  "bootstrap_module": "generic_parser.cloudflare_v0435",
-  "search_module": "generic_parser.search_service_v0435",
-  "identity_source": "src/generic_parser/build_identity_v0435.py",
-  "controller_source": "cloudflare/public/controller-0435.js",
+  "bootstrap_module": "generic_parser.cloudflare_v0436",
+  "search_module": "generic_parser.search_service_v0436",
+  "identity_source": "src/generic_parser/build_identity_v0436.py",
+  "controller_source": "cloudflare/public/controller-0436.js",
   "controller_base": "cloudflare/public/controller-0411.js",
   "release_date": "2026-08-03",
   "repository": "f6yv7sgtgw-wq/GenericParser",
@@ -16,13 +16,14 @@
   "live_cloudflare_test": false,
   "fixes": [
     "retain_proven_0433_search_flow",
-    "retain_0434_coverage_counters",
-    "log_bounded_structure_for_title_empty_cards",
-    "log_article_and_anchor_attributes",
-    "log_heading_and_accessibility_title_candidates",
-    "limit_article_excerpt_to_800_characters",
-    "do_not_persist_full_raw_html",
-    "retain_source_next_link_pagination",
+    "retain_real_source_next_link_pagination",
+    "prefer_h2_title_within_article",
+    "fallback_to_nonempty_listing_link_text",
+    "fallback_to_aria_label_or_title_attribute",
+    "fallback_to_cleaned_image_alt_text",
+    "prefer_article_data_href_for_listing_url",
+    "retain_bounded_title_diagnostics",
+    "log_title_strategy_counts_per_packet",
     "retain_free_plan_work_packets"
   ],
   "constraints": {
@@ -31,7 +32,7 @@
     "pause_ms": 5000,
     "reported_total_is_diagnostic_only": true,
     "raw_html_persisted": false,
-    "article_excerpt_limit": 800
+    "title_order": ["h2", "anzeige_link_text", "aria_label", "title_attribute", "image_alt"]
   },
   "metadata_schema": 3
 }
