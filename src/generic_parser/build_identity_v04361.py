@@ -1,0 +1,8 @@
+"""Shared deployment identity for GenericParser 0.43.6.1."""
+VERSION = "0.43.6.1"
+BUILD_ID = "gp-04361-20260803-1"
+API_CONTRACT = "match-v6.8.1-title-info-worker"
+ENTRYPOINT = "generic_parser.cloudflare_worker:Default.fetch"
+BOOTSTRAP_MODULE = "generic_parser.cloudflare_v04361"
+SEARCH_MODULE = "generic_parser.search_service_v04361"
+WORKER_UNIT = "stable-ui+free-cpu+source-next-link+robust-title+result-information"
