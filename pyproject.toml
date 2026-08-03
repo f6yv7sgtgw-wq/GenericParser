@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generic-kleinanzeigen-parser"
-version = "0.43.3"
-description = "Kleinanzeigen-Parser mit stabilem 0.42.9-Frontendfluss, CPU-schonenden Arbeitspaketen und echter Weiter-Navigation"
+version = "0.43.4"
+description = "Kleinanzeigen-Parser mit stabilem Suchfluss, CPU-schonenden Arbeitspaketen, echter Weiter-Navigation und Abdeckungsdiagnose"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
