@@ -1,35 +1,35 @@
 {
   "product": "GenericParser",
-  "version": "0.43.6.1",
-  "package_version": "0.43.6.1",
-  "build_id": "gp-04361-20260803-1",
-  "api_contract": "match-v6.8.1-title-info-worker",
+  "version": "0.43.6.2",
+  "package_version": "0.43.6.2",
+  "build_id": "gp-04362-20260803-1",
+  "api_contract": "match-v6.8.2-compact-ui-worker",
   "entrypoint": "generic_parser.cloudflare_worker:Default.fetch",
-  "bootstrap_module": "generic_parser.cloudflare_v04361",
-  "search_module": "generic_parser.search_service_v04361",
-  "identity_source": "src/generic_parser/build_identity_v04361.py",
-  "controller_source": "cloudflare/public/controller-04361.js",
+  "bootstrap_module": "generic_parser.cloudflare_v04362",
+  "search_module": "generic_parser.search_service_v04362",
+  "identity_source": "src/generic_parser/build_identity_v04362.py",
+  "controller_source": "cloudflare/public/controller-04362.js",
   "controller_base": "cloudflare/public/controller-0411.js",
   "release_date": "2026-08-03",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "implementation-complete-live-test-required",
   "live_cloudflare_test": false,
   "fixes": [
-    "retain_proven_0436_search_and_title_flow",
-    "align_title_diagnostics_with_final_extraction_result",
-    "remove_false_title_empty_entries_for_recovered_cards",
-    "replace_generic_free_plan_reason_with_result_information",
-    "add_offer_type_title_strategy_and_listing_id",
-    "retain_real_source_next_link_pagination",
-    "retain_free_plan_work_packets"
+    "retain_proven_04361_search_title_and_pagination_flow",
+    "remove_demo_action_from_normal_view",
+    "hide_eventlog_action from primary actions",
+    "collapse_summary_and_diagnostics_under_technical_details",
+    "replace_worker_diagnostic_block_with_compact_status",
+    "reduce_result_card spacing",
+    "retain_all_diagnostics_and_eventlog capabilities"
   ],
   "constraints": {
     "target_plan": "Cloudflare Workers Free",
     "packet_size": 7,
     "pause_ms": 5000,
-    "reported_total_is_diagnostic_only": true,
-    "raw_html_persisted": false,
-    "title_order": ["h2", "anzeige_link_text", "aria_label", "title_attribute", "image_alt"]
+    "search_behavior_changed": false,
+    "diagnostics_removed": false,
+    "technical_details_collapsed_by_default": true
   },
   "metadata_schema": 3
 }
