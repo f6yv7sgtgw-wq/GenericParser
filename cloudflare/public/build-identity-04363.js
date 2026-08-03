@@ -1,0 +1,1 @@
+window.GP_BUILD_IDENTITY={version:'0.43.6.3',buildId:'gp-04363-20260803-1',apiContract:'match-v6.8.3-semantic-card-worker',eventLogKey:'generic-parser-eventlog-04363'};
