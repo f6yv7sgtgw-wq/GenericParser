@@ -1,29 +1,32 @@
 {
   "product": "GenericParser",
-  "version": "0.43.1",
-  "package_version": "0.43.1",
-  "build_id": "gp-0431-20260803-1",
-  "api_contract": "match-v6.3-single-identity-worker",
+  "version": "0.43.2",
+  "package_version": "0.43.2",
+  "build_id": "gp-0432-20260803-1",
+  "api_contract": "match-v6.4-clean-flow-worker",
   "entrypoint": "generic_parser.cloudflare_worker:Default.fetch",
-  "bootstrap_module": "generic_parser.cloudflare_v0431",
-  "search_module": "generic_parser.search_service_v0431",
-  "identity_source": "src/generic_parser/build_identity_v0431.py",
+  "bootstrap_module": "generic_parser.cloudflare_v0432",
+  "search_module": "generic_parser.search_service_v0432",
+  "identity_source": "src/generic_parser/build_identity_v0432.py",
+  "controller_source": "cloudflare/public/controller-0429.js",
   "release_date": "2026-08-03",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "implementation-complete-static-consistency-checked-live-test-required",
+  "status": "implementation-complete-static-flow-checked-live-test-required",
   "live_cloudflare_test": false,
   "fixes": [
-    "single_source_of_truth_for_worker_identity",
-    "version_and_search_endpoints_expose_same_identity",
-    "production_entrypoint_explicitly_targets_v0431",
-    "ui_controller_worker_entrypoint_and_modules_compared",
-    "search_response_contains_deployment_identity",
+    "restore_last_known_working_controller_flow",
+    "remove_controller_0431_runtime_loader_chain",
+    "set_handshake_ready_before_enabling_search",
+    "single_worker_bootstrap_for_version_and_search",
+    "validate_response_count_consistency",
+    "align_eventlog_with_active_build",
     "retain_source_next_link_pagination"
   ],
   "constraints": {
     "target_plan": "Cloudflare Workers Free",
     "packet_size": 7,
-    "pause_ms": 5000
+    "pause_ms": 5000,
+    "reported_total_is_diagnostic_only": true
   },
   "metadata_schema": 3
 }
