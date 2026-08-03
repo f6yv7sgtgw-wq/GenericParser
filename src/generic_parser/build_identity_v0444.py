@@ -1,0 +1,8 @@
+"""Shared deployment identity for GenericParser 0.44.4."""
+VERSION = "0.44.4"
+BUILD_ID = "gp-0444-20260803-1"
+API_CONTRACT = "match-v6.11-active-rules-worker"
+ENTRYPOINT = "generic_parser.cloudflare_worker:Default.fetch"
+BOOTSTRAP_MODULE = "generic_parser.cloudflare_v0444"
+SEARCH_MODULE = "generic_parser.search_service_v0444"
+WORKER_UNIT = "reference-0442+active-rule-traffic-light"
