@@ -1,0 +1,8 @@
+"""Shared deployment identity for GenericParser 0.43.6.3."""
+VERSION = "0.43.6.3"
+BUILD_ID = "gp-04363-20260803-1"
+API_CONTRACT = "match-v6.8.3-semantic-card-worker"
+ENTRYPOINT = "generic_parser.cloudflare_worker:Default.fetch"
+BOOTSTRAP_MODULE = "generic_parser.cloudflare_v04363"
+SEARCH_MODULE = "generic_parser.search_service_v04363"
+WORKER_UNIT = "stable-search+compact-ui+semantic-result-cards"
