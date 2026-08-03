@@ -1,28 +1,27 @@
 {
   "product": "GenericParser",
-  "version": "0.43.6.3",
-  "package_version": "0.43.6.3",
-  "build_id": "gp-04363-20260803-1",
-  "api_contract": "match-v6.8.3-semantic-card-worker",
+  "version": "0.44.0",
+  "package_version": "0.44.0",
+  "build_id": "gp-0440-20260803-1",
+  "api_contract": "match-v6.9-card-optimization-worker",
   "entrypoint": "generic_parser.cloudflare_worker:Default.fetch",
-  "bootstrap_module": "generic_parser.cloudflare_v04363",
-  "search_module": "generic_parser.search_service_v04363",
-  "identity_source": "src/generic_parser/build_identity_v04363.py",
-  "controller_source": "cloudflare/public/controller-04363.js",
+  "bootstrap_module": "generic_parser.cloudflare_v0440",
+  "search_module": "generic_parser.search_service_v0440",
+  "identity_source": "src/generic_parser/build_identity_v0440.py",
+  "controller_source": "cloudflare/public/controller-0440.js",
   "controller_base": "cloudflare/public/controller-0411.js",
   "release_date": "2026-08-03",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "implementation-complete-live-test-required",
   "live_cloudflare_test": false,
   "fixes": [
-    "retain_proven_04362_search_title_pagination_and_compact_ui_flow",
-    "remove_title_strategy_from_normal_result_cards",
-    "remove_listing_id_from_normal_result_cards",
-    "add_semantic_offer_type",
-    "add_condition_detection",
-    "add_single_offer_or_bundle_scope",
-    "add_query_fit_assessment",
-    "restrict_wanted_classification_to_explicit_wanted_phrases"
+    "retain_proven_04363_search_title_pagination_and_semantic_card_flow",
+    "highlight_price_as_primary_card_value",
+    "replace_numeric_score_with_plain_language_fit_badge",
+    "color_code_fit_badges",
+    "hide_unknown_condition_from_compact_card_text",
+    "show_offer_type_scope_location_and_shipping_compactly",
+    "reduce_low_value_internal card metadata"
   ],
   "constraints": {
     "target_plan": "Cloudflare Workers Free",
@@ -30,8 +29,8 @@
     "pause_ms": 5000,
     "search_behavior_changed": false,
     "pagination_changed": false,
-    "technical_title_source_retained_in_payload": true,
-    "technical_listing_id_retained_in_payload": true
+    "classification_logic_changed": false,
+    "presentation_only_release": true
   },
   "metadata_schema": 3
 }
