@@ -3,7 +3,7 @@
   const I = window.GP_BUILD_IDENTITY;
   if (!I) throw new Error('Build identity missing');
   window.GP_HANDSHAKE_READY = true;
-  const sourceUrl = new URL('./controller-0411.js?v=0.440-stable-source', location.href);
+  const sourceUrl = new URL('./controller-0411.js?v=0.4401-stable-source', location.href);
   fetch(sourceUrl, {cache: 'no-store'})
     .then(response => { if (!response.ok) throw new Error(`Controller source HTTP ${response.status}`); return response.text(); })
     .then(source => {
@@ -18,9 +18,6 @@
         source = source.replace(from, to);
       }
 
-      const cardStart = source.indexOf('function card(x){');
-      const cardEnd = source.indexOf('\nfunction sorted', cardStart);
-      if (cardStart < 0 || cardEnd < 0) throw new Error('Card renderer not found');
       const optimizedCard = `function card(x){
         const m=matchOf(x),i=x&&typeof x.result_info==='object'&&x.result_info?x.result_info:{};
         const tone=String(i.fit_tone||'review');
@@ -40,7 +37,9 @@
           +(meta?'<div class="meta">'+esc(meta)+'</div>':'')
           +'</div></article>';
       }`;
-      source = source.slice(0, cardStart) + optimizedCard + source.slice(cardEnd);
+      const cardPattern = /function card\(x\)\{[\s\S]*?\}(?=\s*function sorted\()/;
+      if (!cardPattern.test(source)) throw new Error('Card renderer not found');
+      source = source.replace(cardPattern, optimizedCard);
       Function(`${source}\n//# sourceURL=controller-0440-runtime.js`)();
 
       const button = document.getElementById('search-button');
