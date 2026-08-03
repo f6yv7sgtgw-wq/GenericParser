@@ -1,0 +1,1 @@
+window.GP_BUILD_IDENTITY={version:'0.43.6',buildId:'gp-0436-20260803-1',apiContract:'match-v6.8-robust-title-worker',entrypoint:'generic_parser.cloudflare_worker:Default.fetch',bootstrapModule:'generic_parser.cloudflare_v0436',searchModule:'generic_parser.search_service_v0436',eventLogKey:'generic-parser-eventlog-0436'};
