@@ -1,28 +1,29 @@
 {
   "product": "GenericParser",
-  "version": "0.43.0",
-  "package_version": "0.43.0",
-  "build_id": "gp-0430-20260803-1",
-  "api_contract": "match-v6.2-next-link-worker",
-  "worker_unit": "standalone-bootstrap+free-cpu+source-next-link",
+  "version": "0.43.1",
+  "package_version": "0.43.1",
+  "build_id": "gp-0431-20260803-1",
+  "api_contract": "match-v6.3-single-identity-worker",
+  "entrypoint": "generic_parser.cloudflare_worker:Default.fetch",
+  "bootstrap_module": "generic_parser.cloudflare_v0431",
+  "search_module": "generic_parser.search_service_v0431",
+  "identity_source": "src/generic_parser/build_identity_v0431.py",
   "release_date": "2026-08-03",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "implementation-complete-live-test-required",
+  "status": "implementation-complete-static-consistency-checked-live-test-required",
   "live_cloudflare_test": false,
   "fixes": [
-    "follow_actual_kleinanzeigen_next_link",
-    "persist_cursor_url_in_browser_controller",
-    "send_cursor_url_with_followup_packets",
-    "stop_when_next_link_is_missing",
-    "retain_free_plan_work_packets",
-    "retain_five_second_pause"
+    "single_source_of_truth_for_worker_identity",
+    "version_and_search_endpoints_expose_same_identity",
+    "production_entrypoint_explicitly_targets_v0431",
+    "ui_controller_worker_entrypoint_and_modules_compared",
+    "search_response_contains_deployment_identity",
+    "retain_source_next_link_pagination"
   ],
   "constraints": {
     "target_plan": "Cloudflare Workers Free",
-    "time_critical": false,
     "packet_size": 7,
-    "pause_ms": 5000,
-    "reported_total_is_diagnostic_only": true
+    "pause_ms": 5000
   },
-  "metadata_schema": 2
+  "metadata_schema": 3
 }
