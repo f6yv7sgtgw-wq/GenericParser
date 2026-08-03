@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generic-kleinanzeigen-parser"
-version = "0.44.1"
-description = "Kleinanzeigen-Parser mit stabilem 0.43.6.3-Suchfluss und optimierten Trefferkarten"
+version = "0.44.2"
+description = "Kleinanzeigen-Parser mit technischem Rollback auf den stabilen 0.43.6.3-Suchfluss und kompakter Kartenoberfläche"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
