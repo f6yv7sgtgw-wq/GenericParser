@@ -21,6 +21,7 @@ _H2_RE = re.compile(r"<h2\b[^>]*>(.*?)</h2>", re.I | re.S)
 _ANCHOR_RE = re.compile(r"<a\b([^>]*)href=[\"']([^\"']*/s-anzeige/[^\"']+)[\"']([^>]*)>(.*?)</a>", re.I | re.S)
 _ARTICLE_OPEN_RE = re.compile(r"<article\b([^>]*)>", re.I | re.S)
 _IMG_ALT_RE = re.compile(r"<img\b[^>]*\balt=[\"']([^\"']+)[\"']", re.I | re.S)
+_IMG_SRC_RE = re.compile(r"<img\b[^>]*(?:src|data-src|data-imgsrc)=[\"']([^\"']+)", re.I)
 _ATTR_TEMPLATE = r"\b%s\s*=\s*[\"']([^\"']*)[\"']"
 _LOCATION_SUFFIX_RE = re.compile(r"\s+(?:\d{5}\s+)?[^|]{1,80}\s+Vorschau\s*$", re.I)
 _PREVIEW_SUFFIX_RE = re.compile(r"\s+Vorschau\s*$", re.I)
@@ -90,7 +91,7 @@ def _extract_card_robust(source: str, listing_id: str, start: int, end: int, pay
     location_raw = flow.base._class_text(card, "aditem-main--top--left")
     date_raw = flow.base._class_text(card, "aditem-main--top--right")
     description = flow.base._class_text(card, "aditem-main--middle--description")
-    image_match = re.search(r'<img\b[^>]*(?:src|data-src|data-imgsrc)=[\"']([^\"']+)', card, re.I)
+    image_match = _IMG_SRC_RE.search(card)
     image_url = urljoin(flow.base.BASE_URL, image_match.group(1)) if image_match else None
     postal_match = re.search(r"\b(\d{5})\b", location_raw)
     postal_code = postal_match.group(1) if postal_match else None
