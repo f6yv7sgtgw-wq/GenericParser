@@ -1,21 +1,21 @@
 {
   "product": "GenericParser",
-  "version": "0.42.9",
-  "package_version": "0.42.9",
-  "build_id": "gp-0429-20260803-1",
-  "api_contract": "match-v6.1-page-worker",
-  "worker_unit": "standalone-bootstrap+free-cpu+natural-end+coverage-diagnostics",
+  "version": "0.43.0",
+  "package_version": "0.43.0",
+  "build_id": "gp-0430-20260803-1",
+  "api_contract": "match-v6.2-next-link-worker",
+  "worker_unit": "standalone-bootstrap+free-cpu+source-next-link",
   "release_date": "2026-08-03",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "implementation-complete-static-consistency-checked-live-test-required",
+  "status": "implementation-complete-live-test-required",
   "live_cloudflare_test": false,
   "fixes": [
-    "per_packet_coverage_diagnostics",
-    "count_selected_extracted_skipped_and_malformed_cards",
-    "report_packet_coverage_percent",
-    "retain_natural_pagination_guard",
-    "retain_free_plan_cpu_work_packets",
-    "shared_version_build_and_contract_identity"
+    "follow_actual_kleinanzeigen_next_link",
+    "persist_cursor_url_in_browser_controller",
+    "send_cursor_url_with_followup_packets",
+    "stop_when_next_link_is_missing",
+    "retain_free_plan_work_packets",
+    "retain_five_second_pause"
   ],
   "constraints": {
     "target_plan": "Cloudflare Workers Free",
