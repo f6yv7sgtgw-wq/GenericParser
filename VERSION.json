@@ -1,33 +1,35 @@
 {
   "product": "GenericParser",
-  "version": "0.43.3",
-  "package_version": "0.43.3",
-  "build_id": "gp-0433-20260803-1",
-  "api_contract": "match-v6.5-stable-ui-worker",
+  "version": "0.43.4",
+  "package_version": "0.43.4",
+  "build_id": "gp-0434-20260803-1",
+  "api_contract": "match-v6.6-coverage-evidence-worker",
   "entrypoint": "generic_parser.cloudflare_worker:Default.fetch",
-  "bootstrap_module": "generic_parser.cloudflare_v0433",
-  "search_module": "generic_parser.search_service_v0433",
-  "identity_source": "src/generic_parser/build_identity_v0433.py",
-  "controller_source": "cloudflare/public/controller-0433.js",
+  "bootstrap_module": "generic_parser.cloudflare_v0434",
+  "search_module": "generic_parser.search_service_v0434",
+  "identity_source": "src/generic_parser/build_identity_v0434.py",
+  "controller_source": "cloudflare/public/controller-0434.js",
   "controller_base": "cloudflare/public/controller-0411.js",
   "release_date": "2026-08-03",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "implementation-complete-live-test-required",
   "live_cloudflare_test": false,
   "fixes": [
-    "rollback_frontend_flow_to_last_working_0429_pattern",
-    "remove_blocking_startup_handshake",
-    "enable_search_after_controller_binding",
-    "verify_worker_identity_on_real_search_response",
+    "retain_proven_0433_search_flow",
+    "log_html_card_and_id_counts_per_packet",
+    "log_selected_and_returned_ids",
+    "log_malformed_card_reasons",
+    "log_real_next_link_candidates_and_strategy",
+    "do_not_persist_or_return_raw_html",
     "retain_source_next_link_pagination",
-    "retain_free_plan_work_packets",
-    "retain_response_count_consistency_checks"
+    "retain_free_plan_work_packets"
   ],
   "constraints": {
     "target_plan": "Cloudflare Workers Free",
     "packet_size": 7,
     "pause_ms": 5000,
-    "reported_total_is_diagnostic_only": true
+    "reported_total_is_diagnostic_only": true,
+    "raw_html_persisted": false
   },
   "metadata_schema": 3
 }
