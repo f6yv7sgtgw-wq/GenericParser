@@ -1,0 +1,1 @@
+window.GP_BUILD_IDENTITY=Object.freeze({version:'0.43.2',buildId:'gp-0432-20260803-1',apiContract:'match-v6.4-clean-flow-worker',eventLogKey:'generic-parser-eventlog-0432',entrypoint:'generic_parser.cloudflare_worker:Default.fetch',bootstrapModule:'generic_parser.cloudflare_v0432',searchModule:'generic_parser.search_service_v0432'});
