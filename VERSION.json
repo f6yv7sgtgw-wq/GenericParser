@@ -1,36 +1,50 @@
 {
   "product": "GenericParser",
-  "version": "0.44.2",
-  "package_version": "0.44.2",
-  "build_id": "gp-0442-20260803-1",
-  "api_contract": "match-v6.9.2-technical-rollback-worker",
+  "version": "0.44.3",
+  "package_version": "0.44.3",
+  "build_id": "gp-0443-20260803-1",
+  "api_contract": "match-v6.10-traffic-light-worker",
   "entrypoint": "generic_parser.cloudflare_worker:Default.fetch",
-  "bootstrap_module": "generic_parser.cloudflare_v0442",
-  "search_module": "generic_parser.search_service_v0442",
-  "identity_source": "src/generic_parser/build_identity_v0442.py",
-  "controller_source": "cloudflare/public/controller-0442.js",
-  "controller_base": "cloudflare/public/controller-04363.js",
+  "bootstrap_module": "generic_parser.cloudflare_v0443",
+  "search_module": "generic_parser.search_service_v0443",
+  "identity_source": "src/generic_parser/build_identity_v0443.py",
+  "controller_source": "cloudflare/public/controller-0443.js",
+  "controller_base": "cloudflare/public/controller-0411.js",
+  "reference_version": "0.44.2",
   "technical_base": "0.43.6.3",
   "release_date": "2026-08-03",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "implementation-complete-live-test-required",
   "live_cloudflare_test": false,
-  "fixes": [
-    "remove_runtime_card_renderer_replacement",
-    "remove_renderer_boundary_detection",
-    "restore_proven_04363_controller_flow",
-    "restore_proven_04363_search_service_behavior",
-    "retain_compact_card_css_without_controller_mutation",
-    "keep_versions_build_and_contract_consistent"
+  "features": [
+    "replace_static_70_of_100_review_with_traffic_light",
+    "green_when_all_applicable_conditions_are_satisfied",
+    "yellow_when_only_part_of_the_conditions_are_satisfied_or_data_is_unknown",
+    "red_for_hard_exclusion_reasons",
+    "explain_non_green_conditions_on_result_card",
+    "retain_reference_0442_search_pagination_and_controller_flow"
   ],
+  "traffic_light": {
+    "green": "all checked conditions satisfied",
+    "yellow": "partial match or unknown information without hard exclusion",
+    "red": "hard exclusion or multiple failed conditions",
+    "hard_exclusions": [
+      "excluded_term_present",
+      "wanted_advertisement",
+      "price_above_maximum",
+      "defective_or_incomplete_not_accepted",
+      "bundle_not_accepted",
+      "accessory_instead_of_target_product",
+      "no_reliable_query_match"
+    ]
+  },
   "constraints": {
     "target_plan": "Cloudflare Workers Free",
     "packet_size": 7,
     "pause_ms": 5000,
     "runtime_card_patch": false,
-    "search_behavior_changed_from_04363": false,
-    "pagination_changed_from_04363": false,
-    "technical_rollback_complete": true
+    "search_behavior_changed_from_0442": false,
+    "pagination_changed_from_0442": false
   },
   "metadata_schema": 3
 }
