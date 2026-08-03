@@ -1,6 +1,7 @@
-"""Cloudflare-Python-Worker entrypoint for GenericParser 0.43.1."""
+"""Cloudflare-Python-Worker entrypoint for GenericParser 0.43.2."""
 from __future__ import annotations
-import importlib.util, sys
+import importlib.util
+import sys
 from pathlib import Path
 import asgi
 from workers import WorkerEntrypoint
@@ -19,7 +20,7 @@ def _load_generic_parser_package():
     return package
 
 _load_generic_parser_package()
-from generic_parser.cloudflare_v0431 import app  # noqa: E402
+from generic_parser.cloudflare_v0432 import app  # noqa: E402
 
 class Default(WorkerEntrypoint):
     async def fetch(self, request):
