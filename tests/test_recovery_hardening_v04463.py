@@ -11,10 +11,11 @@ def test_identity_is_consistent():
     identity = text("src/generic_parser/build_identity_v04463.py")
     browser = text("cloudflare/public/build-identity-04463.js")
     assert 'VERSION = "0.44.6.3"' in identity
-    assert 'BUILD_ID = "gp-04463-20260804-1"' in identity
+    assert 'BUILD_ID = "gp-04463-20260804-2"' in identity
     assert 'API_CONTRACT = "match-v6.11.4-reference-recovery-hardening"' in identity
     assert "version:'0.44.6.3'" in browser
-    assert "buildId:'gp-04463-20260804-1'" in browser
+    assert "buildId:'gp-04463-20260804-2'" in browser
+    assert "resumeControlHotfix:true" in browser
 
 
 def test_search_core_is_unchanged_reference_0444():
@@ -53,6 +54,17 @@ def test_recovery_controller_uses_staged_backoff_and_two_resumes():
     assert "options.maxAutoResumes" in recovery
 
 
+def test_resume_control_is_unlocked_for_manual_and_automatic_recovery():
+    controller = text("cloudflare/public/controller-04463.js")
+    assert "syncResumeControl" in controller
+    assert "resume.classList.remove('hidden')" in controller
+    assert "resume.disabled = false" in controller
+    assert "['waiting', 'probing', 'starting_auto', 'manual_required']" in controller
+    assert "resume_control_ready" in controller
+    assert "setInterval(syncResumeControl, 500)" in controller
+    assert "resumeControlHotfix:true" in controller
+
+
 def test_controller_keeps_reference_flow_and_adds_error_headers_only():
     source = text("cloudflare/public/controller-04463.js")
     assert "controller-0411.js" in source
@@ -64,21 +76,23 @@ def test_controller_keeps_reference_flow_and_adds_error_headers_only():
     assert "searchCoreChanged:false" in source
 
 
-def test_active_entrypoint_and_ui_use_04463():
+def test_active_entrypoint_and_ui_use_04463_build_2():
     worker = text("src/generic_parser/cloudflare_worker.py")
     index = text("cloudflare/public/index.html")
     eventlog = text("cloudflare/public/eventlog.html")
     assert "from generic_parser.cloudflare_v04463 import app" in worker
-    assert "build-identity-04463.js" in index
-    assert "controller-04463.js" in index
-    assert "auto-resume-04463.js" in index
-    assert "eventlog-04463.js" in eventlog
-    assert "0.44.6.3" in index and "0.44.6.3" in eventlog
+    assert "build-identity-04463.js?v=0.4463b2" in index
+    assert "controller-04463.js?v=0.4463b2" in index
+    assert "auto-resume-04463.js?v=0.4463b2" in index
+    assert "eventlog-04463.js?v=0.4463b2" in eventlog
+    assert "gp-04463-20260804-2" in index and "gp-04463-20260804-2" in eventlog
 
 
 def test_metadata_marks_04462_as_working_reference():
     metadata = text("VERSION.json")
     assert '"version": "0.44.6.3"' in metadata
+    assert '"build_id": "gp-04463-20260804-2"' in metadata
     assert '"working_reference_version": "0.44.6.2"' in metadata
     assert '"max_auto_resumes_per_search_chain": 2' in metadata
+    assert '"resume_control_hotfix": true' in metadata
     assert '"search_core_diff_allowed": false' in metadata
