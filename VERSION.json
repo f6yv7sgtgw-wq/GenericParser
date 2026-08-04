@@ -1,35 +1,35 @@
 {
   "product": "GenericParser",
-  "version": "0.44.6",
-  "package_version": "0.44.6",
-  "build_id": "gp-0446-20260804-1",
-  "api_contract": "match-v6.11.1-reference-0444-rollback",
+  "version": "0.44.6.1",
+  "package_version": "0.44.6.1",
+  "build_id": "gp-04461-20260804-1",
+  "api_contract": "match-v6.11.2-reference-diagnostics",
   "entrypoint": "src/generic_parser/cloudflare_worker.py:Default.fetch",
-  "bootstrap_module": "generic_parser.cloudflare_v0446",
-  "search_module": "generic_parser.search_service_v0446",
-  "controller_source": "cloudflare/public/controller-0446.js",
+  "bootstrap_module": "generic_parser.cloudflare_v04461",
+  "search_module": "generic_parser.search_service_v04461",
+  "controller_source": "cloudflare/public/controller-04461.js",
   "controller_base": "cloudflare/public/controller-0411.js",
+  "eventlog_source": "cloudflare/public/eventlog-04461.js",
   "functional_reference_version": "0.44.4",
+  "runtime_base": "0.44.6",
   "technical_base": "0.43.6.3",
   "release_date": "2026-08-04",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "implementation-complete-live-test-required",
   "functional_reference": false,
-  "operational_reference": false,
   "candidate_for_functional_reference": true,
   "live_cloudflare_test": false,
-  "purpose": "restore the complete proven 0.44.4 search, extraction, pagination and active-rule traffic-light flow after the 0.44.5.x direct-runtime regressions",
-  "rollback": {
-    "reference_commit": "315f19f1cb928f7c3005851d4b74c08770abe592",
-    "reference_version": "0.44.4",
-    "search_core": "delegated unchanged to generic_parser.search_service_v0444",
-    "pagination": "reference source HTML Weiter navigation",
-    "extraction": "reference 0.43.6.3 robust card extraction",
-    "traffic_light": "reference 0.44.4 active-rules-v2",
-    "controller": "reference controller-0411 flow with identity-only wrapper",
-    "experimental_0445_runtime_used": false
+  "purpose": "correct diagnostic presentation while retaining the complete 0.44.6 reference search behavior unchanged",
+  "diagnostic_fix": {
+    "identity_check": "version, build and API contract only",
+    "reference_mode": "0.44.4 coverage schema is optional",
+    "false_version_mismatch_removed": true,
+    "html_503_label": "temporary upstream or Cloudflare HTML response",
+    "html_503_recovery_text": "saved progress retained; retry or resume available",
+    "search_core_changed": false
   },
   "retained_behavior": [
+    "search_service_v0444 delegated unchanged",
     "seven-result work packets",
     "five-second client pause",
     "real Kleinanzeigen next-link pagination",
@@ -46,18 +46,19 @@
     "fastapi": true,
     "pydantic": true,
     "dynamic_package_bootstrap": true,
-    "note": "0.44.6 prioritizes restored functional coverage. The previously observed Free-plan Python import CPU risk is not claimed as solved and must be checked in the live test."
+    "note": "This diagnostic-only release does not claim to solve the known Free-plan Python CPU risk."
   },
   "acceptance_test": {
     "version_endpoint": "pending",
-    "compare_first_results_to_0444": true,
-    "real_next_page_changes_ids": true,
+    "eventlog_identity_must_be_consistent": true,
+    "reference_schema_must_be_optional": true,
+    "html_503_must_be_human_readable": true,
     "minimum_work_packets": 20,
     "minimum_saved_results": 100,
     "manual_stop_and_resume": true,
     "data_consistency_required": true,
-    "cpu_limit_observation_required": true
+    "search_results_must_match_0446": true
   },
   "next_step_after_acceptance": "resume 0.45 parser-core roadmap from the stable reference behavior",
-  "metadata_schema": 8
+  "metadata_schema": 9
 }
