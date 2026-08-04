@@ -2,6 +2,47 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 0.44.6.2 – 2026-08-04
+
+- Einmalige automatische Fortsetzung nach einer terminalen 503/1101-Fehlerkette ergänzt.
+- Trigger nur bei `search_end` mit `retry_exhausted` und bestätigtem Cloudflare 1101 oder mindestens zwei unterschiedlichen HTML-503-Requests.
+- 90 Sekunden Ruhezeit vor der ersten Worker-Bereitschaftsprüfung.
+- Bis zu vier `/api/version`-Prüfungen im Abstand von 15 Sekunden.
+- Fortsetzung verwendet den bereits vorhandenen persistenten Suchstand und die bestehende Resume-Funktion.
+- Höchstens ein automatischer Resume je Suchkette; danach bleibt nur manuelles Fortsetzen.
+- Manuelles Fortsetzen überschreibt eine wartende Automatik.
+- Eventlog um Planung, Health-Checks, Start, laufende Session, Abschluss und manuellen Fallback ergänzt.
+- Suchkern, Pagination, Extraktion, Ampellogik, 7er-Pakete und 5-Sekunden-Pause bleiben unverändert auf Referenz 0.44.4.
+- Live-Test erforderlich; eine frische Cloudflare-Worker-Instanz wird nicht garantiert.
+
+## 0.44.6.1 – 2026-08-04
+
+- Falsche Versionsabweichung im Referenzmodus beseitigt.
+- Versionsprüfung auf Version, Build und API-Vertrag begrenzt.
+- Fehlendes erweitertes Diagnoseschema korrekt als optional dargestellt.
+- HTML-503 verständlich als temporärer Abruffehler eingeordnet.
+- Live-Test: neun erfolgreiche Arbeitspakete, 60 gespeicherte Ergebnisse, danach 503 und Cloudflare 1101 vor ASGI.
+- Suchstand und manuelles Fortsetzen blieben verfügbar.
+
+## 0.44.6 – 2026-08-04
+
+- Funktionaler Rückbau auf den vollständigen 0.44.4-Referenzkern.
+- Experimentelle Parser- und Cursorlogik aus 0.44.5.x nicht mehr verwendet.
+- Live-Test: 184 eindeutige Ergebnisse und mindestens 29 erfolgreiche Arbeitspakete.
+- Preise, Bilder, Ampel und echte Weiter-Navigation wiederhergestellt.
+
+## 0.44.5 bis 0.44.5.2 – 2026-08-04
+
+- Direkten Standardbibliothek-Worker als Free-Tarif-Experiment umgesetzt.
+- Import-/ASGI-Fehler in kurzen Läufen reduziert.
+- Funktionale Abdeckung der Referenz jedoch nicht erreicht; Linie als Experiment verworfen.
+
+## 0.44.4 – 2026-08-03
+
+- Ampelbewertung auf tatsächlich gesetzte Felder und aktive Optionen begrenzt.
+- Leere Pflicht-, Ausschluss-, Modell-, Marken- und Preisfelder werden ignoriert.
+- Funktionale Referenz für Suchfluss, Pagination, Extraktion und Ampel.
+
 ## 0.42.7 – 2026-08-03
 
 - Cloudflare-Trace als eindeutige Ursache ausgewertet: `Worker exceeded CPU time limit`.
