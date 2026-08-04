@@ -16,49 +16,66 @@
 
 Der Live-Test vom 04.08.2026 bestätigte Fachlogik und Datenkonsistenz. Ein langer Lauf wurde nach 37 erfolgreichen Anfragen und 248 gespeicherten Ergebnissen durch `Python Worker exceeded CPU time limit` beendet. Deshalb bleibt 0.44.4 die funktionale Vergleichsbasis.
 
-## 0.44.5 – Free-Runtime-Hardening – CPU-Ziel erreicht, Extraktionsregression entdeckt
+## 0.44.5 – Free-Runtime-Hardening – CPU-Ziel erreicht
 
-Umgesetzt und im Live-Test bestätigt:
+Im Live-Test bestätigt:
 
 - direkter `WorkerEntrypoint` statt ASGI/FastAPI
 - kein dynamischer Paket-Bootstrap
 - kein Pydantic und kein `httpx` im Live-Pfad
 - externer Abruf über Cloudflares `workers.fetch`
-- drei erfolgreiche HTTP-200-Suchaufrufe ohne `CpuLimitExceeded` oder Cloudflare 1101
+- erfolgreiche Suchaufrufe ohne `CpuLimitExceeded` oder Cloudflare 1101
 
-Entdeckte Regression:
+Die erste direkte Runtime erkannte jedoch keine Karten und wurde deshalb nicht Referenz.
 
-- Kleinanzeigen meldete bei der Suche `Snes` 6.669 Ergebnisse
-- der direkte Parser erkannte 0 Karten
-- die Suche endete fälschlich mit `empty_page_verified`
+## 0.44.5.1 – Extraktionshotfix – Karten wiederhergestellt
 
-0.44.5 ist daher Runtime-Nachweis, aber keine operative Referenz.
+Der Live-Test bestätigte:
 
-## 0.44.5.1 – Extraktionshotfix – implementiert, Live-Test ausstehend
+- Link-Fallback erkennt wieder Anzeigenkarten
+- 29 eindeutige SNES-Ergebnisse wurden geladen
+- sechs Requests antworteten mit HTTP 200
+- kein CPU-Limit- oder 1101-Fehler
+- Ampel und Titelanzeige funktionieren
 
-Ziel: Den schlanken direkten Worker aus 0.44.5 behalten und die Kartenextraktion wiederherstellen.
+Dabei wurden drei Folgeprobleme sichtbar:
+
+- Abbruch durch `pagination_repeated_page`, weil der Client die echte Weiter-URL nicht mitsendete
+- sämtliche Preise blieben offen
+- das Eventlog enthielt trotz Worker-Diagnose 0 Diagnoseblöcke
+
+0.44.5.1 bleibt daher ein erfolgreicher Runtime- und Extraktionszwischenstand.
+
+## 0.44.5.2 – Pagination-, Preis- und Diagnosehotfix – implementiert, Live-Test ausstehend
+
+Ziel: Den direkten Free-Worker und die funktionierende Kartenextraktion behalten und die drei Befunde aus 0.44.5.1 schließen.
 
 Umgesetzt:
 
-- primäre Kartenfindung weiterhin über `article[data-adid]`
-- zusätzlicher Fallback über eindeutige `/s-anzeige/`-Links
-- Anzeigen-ID wird aus der Kleinanzeigen-URL gewonnen
-- begrenzte Kartenfenster für `article`, `li.ad-listitem`, `div.aditem` und unbekannte Container
-- gemeldete Treffer mit 0 erkannten Karten erzeugen einen strukturierten `ParserLayoutError` statt eines falschen Suchabschlusses
-- `empty_page_verified` ist nur noch bei tatsächlich leerer Seite zulässig
-- neues Diagnoseschema `direct-stdlib-link-fallback-v1`
-- Diagnosewerte für Artikel-Tags, `data-adid`, Anzeigenlinks, eindeutige Links, Kandidatenzahl und Extraktionsstrategie
-- direkter Worker, aktive Ampelregeln, 7er-Arbeitspakete und UI-Vertrag bleiben unverändert
+- die vom Worker gefundene Kleinanzeigen-`Weiter`-URL wird im Browser pro Suchlauf und virtuellem Arbeitsschritt gespeichert
+- Folgeanfragen senden diese URL unverändert als `cursor_url`
+- beim Ende einer physischen Ergebnisseite springt der virtuelle Index auf den Beginn des nächsten Vier-Paket-Blocks
+- der Wiederholungsseiten-Guard bleibt als Sicherheitsnetz erhalten
+- Link-Fallback bevorzugt den vollständigen `li.ad-listitem`- oder `article`-Container statt eines zu kleinen inneren `div`
+- reine Navigationskandidaten werden vor der Paketbildung entfernt
+- Preise werden aus alter Preis-Klasse, explizitem Euro-Text oder strukturiertem `data-price` gewonnen
+- bei nachträglich erkanntem Preis wird die aktive Ampelbewertung erneut berechnet
+- jeder erfolgreiche Arbeitsschritt schreibt ein Ereignis `coverage_diagnostics` in das Eventlog
+- Diagnose enthält Kandidaten, entfernte Navigation, erkannte/fehlende Preise, Quell-URL, Cursor, Cursor-Übergang und zurückgegebene IDs
+- direkter Worker ohne ASGI, FastAPI, Pydantic, `httpx` oder dynamischen Paket-Bootstrap bleibt bestehen
 
 Abnahmetest nach Deployment:
 
-1. `/api/version` muss 0.44.5.1 und `direct-stdlib-link-fallback-v1` melden.
-2. Eine Suche nach `Snes` muss im ersten Paket echte Karten liefern oder einen strukturierten Extraktionsfehler mit Diagnosewerten ausgeben.
-3. `reportedTotal > 0` darf niemals mehr mit `empty_page_verified` enden.
-4. Mindestens 50 Arbeitspakete und 300 Ergebnisse ohne `CpuLimitExceeded` oder Cloudflare 1101 verarbeiten.
-5. Manuellen Stopp, Fortsetzen und Datenkonsistenz prüfen.
+1. `/api/version` muss 0.44.5.2 und `direct-stdlib-cursor-price-diagnostics-v1` melden.
+2. Eine Suche nach `Snes` muss über den ersten physischen Ergebnissatz hinaus neue IDs laden.
+3. Der Payload nach einem Seitenübergang muss `cursor_url` enthalten.
+4. `pagination_repeated_page` darf nicht bereits nach dem ersten Ergebnisseitenblock auftreten.
+5. Angebotskarten mit Euro-Preis müssen einen numerischen Preis zeigen.
+6. Das Eventlog muss mindestens einen `coverage_diagnostics`-Block pro erfolgreichem Request enthalten.
+7. Mindestens 50 Arbeitspakete und 300 Ergebnisse ohne `CpuLimitExceeded` oder Cloudflare 1101 verarbeiten.
+8. Manuellen Stopp, Fortsetzen und Datenkonsistenz prüfen.
 
-Erst nach bestandenem Live-Test wird 0.44.5.1 operative Referenz.
+Erst nach bestandenem Live-Test wird 0.44.5.2 operative Referenz. Danach beginnt 0.45.
 
 ## 0.45 – Integrierbares Parser-Core-Modul
 
