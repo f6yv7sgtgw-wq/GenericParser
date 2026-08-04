@@ -21,9 +21,13 @@ global.Function = function checkedFunction(...args) {
 global.window = {
   GP_BUILD_IDENTITY: {
     version: '0.44.6.6',
-    buildId: 'gp-04466-20260804-2',
+    buildId: 'gp-04466-20260804-3',
     apiContract: 'match-v6.11.7-rollback-04465-cooldown-test',
     eventLogKey: 'generic-parser-eventlog-04466',
+  },
+  GP_COOLDOWN_IDENTITY: {
+    buildId: 'gp-04466-20260804-3',
+    reference: '0.44.6.5',
   },
   GP_HANDSHAKE_READY: false,
   dispatchEvent() {},
@@ -36,19 +40,21 @@ global.fetch = async () => ({ok: true, text: async () => baseSource});
 vm.runInThisContext(wrapperSource, {filename: 'controller-04466.js'});
 
 setTimeout(() => {
-  assert.ok(generatedSource, 'runtime controller was not generated');
-  assert.match(generatedSource, /const TEST_COOLDOWN_STEP = 120;/);
-  assert.match(generatedSource, /const TEST_COOLDOWN_MS = 90000;/);
-  assert.match(generatedSource, /generic-parser-cooldown-04466-b2/);
-  assert.match(generatedSource, /state\.nextThreshold/);
-  assert.match(generatedSource, /completedThresholds/);
-  assert.match(generatedSource, /while\(Number\(loaded\|\|0\)>=Number\(state\.nextThreshold/);
-  assert.match(generatedSource, /ms=TEST_COOLDOWN_MS/);
-  assert.match(generatedSource, /mode:'replace_regular_delay'/);
-  assert.match(generatedSource, /cooldown_threshold_reached/);
-  assert.match(generatedSource, /cooldown_start/);
-  assert.match(generatedSource, /cooldown_resume/);
-  assert.doesNotMatch(generatedSource, /testCooldownDone/);
-  assert.match(generatedSource, /requestWithBackoff|runSearch/);
-  console.log('0.44.6.6 Build 2 repeated cooldown runtime compiles');
+  assert.ok(generatedSource, 'reference controller was not generated');
+  assert.match(generatedSource, /const VERSION = '0\.44\.6\.6';/);
+  assert.match(generatedSource, /const BUILD_ID = 'gp-04466-20260804-3';/);
+  assert.match(generatedSource, /const API_CONTRACT = 'match-v6\.11\.7-rollback-04465-cooldown-test';/);
+  assert.match(generatedSource, /const LOG_KEY = 'generic-parser-eventlog-04466';/);
+  assert.match(generatedSource, /runControlled/);
+  assert.match(generatedSource, /searchButton\?\.addEventListener/);
+  assert.doesNotMatch(generatedSource, /Reference countdown anchor missing/);
+  assert.doesNotMatch(generatedSource, /TEST_COOLDOWN/);
+
+  const expected = baseSource
+    .replace("const VERSION = '0.41.1';", "const VERSION = '0.44.6.6';")
+    .replace("const BUILD_ID = 'gp-0411-20260802-1';", "const BUILD_ID = 'gp-04466-20260804-3';")
+    .replace("const API_CONTRACT = 'match-v6.1-page-worker';", "const API_CONTRACT = 'match-v6.11.7-rollback-04465-cooldown-test';")
+    .replace("const LOG_KEY = 'generic-parser-eventlog-0411';", "const LOG_KEY = 'generic-parser-eventlog-04466';");
+  assert.ok(generatedSource.startsWith(expected), 'Build 3 controller differs from the 0.44.6.5 reference flow');
+  console.log('0.44.6.6 Build 3 reference controller passed');
 }, 25);
