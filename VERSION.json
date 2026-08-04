@@ -1,12 +1,13 @@
 {
   "product": "GenericParser",
-  "version": "0.44.5",
-  "package_version": "0.44.5",
-  "build_id": "gp-0445-20260804-1",
-  "api_contract": "match-v6.12-direct-free-worker",
+  "version": "0.44.5.1",
+  "package_version": "0.44.5.1",
+  "build_id": "gp-04451-20260804-1",
+  "api_contract": "match-v6.12.1-direct-free-worker-extraction",
   "entrypoint": "src/generic_parser/cloudflare_worker.py:Default.fetch",
-  "runtime_module": "src/generic_parser/worker_runtime_v0445.py",
-  "controller_source": "cloudflare/public/controller-0445.js",
+  "runtime_module": "src/generic_parser/worker_runtime_v04451.py",
+  "runtime_base": "0.44.5",
+  "controller_source": "cloudflare/public/controller-04451.js",
   "controller_base": "cloudflare/public/controller-0411.js",
   "functional_reference_version": "0.44.4",
   "technical_base": "0.43.6.3",
@@ -17,20 +18,22 @@
   "operational_reference": false,
   "candidate_for_operational_reference": true,
   "live_cloudflare_test": false,
-  "purpose": "remove the confirmed Python import/ASGI cold-start CPU hotspot while retaining the 0.44.4 result and traffic-light contract",
+  "purpose": "retain the direct Free Worker from 0.44.5 while restoring result-card extraction and preventing false empty-page completion",
+  "confirmed_0445_regression": {
+    "query": "Snes",
+    "reported_total": 6669,
+    "candidate_cards": 0,
+    "returned_results": 0,
+    "incorrect_stop_reason": "empty_page_verified",
+    "cpu_limit_error": false
+  },
   "runtime_architecture": {
-    "model": "direct-worker-stdlib-v1",
+    "model": "direct-worker-stdlib-link-fallback-v1",
     "worker_entrypoint": "WorkerEntrypoint.Default.fetch",
     "manual_routes": [
       "GET /health",
       "GET /api/version",
       "POST /api/search"
-    ],
-    "live_path_imports": [
-      "json",
-      "urllib.parse",
-      "workers",
-      "worker_runtime_v0445"
     ],
     "removed_from_live_path": [
       "importlib package bootstrap",
@@ -41,8 +44,34 @@
       "httpx"
     ],
     "outbound_fetch": "Cloudflare workers.fetch",
-    "payload_validation": "lightweight explicit validation",
-    "response_format": "existing JSON page contract"
+    "payload_validation": "lightweight explicit validation"
+  },
+  "extraction": {
+    "primary_strategy": "article_data_adid",
+    "fallback_strategy": "unique_s_anzeige_link_windows",
+    "listing_id_source": "numeric id from /s-anzeige/ URL",
+    "supported_containers": [
+      "article",
+      "li.ad-listitem",
+      "div.aditem",
+      "bounded link window"
+    ],
+    "false_empty_page_guard": true,
+    "populated_page_without_candidates": "HTTP 502 ParserLayoutError",
+    "diagnostic_schema": "direct-stdlib-link-fallback-v1",
+    "diagnostic_fields": [
+      "html_bytes",
+      "html_article_tags",
+      "html_article_data_adid",
+      "html_all_data_adid",
+      "html_s_anzeige_links",
+      "html_unique_s_anzeige_links",
+      "candidate_card_count",
+      "article_candidate_count",
+      "link_candidate_count",
+      "extraction_strategy",
+      "reported_total"
+    ]
   },
   "retained_behavior": [
     "seven-result work packets",
@@ -55,21 +84,12 @@
     "empty optional fields ignored",
     "compact result cards"
   ],
-  "functional_reference_evidence": {
-    "version": "0.44.4",
-    "logic_and_data_flow": "passed",
-    "confirmed_runtime_failure": "python_worker_cpu_limit_during_import_before_outbound_fetch",
-    "results_saved_before_failure": 248,
-    "successful_requests_before_failure": 37,
-    "data_consistency": true
-  },
   "constraints": {
     "target_plan": "Cloudflare Workers Free",
     "packet_size": 7,
     "pause_ms": 5000,
     "runtime_card_patch": false,
     "search_contract_compatible_with_0444": true,
-    "empty_fields_ignored": true,
     "asgi_in_live_path": false,
     "fastapi_in_live_path": false,
     "pydantic_in_live_path": false,
@@ -78,13 +98,14 @@
   },
   "acceptance_test": {
     "version_endpoint_after_cold_start": "pending",
+    "snes_first_packet_returns_results": "pending",
+    "reported_total_with_zero_candidates_must_error": true,
     "minimum_work_packets": 50,
     "minimum_saved_results": 300,
     "cpu_limit_errors_allowed": 0,
-    "compare_ids_and_traffic_lights_to_0444": true,
     "manual_stop_and_resume": true,
     "data_consistency_required": true
   },
   "next_release_after_acceptance": "0.45.0",
-  "metadata_schema": 5
+  "metadata_schema": 6
 }
