@@ -2,18 +2,25 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
-## 0.44.6.6 Build 2 – 2026-08-04 – Testversion
+## 0.44.6.6 Build 3 – 2026-08-04 – Testversion
 
-- Stabile Referenz 0.44.6.5 vollständig beibehalten.
+- Fehler aus Build 2 analysiert: `countdown()` liegt in `app.js`, wurde aber fälschlich per Textanker in `controller-0411.js` gesucht.
+- Den aktiven Controllerfluss wieder auf die funktionierende Struktur von 0.44.6.5 zurückgeführt.
+- Cooldown als separates Skript `cooldown-04466.js` nach `app.js` und vor dem Controller eingebunden.
+- Testlogik fail-open ausgeführt: Kann der Cooldown nicht initialisiert werden, bleibt die 0.44.6.5-Suche aktiv.
+- Normale Seitenpause wird bei 120, 240, 360 und jedem weiteren Vielfachen von 120 eindeutigen Treffern durch 90 Sekunden ersetzt.
+- Retry-Wartezeiten, Search-Service, Workerpfad, Pagination, 7er-Pakete, Ampel und Recovery bleiben unverändert.
+- Laufzeitprüfungen für den Referenzcontroller, die Schwellen 120/240 und das Fail-open-Verhalten ergänzt.
+- 0.44.6.5 bleibt bis zum Live-Test die stabile Referenz.
+
+## 0.44.6.6 Build 2 – 2026-08-04 – verworfene Testversion
+
+- Stabile Referenz 0.44.6.5 sollte vollständig beibehalten werden.
 - Build 1 war nur in Metadaten als Cooldown-Test sichtbar; im aktiven Controller fanden keine Testpausen statt.
-- Build 2 ersetzt die normale Seitenpause bei 120, 240, 360 und jedem weiteren Vielfachen von 120 eindeutigen Treffern durch 90 Sekunden.
-- Das zuletzt geladene Arbeitspaket wird vor jeder Pause normal ausgewertet, gespeichert und angezeigt.
-- Während der Pause erhält der Worker keinen neuen Suchauftrag; danach läuft dieselbe Session automatisch weiter.
-- Die jeweils nächste Schwelle wird browserseitig gespeichert, sodass dieselbe Schwelle nicht doppelt ausgelöst wird.
-- Eventlog um `cooldown_threshold_reached`, `cooldown_start`, `cooldown_resume` und `cooldown_cancelled` ergänzt.
-- Worker, Parser, Pagination, 7er-Pakete, Ampel, Retry und Fehler-Recovery bleiben unverändert.
-- Außerhalb der Schwellen bleibt die normale 5-Sekunden-Pause aktiv.
-- 0.44.6.5 bleibt die stabile Referenz; Cloudflare-Livetest erforderlich.
+- Build 2 sollte die normale Seitenpause bei 120, 240, 360 und jedem weiteren Vielfachen von 120 eindeutigen Treffern durch 90 Sekunden ersetzen.
+- Live-Regression: Controllerstart scheiterte mit `Reference countdown anchor missing`; Suche blieb gesperrt.
+- Ursache: Die Pausenfunktion wurde im falschen Referenzskript gesucht.
+- Build 2 wurde durch Build 3 ersetzt.
 
 ## 0.44.6.5 – 2026-08-04 – stabile Rollback-Referenz
 
