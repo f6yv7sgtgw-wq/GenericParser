@@ -14,7 +14,6 @@ const NativeFunction = global.Function;
 
 global.Function = function checkedFunction(...args) {
   generatedSource = String(args.at(-1) || '');
-  // Compile without executing the generated browser controller.
   NativeFunction(...args);
   return () => {};
 };
@@ -22,10 +21,9 @@ global.Function = function checkedFunction(...args) {
 global.window = {
   GP_BUILD_IDENTITY: {
     version: '0.44.6.6',
-    buildId: 'gp-04466-20260804-1',
+    buildId: 'gp-04466-20260804-2',
     apiContract: 'match-v6.11.7-rollback-04465-cooldown-test',
     eventLogKey: 'generic-parser-eventlog-04466',
-    testCooldown: {threshold: 120, durationMs: 90000},
   },
   GP_HANDSHAKE_READY: false,
   dispatchEvent() {},
@@ -39,12 +37,18 @@ vm.runInThisContext(wrapperSource, {filename: 'controller-04466.js'});
 
 setTimeout(() => {
   assert.ok(generatedSource, 'runtime controller was not generated');
-  assert.match(generatedSource, /const TEST_COOLDOWN_THRESHOLD = 120;/);
+  assert.match(generatedSource, /const TEST_COOLDOWN_STEP = 120;/);
   assert.match(generatedSource, /const TEST_COOLDOWN_MS = 90000;/);
+  assert.match(generatedSource, /generic-parser-cooldown-04466-b2/);
+  assert.match(generatedSource, /state\.nextThreshold/);
+  assert.match(generatedSource, /completedThresholds/);
+  assert.match(generatedSource, /while\(Number\(loaded\|\|0\)>=Number\(state\.nextThreshold/);
+  assert.match(generatedSource, /ms=TEST_COOLDOWN_MS/);
+  assert.match(generatedSource, /mode:'replace_regular_delay'/);
   assert.match(generatedSource, /cooldown_threshold_reached/);
   assert.match(generatedSource, /cooldown_start/);
   assert.match(generatedSource, /cooldown_resume/);
-  assert.doesNotMatch(generatedSource, /I\.testCooldown/);
-  assert.match(generatedSource, /const PACKET|requestWithBackoff|runSearch/);
-  console.log('0.44.6.6 generated controller runtime compiles');
+  assert.doesNotMatch(generatedSource, /testCooldownDone/);
+  assert.match(generatedSource, /requestWithBackoff|runSearch/);
+  console.log('0.44.6.6 Build 2 repeated cooldown runtime compiles');
 }, 25);
