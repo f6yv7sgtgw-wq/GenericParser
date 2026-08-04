@@ -1,8 +1,7 @@
-"""GenericParser 0.44.6.6 Build 2 cooldown test on the 0.44.6.5 rollback runtime.
+"""GenericParser 0.44.6.6.1 test on the stable 0.44.6.5 rollback runtime.
 
-The proven 0.44.4 search path, 0.44.6.2 ASGI runtime behavior and single
-browser-side auto-resume remain unchanged. The only experiment is a client-side
-90-second replacement for the regular page delay at every 120 unique results.
+The proven 0.44.4 search path and 0.44.6.2 runtime behavior remain unchanged.
+Browser-side experiments use 120-second cooldowns and a self-healing resume control.
 """
 from __future__ import annotations
 
@@ -97,21 +96,23 @@ async def version() -> JSONResponse:
         "html_503_classification": "temporary_upstream_or_cloudflare_response",
         "controller_recovery": {
             "enabled": True,
-            "mode": "single_saved-state-auto-resume",
+            "mode": "single-saved-state-auto-resume-with-control-retry",
             "triggers": ["cloudflare_1101", "retry_exhausted_after_repeated_html_503"],
-            "quiet_period_ms": 90000,
+            "quiet_period_ms": 120000,
             "health_check_interval_ms": 15000,
             "max_health_checks": 4,
             "max_auto_resumes": 1,
+            "resume_control_attempts": 2,
+            "resume_control_retry_ms": 10000,
             "probe_endpoint": "/api/version",
             "search_core_changed": False,
         },
         "controller_test_cooldown": {
             "enabled": True,
-            "mode": "replace_regular_delay",
+            "mode": "repeated-multiples-fail-open",
             "threshold_unique_results": 120,
             "repeat_every_unique_results": 120,
-            "duration_ms": 90000,
+            "duration_ms": 120000,
             "once_per_session": False,
             "thresholds": "120,240,360,...",
             "persistent_threshold_state": True,
