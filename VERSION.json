@@ -1,17 +1,18 @@
 {
   "product": "GenericParser",
-  "version": "0.44.6.1",
-  "package_version": "0.44.6.1",
-  "build_id": "gp-04461-20260804-1",
-  "api_contract": "match-v6.11.2-reference-diagnostics",
+  "version": "0.44.6.2",
+  "package_version": "0.44.6.2",
+  "build_id": "gp-04462-20260804-1",
+  "api_contract": "match-v6.11.3-reference-auto-resume",
   "entrypoint": "src/generic_parser/cloudflare_worker.py:Default.fetch",
-  "bootstrap_module": "generic_parser.cloudflare_v04461",
-  "search_module": "generic_parser.search_service_v04461",
-  "controller_source": "cloudflare/public/controller-04461.js",
+  "bootstrap_module": "generic_parser.cloudflare_v04462",
+  "search_module": "generic_parser.search_service_v04462",
+  "controller_source": "cloudflare/public/controller-04462.js",
   "controller_base": "cloudflare/public/controller-0411.js",
-  "eventlog_source": "cloudflare/public/eventlog-04461.js",
+  "auto_resume_source": "cloudflare/public/auto-resume-04462.js",
+  "eventlog_source": "cloudflare/public/eventlog-04462.js",
   "functional_reference_version": "0.44.4",
-  "runtime_base": "0.44.6",
+  "runtime_base": "0.44.6.1",
   "technical_base": "0.43.6.3",
   "release_date": "2026-08-04",
   "repository": "f6yv7sgtgw-wq/GenericParser",
@@ -19,14 +20,30 @@
   "functional_reference": false,
   "candidate_for_functional_reference": true,
   "live_cloudflare_test": false,
-  "purpose": "correct diagnostic presentation while retaining the complete 0.44.6 reference search behavior unchanged",
-  "diagnostic_fix": {
-    "identity_check": "version, build and API contract only",
-    "reference_mode": "0.44.4 coverage schema is optional",
-    "false_version_mismatch_removed": true,
-    "html_503_label": "temporary upstream or Cloudflare HTML response",
-    "html_503_recovery_text": "saved progress retained; retry or resume available",
-    "search_core_changed": false
+  "purpose": "test whether a saved search can recover automatically after a terminal HTML-503/Cloudflare-1101 chain without modifying the proven parser core",
+  "confirmed_input_findings": {
+    "reference_version_tested": "0.44.6.1",
+    "successful_work_packets_before_failure": 9,
+    "saved_results": 60,
+    "terminal_chain": ["HTTP 503 HTML response", "Cloudflare 1101 before ASGI", "retry_exhausted"],
+    "manual_resume_available": true,
+    "automatic_resume_previously_available": false
+  },
+  "controller_recovery": {
+    "enabled": true,
+    "mode": "single-saved-state-auto-resume",
+    "trigger": "search_end retry_exhausted with Cloudflare 1101 or at least two distinct HTML-503 requests in the failed session",
+    "quiet_period_ms": 90000,
+    "health_endpoint": "/api/version",
+    "health_check_interval_ms": 15000,
+    "max_health_checks": 4,
+    "max_auto_resumes_per_search_chain": 1,
+    "resume_action": "programmatic activation of the existing saved-state resume control after a version-consistent health response",
+    "manual_override": true,
+    "persistent_across_page_reload_for_ms": 1800000,
+    "infinite_retry_loop_prevented": true,
+    "fresh_worker_instance_guaranteed": false,
+    "hypothesis": "the quiet period and readiness probe may route the continuation to a healthy or freshly initialized worker instance"
   },
   "retained_behavior": [
     "search_service_v0444 delegated unchanged",
@@ -34,11 +51,12 @@
     "five-second client pause",
     "real Kleinanzeigen next-link pagination",
     "robust title fallback",
-    "progress persistence and resume",
+    "progress persistence and manual resume",
     "data consistency checks",
     "active-rule red-yellow-green evaluation",
     "empty optional fields ignored",
-    "compact result cards"
+    "compact result cards",
+    "reference-mode diagnostic presentation"
   ],
   "runtime": {
     "model": "reference-0444-asgi",
@@ -46,19 +64,23 @@
     "fastapi": true,
     "pydantic": true,
     "dynamic_package_bootstrap": true,
-    "note": "This diagnostic-only release does not claim to solve the known Free-plan Python CPU risk."
+    "note": "The server runtime is unchanged. This release tests controller-side recovery and does not claim to remove the underlying Free-plan ASGI/import risk."
   },
   "acceptance_test": {
     "version_endpoint": "pending",
-    "eventlog_identity_must_be_consistent": true,
-    "reference_schema_must_be_optional": true,
-    "html_503_must_be_human_readable": true,
-    "minimum_work_packets": 20,
-    "minimum_saved_results": 100,
-    "manual_stop_and_resume": true,
+    "normal_search_results_must_match_04461": true,
+    "on_terminal_1101_auto_resume_scheduled_event_required": true,
+    "quiet_period_seconds": 90,
+    "health_probe_identity_must_match": true,
+    "auto_resume_start_event_required": true,
+    "automatic_resume_must_continue_from_saved_page": true,
+    "duplicate_results_after_resume_allowed": 0,
+    "maximum_automatic_resume_attempts": 1,
+    "second_terminal_failure_must_require_manual_resume": true,
+    "manual_stop_and_manual_resume_must_still_work": true,
     "data_consistency_required": true,
-    "search_results_must_match_0446": true
+    "search_core_diff_allowed": false
   },
-  "next_step_after_acceptance": "resume 0.45 parser-core roadmap from the stable reference behavior",
-  "metadata_schema": 9
+  "next_step_after_acceptance": "if recovery works, set 0.44.6.2 as operational reference candidate and continue 0.45; otherwise retain 0.44.6.1 and move recovery into the stateful 0.45 architecture",
+  "metadata_schema": 10
 }
