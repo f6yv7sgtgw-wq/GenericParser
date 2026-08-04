@@ -2,6 +2,17 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 0.44.6.6.1 – 2026-08-05 – Testversion
+
+- Live-Befund aus 0.44.6.6 Build 3 übernommen: eine 90-Sekunden-Testpause wurde ausgeführt, die Suche erreichte anschließend 230 Ergebnisse und Seite 35.
+- Geplante Browserpause bei 120, 240, 360 und jedem weiteren Vielfachen von 120 eindeutigen Treffern von 90 auf 120 Sekunden erhöht.
+- Recovery-Ruhezeit nach einer terminalen 503-/1101-Kette ebenfalls von 90 auf 120 Sekunden erhöht.
+- Bekannten Recovery-Abbruch `resume_control_unavailable` behoben: Die Fortsetzen-Schaltfläche wird nach erfolgreicher Worker-Prüfung sichtbar und aktiv gesetzt.
+- Nach dem ersten automatischen Fortsetzungsversuch wird zehn Sekunden auf ein `search_resume`-Ereignis gewartet.
+- Fehlt dieses Ereignis, wird die Fortsetzen-Steuerung genau einmal erneut ausgelöst und als `auto_resume_control_retry` protokolliert.
+- Suchkern, Worker-Suchverhalten, Pagination, 7er-Pakete, Ampel, normale 5-Sekunden-Pause und Retry-Verhalten bleiben unverändert.
+- 0.44.6.5 bleibt die stabile Referenz; Cloudflare-Livetest erforderlich.
+
 ## 0.44.6.6 Build 3 – 2026-08-04 – Testversion
 
 - Fehler aus Build 2 analysiert: `countdown()` liegt in `app.js`, wurde aber fälschlich per Textanker in `controller-0411.js` gesucht.
