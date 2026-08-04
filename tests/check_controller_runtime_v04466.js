@@ -20,13 +20,13 @@ global.Function = function checkedFunction(...args) {
 
 global.window = {
   GP_BUILD_IDENTITY: {
-    version: '0.44.6.6',
-    buildId: 'gp-04466-20260804-3',
-    apiContract: 'match-v6.11.7-rollback-04465-cooldown-test',
-    eventLogKey: 'generic-parser-eventlog-04466',
+    version: '0.44.6.6.1',
+    buildId: 'gp-044661-20260805-1',
+    apiContract: 'match-v6.11.8-rollback-04465-cooldown120-recovery-control',
+    eventLogKey: 'generic-parser-eventlog-044661',
   },
   GP_COOLDOWN_IDENTITY: {
-    buildId: 'gp-04466-20260804-3',
+    buildId: 'gp-044661-20260805-1',
     reference: '0.44.6.5',
   },
   GP_HANDSHAKE_READY: false,
@@ -41,20 +41,20 @@ vm.runInThisContext(wrapperSource, {filename: 'controller-04466.js'});
 
 setTimeout(() => {
   assert.ok(generatedSource, 'reference controller was not generated');
-  assert.match(generatedSource, /const VERSION = '0\.44\.6\.6';/);
-  assert.match(generatedSource, /const BUILD_ID = 'gp-04466-20260804-3';/);
-  assert.match(generatedSource, /const API_CONTRACT = 'match-v6\.11\.7-rollback-04465-cooldown-test';/);
-  assert.match(generatedSource, /const LOG_KEY = 'generic-parser-eventlog-04466';/);
+  assert.match(generatedSource, /const VERSION = '0\.44\.6\.6\.1';/);
+  assert.match(generatedSource, /const BUILD_ID = 'gp-044661-20260805-1';/);
+  assert.match(generatedSource, /const API_CONTRACT = 'match-v6\.11\.8-rollback-04465-cooldown120-recovery-control';/);
+  assert.match(generatedSource, /const LOG_KEY = 'generic-parser-eventlog-044661';/);
   assert.match(generatedSource, /runControlled/);
   assert.match(generatedSource, /searchButton\?\.addEventListener/);
   assert.doesNotMatch(generatedSource, /Reference countdown anchor missing/);
   assert.doesNotMatch(generatedSource, /TEST_COOLDOWN/);
 
   const expected = baseSource
-    .replace("const VERSION = '0.41.1';", "const VERSION = '0.44.6.6';")
-    .replace("const BUILD_ID = 'gp-0411-20260802-1';", "const BUILD_ID = 'gp-04466-20260804-3';")
-    .replace("const API_CONTRACT = 'match-v6.1-page-worker';", "const API_CONTRACT = 'match-v6.11.7-rollback-04465-cooldown-test';")
-    .replace("const LOG_KEY = 'generic-parser-eventlog-0411';", "const LOG_KEY = 'generic-parser-eventlog-04466';");
-  assert.ok(generatedSource.startsWith(expected), 'Build 3 controller differs from the 0.44.6.5 reference flow');
-  console.log('0.44.6.6 Build 3 reference controller passed');
+    .replace("const VERSION = '0.41.1';", "const VERSION = '0.44.6.6.1';")
+    .replace("const BUILD_ID = 'gp-0411-20260802-1';", "const BUILD_ID = 'gp-044661-20260805-1';")
+    .replace("const API_CONTRACT = 'match-v6.1-page-worker';", "const API_CONTRACT = 'match-v6.11.8-rollback-04465-cooldown120-recovery-control';")
+    .replace("const LOG_KEY = 'generic-parser-eventlog-0411';", "const LOG_KEY = 'generic-parser-eventlog-044661';");
+  assert.ok(generatedSource.startsWith(expected), '0.44.6.6.1 controller differs from the 0.44.6.5 reference flow');
+  console.log('0.44.6.6.1 reference controller passed');
 }, 25);
