@@ -33,8 +33,8 @@ function createContext(withCountdown = true) {
   };
   context.window = context;
   context.GP_BUILD_IDENTITY = {
-    buildId: 'gp-04466-20260804-3',
-    testCooldown: {threshold: 120, durationMs: 90_000},
+    buildId: 'gp-044661-20260805-1',
+    testCooldown: {threshold: 120, durationMs: 120_000, stateKey: 'generic-parser-cooldown-044661'},
   };
   context.gpEventLog = (type, message, data) => events.push({type, message, data});
   if (withCountdown) {
@@ -45,18 +45,18 @@ function createContext(withCountdown = true) {
   }
   vm.createContext(context);
   vm.runInContext(source, context, {filename: 'cooldown-04466.js'});
-  return {context, calls, events};
+  return {context, calls, events, store};
 }
 
 (async () => {
-  const {context, calls, events} = createContext(true);
+  const {context, calls, events, store} = createContext(true);
   await context.countdown(5_000, 1, 119, 'Nächste Seite');
   await context.countdown(5_000, 2, 120, 'Nächste Seite');
   await context.countdown(5_000, 3, 127, 'Nächste Seite');
   await context.countdown(5_000, 4, 240, 'Nächste Seite');
   await context.countdown(15_000, 5, 247, 'Retry 1');
 
-  assert.deepEqual(calls.map(call => call.ms), [5_000, 90_000, 5_000, 90_000, 15_000]);
+  assert.deepEqual(calls.map(call => call.ms), [5_000, 120_000, 5_000, 120_000, 15_000]);
   assert.deepEqual(
     events.filter(event => event.type === 'cooldown_start').map(event => event.data.threshold),
     [120, 240]
@@ -65,13 +65,14 @@ function createContext(withCountdown = true) {
     events.filter(event => event.type === 'cooldown_resume').map(event => event.data.threshold),
     [120, 240]
   );
+  assert.ok(store.has('generic-parser-cooldown-044661'));
 
   // Fail-open proof: missing cooldown target must not throw or change handshake.
   const failOpen = createContext(false);
   assert.equal(failOpen.context.GP_HANDSHAKE_READY, undefined);
   assert.equal(failOpen.context.GP_COOLDOWN_IDENTITY, undefined);
 
-  console.log('0.44.6.6 Build 3 cooldown runtime passed');
+  console.log('0.44.6.6.1 120-second cooldown runtime passed');
 })().catch(error => {
   console.error(error);
   process.exit(1);
