@@ -1,0 +1,40 @@
+name: GenericParser 0.44.5.2 runtime
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/generic_parser/worker_runtime_v0445.py"
+      - "src/generic_parser/worker_runtime_v04451.py"
+      - "src/generic_parser/worker_runtime_v04452.py"
+      - "src/generic_parser/worker_runtime_v04452_entry.py"
+      - "src/generic_parser/cloudflare_worker.py"
+      - "cloudflare/public/controller-04452.js"
+      - "tests/test_worker_runtime_v04452.py"
+      - ".github/workflows/runtime-04452.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check pytest
+      - name: Compile lightweight runtime
+        run: |
+          python -m py_compile \
+            src/generic_parser/worker_runtime_v0445.py \
+            src/generic_parser/worker_runtime_v04451.py \
+            src/generic_parser/worker_runtime_v04452.py \
+            src/generic_parser/worker_runtime_v04452_entry.py \
+            src/generic_parser/cloudflare_worker.py
+      - name: Run focused regression tests
+        run: python -m pytest -q tests/test_worker_runtime_v04452.py
