@@ -1,24 +1,25 @@
-name: GenericParser 0.44.6.1 reference diagnostics
+name: GenericParser 0.44.6.2 reference auto-resume
 
 on:
   push:
     branches: [main]
     paths:
       - 'src/generic_parser/cloudflare_worker.py'
-      - 'src/generic_parser/cloudflare_v04461.py'
-      - 'src/generic_parser/search_service_v04461.py'
-      - 'src/generic_parser/build_identity_v04461.py'
-      - 'cloudflare/public/controller-04461.js'
-      - 'cloudflare/public/eventlog-04461.js'
-      - 'cloudflare/public/build-identity-04461.js'
+      - 'src/generic_parser/cloudflare_v04462.py'
+      - 'src/generic_parser/search_service_v04462.py'
+      - 'src/generic_parser/build_identity_v04462.py'
+      - 'cloudflare/public/controller-04462.js'
+      - 'cloudflare/public/auto-resume-04462.js'
+      - 'cloudflare/public/eventlog-04462.js'
+      - 'cloudflare/public/build-identity-04462.js'
       - 'cloudflare/public/index.html'
       - 'cloudflare/public/eventlog.html'
-      - 'tests/test_diagnostic_fix_v04461.py'
+      - 'tests/test_auto_resume_v04462.py'
       - '.github/workflows/reference-0446.yml'
   workflow_dispatch:
 
 jobs:
-  reference-diagnostics:
+  reference-auto-resume:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,17 +28,18 @@ jobs:
           python-version: '3.13'
       - name: Install test dependencies
         run: python -m pip install -U pip pytest fastapi pydantic httpx beautifulsoup4 PyYAML
-      - name: Compile 0.44.6.1 modules
+      - name: Compile 0.44.6.2 modules
         run: |
           python -m py_compile \
             src/generic_parser/cloudflare_worker.py \
-            src/generic_parser/cloudflare_v04461.py \
-            src/generic_parser/search_service_v04461.py \
-            src/generic_parser/build_identity_v04461.py
+            src/generic_parser/cloudflare_v04462.py \
+            src/generic_parser/search_service_v04462.py \
+            src/generic_parser/build_identity_v04462.py
       - name: Check browser scripts
         run: |
-          node --check cloudflare/public/controller-04461.js
-          node --check cloudflare/public/eventlog-04461.js
-          node --check cloudflare/public/build-identity-04461.js
-      - name: Run diagnostic fix tests
-        run: pytest -q tests/test_diagnostic_fix_v04461.py tests/test_reference_rollback_v0446.py
+          node --check cloudflare/public/controller-04462.js
+          node --check cloudflare/public/auto-resume-04462.js
+          node --check cloudflare/public/eventlog-04462.js
+          node --check cloudflare/public/build-identity-04462.js
+      - name: Run reference and auto-resume tests
+        run: pytest -q tests/test_auto_resume_v04462.py tests/test_diagnostic_fix_v04461.py tests/test_reference_rollback_v0446.py
