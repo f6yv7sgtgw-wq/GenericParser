@@ -2,6 +2,19 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 0.44.6.3 – 2026-08-04
+
+- Arbeitsreferenz 0.44.6.2 beibehalten und den 0.44.4-Suchkern unverändert delegiert.
+- Neuen Endpunkt `/api/recovery-probe` ergänzt, der Python-Runtime, Search-Service, Request-Modell, Suchfunktion und Referenzkern prüft, ohne Kleinanzeigen aufzurufen.
+- Recovery-Trigger um Cloudflare 1102 erweitert und `cf-error-type`, `cf-error-origin`, `Retry-After` und Ray-ID protokolliert.
+- Gestaffeltes Recovery-Backoff von 90, 180 und 360 Sekunden mit ±10 Prozent Jitter eingeführt.
+- Probe-Wiederholungen nach 30, 60 und 120 Sekunden; höchstens drei Probes je Zyklus.
+- Höchstens zwei automatische Fortsetzungen je Suchkette; danach manueller Fallback.
+- Sichtbare Recovery-Kachel mit Zyklus, Probe, nächster Aktion, Fehlerklasse und letzter Probe ergänzt.
+- Recovery-Zustand über Seiten-Reloads erhalten und Endlosschleifen verhindert.
+- Suchkern, Pagination, Extraktion, Ampel, 7er-Pakete und 5-Sekunden-Pause bleiben unverändert.
+- Live-Test erforderlich.
+
 ## 0.44.6.2 – 2026-08-04
 
 - Einmalige automatische Fortsetzung nach einer terminalen 503/1101-Fehlerkette ergänzt.
@@ -13,7 +26,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Manuelles Fortsetzen überschreibt eine wartende Automatik.
 - Eventlog um Planung, Health-Checks, Start, laufende Session, Abschluss und manuellen Fallback ergänzt.
 - Suchkern, Pagination, Extraktion, Ampellogik, 7er-Pakete und 5-Sekunden-Pause bleiben unverändert auf Referenz 0.44.4.
-- Live-Test erforderlich; eine frische Cloudflare-Worker-Instanz wird nicht garantiert.
+- Live-Test: 34 erfolgreiche Arbeitspakete und 219 gespeicherte Ergebnisse vor der nächsten 503/1101-Kette; Version als Arbeitsreferenz bestätigt.
 
 ## 0.44.6.1 – 2026-08-04
 
