@@ -1,95 +1,90 @@
 {
   "product": "GenericParser",
-  "version": "0.44.4",
-  "package_version": "0.44.4",
-  "build_id": "gp-0444-20260803-1",
-  "api_contract": "match-v6.11-active-rules-worker",
-  "entrypoint": "generic_parser.cloudflare_worker:Default.fetch",
-  "bootstrap_module": "generic_parser.cloudflare_v0444",
-  "search_module": "generic_parser.search_service_v0444",
-  "identity_source": "src/generic_parser/build_identity_v0444.py",
-  "controller_source": "cloudflare/public/controller-0444.js",
+  "version": "0.44.5",
+  "package_version": "0.44.5",
+  "build_id": "gp-0445-20260804-1",
+  "api_contract": "match-v6.12-direct-free-worker",
+  "entrypoint": "src/generic_parser/cloudflare_worker.py:Default.fetch",
+  "runtime_module": "src/generic_parser/worker_runtime_v0445.py",
+  "controller_source": "cloudflare/public/controller-0445.js",
   "controller_base": "cloudflare/public/controller-0411.js",
-  "reference_version": "0.44.4",
-  "reference_scope": [
-    "search_flow",
-    "pagination",
-    "work_packets",
-    "progress_resume",
-    "data_consistency",
-    "active_rule_traffic_light",
-    "result_card_contract"
-  ],
+  "functional_reference_version": "0.44.4",
   "technical_base": "0.43.6.3",
-  "release_date": "2026-08-03",
-  "reference_set_date": "2026-08-04",
+  "release_date": "2026-08-04",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "functional-reference-runtime-hardening-required",
-  "functional_reference": true,
+  "status": "implementation-complete-live-test-required",
+  "functional_reference": false,
   "operational_reference": false,
-  "live_cloudflare_test": true,
-  "live_test_result": {
+  "candidate_for_operational_reference": true,
+  "live_cloudflare_test": false,
+  "purpose": "remove the confirmed Python import/ASGI cold-start CPU hotspot while retaining the 0.44.4 result and traffic-light contract",
+  "runtime_architecture": {
+    "model": "direct-worker-stdlib-v1",
+    "worker_entrypoint": "WorkerEntrypoint.Default.fetch",
+    "manual_routes": [
+      "GET /health",
+      "GET /api/version",
+      "POST /api/search"
+    ],
+    "live_path_imports": [
+      "json",
+      "urllib.parse",
+      "workers",
+      "worker_runtime_v0445"
+    ],
+    "removed_from_live_path": [
+      "importlib package bootstrap",
+      "generic_parser package __init__",
+      "ASGI",
+      "FastAPI",
+      "Pydantic",
+      "httpx"
+    ],
+    "outbound_fetch": "Cloudflare workers.fetch",
+    "payload_validation": "lightweight explicit validation",
+    "response_format": "existing JSON page contract"
+  },
+  "retained_behavior": [
+    "seven-result work packets",
+    "five-second client pause",
+    "real Kleinanzeigen next-link diagnostics",
+    "robust title fallback",
+    "progress persistence and resume",
+    "data consistency checks",
+    "active-rule red-yellow-green evaluation",
+    "empty optional fields ignored",
+    "compact result cards"
+  ],
+  "functional_reference_evidence": {
+    "version": "0.44.4",
     "logic_and_data_flow": "passed",
-    "long_exhaustive_run": "interrupted_after_saved_progress",
-    "confirmed_failure": "python_worker_cpu_limit_during_import_before_outbound_fetch",
-    "results_saved": 248,
+    "confirmed_runtime_failure": "python_worker_cpu_limit_during_import_before_outbound_fetch",
+    "results_saved_before_failure": 248,
     "successful_requests_before_failure": 37,
     "data_consistency": true
-  },
-  "features": [
-    "evaluate_only_fields_with_user_input",
-    "ignore_empty_required_excluded_model_brand_price_and_market_value_fields",
-    "evaluate_required_and_excluded_terms_independently",
-    "remove_unknown_condition_and_unknown_product_type_penalties",
-    "retain_hard_exclusions_for_wanted_ads_disallowed_bundles_disallowed_incomplete_items_and_maximum_price",
-    "retain_reference_0442_search_pagination_and_controller_flow"
-  ],
-  "traffic_light": {
-    "model": "v2-active-rules",
-    "green": "all active rules satisfied",
-    "yellow": "an active rule is uncertain without a hard exclusion",
-    "red": "an active hard rule is violated",
-    "inactive": "empty field or non-applicable option; omitted from evaluation and card",
-    "always_active": [
-      "query_match",
-      "wanted_advertisement_detection"
-    ],
-    "conditional_rules": [
-      "required_terms_when_nonempty",
-      "excluded_terms_when_nonempty",
-      "model_patterns_when_nonempty",
-      "brands_when_nonempty",
-      "maximum_price_when_set",
-      "market_value_when_set",
-      "bundle_rule_when_bundle_detected",
-      "incomplete_rule_when_incomplete_detected"
-    ]
-  },
-  "runtime_issue": {
-    "confirmed": true,
-    "platform": "Cloudflare Workers Free Python runtime",
-    "phase": "import_before_asgi_and_before_outbound_fetch",
-    "symptom": "CpuLimitExceeded",
-    "not_caused_by": [
-      "kleinanzeigen_pagination",
-      "traffic_light_rules",
-      "network_wait_time",
-      "saved_progress_consistency"
-    ],
-    "planned_fix_version": "0.44.5",
-    "planned_fix": "replace ASGI FastAPI Pydantic and dynamic import startup path with a lightweight direct WorkerEntrypoint adapter while preserving the 0.44.4 API contract"
   },
   "constraints": {
     "target_plan": "Cloudflare Workers Free",
     "packet_size": 7,
     "pause_ms": 5000,
     "runtime_card_patch": false,
-    "search_behavior_changed_from_0442": false,
-    "pagination_changed_from_0442": false,
+    "search_contract_compatible_with_0444": true,
     "empty_fields_ignored": true,
-    "free_runtime_cpu_hardening_pending": true
+    "asgi_in_live_path": false,
+    "fastapi_in_live_path": false,
+    "pydantic_in_live_path": false,
+    "httpx_in_live_path": false,
+    "dynamic_package_bootstrap": false
   },
-  "next_release": "0.44.5",
-  "next_roadmap_release_after_stabilization": "0.45.0",
-  "metadata_schema": 4
+  "acceptance_test": {
+    "version_endpoint_after_cold_start": "pending",
+    "minimum_work_packets": 50,
+    "minimum_saved_results": 300,
+    "cpu_limit_errors_allowed": 0,
+    "compare_ids_and_traffic_lights_to_0444": true,
+    "manual_stop_and_resume": true,
+    "data_consistency_required": true
+  },
+  "next_release_after_acceptance": "0.45.0",
+  "metadata_schema": 5
 }
