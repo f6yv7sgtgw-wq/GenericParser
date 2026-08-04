@@ -1,167 +1,103 @@
 # GenericParser Roadmap
 
-## Funktionale Referenz 0.44.4
+## Fachlicher Referenzkern 0.44.4
 
-0.44.4 bleibt die fachliche Vergleichsbasis für:
+0.44.4 bleibt die fachliche Vergleichsbasis für Suchfluss, echte Kleinanzeigen-Weiter-Navigation, robuste Extraktion, Datenkonsistenz und die Ampelbewertung ausschließlich aktiver Regeln. Der Kern wird in den späteren 0.44.6.x-Versionen unverändert über `search_service_v0444` verwendet.
 
-- stabilen Suchstart und manuellen Stopp
-- 7er-Arbeitspakete mit 5 Sekunden Pause
-- echte Kleinanzeigen-Weiter-Navigation
-- robuste Titel- und Kartenextraktion
-- gespeicherten Fortschritt und Fortsetzen
-- Datenkonsistenz
-- Ampelbewertung ausschließlich aktiver Regeln
-- kompakte Ergebniskarten
+## Arbeitsreferenz 0.44.6.2
 
-Der Live-Test vom 04.08.2026 bestätigte Fachlogik und Datenkonsistenz. Ein langer Lauf wurde nach 37 erfolgreichen Anfragen und 248 gespeicherten Ergebnissen durch `Python Worker exceeded CPU time limit` beendet. Deshalb ist 0.44.4 die funktionale, aber nicht uneingeschränkt operative Referenz.
+0.44.6.2 ist die bestätigte Arbeitsreferenz. Der Live-Test erreichte 34 erfolgreiche Arbeitspakete und 219 gespeicherte Ergebnisse, bevor eine Kette aus mehreren HTML-503-Antworten und Cloudflare 1101 vor ASGI auftrat. Suchstand, Treffer, Preise, Bilder, Ampeln, Pagination und Datenkonsistenz blieben erhalten. Die einmalige automatische Recovery wurde korrekt geplant.
 
-## 0.44.5 bis 0.44.5.2 – experimentelle Runtime-Linie
+## 0.44.6.3 – Recovery-Hardening – implementiert, Live-Test ausstehend
 
-Die direkte Standardbibliothek-Runtime beseitigte den beobachteten Import-/ASGI-Fehler in kurzen Testläufen, erreichte aber nicht die funktionale Abdeckung der Referenz:
-
-- 0.44.5: keine Karten erkannt
-- 0.44.5.1: Karten wieder erkannt, aber nur 29 Ergebnisse und keine Preise
-- 0.44.5.2: Preise und Diagnose verbessert, Pagination weiterhin nach 29 Ergebnissen beendet
-
-Diese Linie ist als Experiment dokumentiert und wird nicht als Grundlage der Produkt-Roadmap verwendet.
-
-## 0.44.6 – Funktionaler Rückbau auf 0.44.4 – Live-Test bestanden
-
-Der Live-Test bestätigte die Wiederherstellung der funktionalen Qualität:
-
-- 184 eindeutige Ergebnisse gespeichert
-- mindestens 29 Arbeitspakete erfolgreich verarbeitet
-- echte Weiter-Navigation über den Referenzkern
-- Preise, Bilder und Ampelbewertungen vorhanden
-- Suchstand bei temporärem Fehler erhalten
-- automatischer HTTP-Retry aktiv
-
-Am Ende lieferte der Abruf für Seite 29 wiederholt eine HTML-Fehlerseite mit HTTP 503. Das war kein Paginationfehler und kein Versionskonflikt. Der Suchstand blieb gespeichert und konnte manuell fortgesetzt werden.
-
-## 0.44.6.1 – Diagnosefix – Live-Test bestanden
-
-Der Test bestätigte:
-
-- Eventlog und Worker melden konsistent `0.44.6.1` / `gp-04461-20260804-1`
-- Referenzmodus 0.44.4 wird korrekt erkannt
-- HTML-503 wird verständlich als temporärer Abruffehler dargestellt
-- ältere Ereignisse werden übernommen
-- Suchkern, Trefferkarten, Preise und Ampel funktionieren unverändert
-
-Der Lauf verarbeitete neun Arbeitspakete und speicherte 60 Ergebnisse. Danach folgte die bestätigte Fehlerkette:
-
-```text
-HTTP 503 mit HTML
-→ unmittelbarer Retry
-→ Cloudflare 1101 vor ASGI
-→ retry_exhausted
-→ Stand gespeichert, manuelles Fortsetzen möglich
-```
-
-Die bisherige Implementierung nahm eine Suche nach `retry_exhausted` bewusst nicht automatisch wieder auf. Sie bot nur die gespeicherte manuelle Fortsetzung an.
-
-## 0.44.6.2 – Einmalige automatische Fortsetzung – implementiert, Live-Test ausstehend
-
-Ziel: Die bestehende gespeicherte Suche nach der bestätigten 503/1101-Kette einmal automatisch fortsetzen, ohne Parser, Pagination oder Worker-Suchkern zu verändern.
-
-Controller-Ablauf:
-
-```text
-retry_exhausted mit 1101 oder wiederholtem HTML-503
-→ Suchstand bleibt gespeichert
-→ 90 Sekunden Ruhezeit
-→ /api/version mit Cache-Bypass prüfen
-→ Version, Build und API-Vertrag müssen übereinstimmen
-→ vorhandene „Letzte Suche fortsetzen“-Funktion einmal automatisch auslösen
-→ bei erneutem Terminalfehler nur noch manuelles Fortsetzen
-```
+0.44.6.3 verändert nicht den Suchkern. Die Version verbessert ausschließlich die Recovery-Steuerung.
 
 Umgesetzt:
 
-- Recovery-Modul `auto-resume-04462.js` beobachtet die bestehenden Eventlog-Ereignisse
-- Trigger nur bei `search_end` mit `retry_exhausted` und belastbarem 1101-/503-Nachweis
-- 90 Sekunden Ruhezeit vor der ersten Bereitschaftsprüfung
-- bis zu vier `/api/version`-Prüfungen im Abstand von 15 Sekunden
-- genau ein automatischer Resume-Versuch je Suchkette
-- kein unbegrenzter Retry- oder Resume-Kreis
-- manueller Resume überschreibt die wartende Automatik
-- Löschen des Suchstands löscht auch den Recovery-Zustand
-- Recovery-Zustand bleibt bei einem Seiten-Reload höchstens 30 Minuten erhalten
-- Eventlog protokolliert Planung, Health-Prüfung, Start, laufende Session, Abschluss und manuellen Fallback
-- `search_service_v04462` delegiert direkt an den unveränderten 0.44.4-Kern
-- Paketgröße bleibt 7 und normale Pause bleibt 5 Sekunden
+- neuer `GET /api/recovery-probe`
+- Probe lädt Python-Runtime und Search-Service und validiert `SearchRequest`, `search_page` und den Referenzkern `generic_parser.search_service_v0444`
+- keine Kleinanzeigen-Anfrage innerhalb der Probe
+- Recovery-Trigger für Cloudflare 1101, 1102 und wiederholte HTML-503-Antworten
+- gestaffeltes Backoff von 90, 180 und 360 Sekunden
+- ±10 Prozent Jitter
+- Probe-Abstände von 30, 60 und 120 Sekunden
+- höchstens drei Probe-Versuche je Recovery-Zyklus
+- höchstens zwei automatische Fortsetzungen je Suchkette
+- danach ausschließlich manuelle Fortsetzung
+- Auswertung von `cf-error-type`, `cf-error-origin`, `Retry-After` und Ray-ID
+- sichtbare Recovery-Kachel mit Status, Versuchen, nächster Aktion und letzter Probe
+- persistenter Recovery-Stand über einen Seiten-Reload
+- keine unbegrenzte Retry- oder Resume-Schleife
 
-Wichtige Grenze:
+Unverändert:
 
-- Cloudflare garantiert nicht, dass die Bereitschaftsprüfung eine neue Worker-Instanz erzeugt
-- 0.44.6.2 testet diese Recovery-Hypothese im Live-Betrieb
-- das zugrunde liegende ASGI-/Import-Risiko wird nicht als behoben bezeichnet
+- 7er-Arbeitspakete
+- 5 Sekunden normale Pause
+- Suchlogik aus 0.44.4
+- Pagination und Weiter-Link
+- Titel-, Karten- und Preisextraktion
+- Ampelbewertung
+- Deduplizierung
+- Speichern, Stoppen und manuelles Fortsetzen
 
-Abnahmetest nach Deployment:
+Abnahmetest:
 
-1. `/api/version` meldet 0.44.6.2 und den Recovery-Modus.
-2. Normale Treffer und Pagination entsprechen 0.44.6.1.
-3. Bei einer 1101-/503-Unterbrechung erscheint `auto_resume_scheduled` im Eventlog.
-4. Die UI zählt 90 Sekunden herunter und prüft anschließend den Worker.
-5. Nach erfolgreicher Prüfung erscheint `auto_resume_start`.
-6. Die neue Session setzt auf der gespeicherten Seite fort und beginnt nicht bei Seite 1.
-7. Bereits geladene Anzeigen werden nicht erneut als neue Ergebnisse gezählt.
-8. Bei einem zweiten Terminalfehler erfolgt kein zweiter automatischer Resume; der manuelle Button bleibt verfügbar.
-9. Manueller Stopp, manuelles Fortsetzen und Datenkonsistenz bleiben unverändert.
+1. `/api/version` meldet 0.44.6.3 und den Recovery-Hardening-Vertrag.
+2. `/api/recovery-probe` liefert `status: ready` und bestätigt den Referenzkern.
+3. Normale Treffer und Pagination entsprechen 0.44.6.2.
+4. Nach einem Terminalfehler erscheint `recovery_scheduled`.
+5. Der erste Zyklus wartet ungefähr 90 Sekunden, der zweite ungefähr 180 Sekunden; jeweils mit ±10 Prozent Jitter.
+6. Nach erfolgreicher Probe erscheinen `recovery_probe_ready`, `recovery_resume_start` und `recovery_resume_running`.
+7. Die Fortsetzung startet auf der gespeicherten Seite und erzeugt keine neuen Dubletten.
+8. Nach zwei gescheiterten automatischen Fortsetzungen bleibt ausschließlich die manuelle Fortsetzung verfügbar.
+9. Datenkonsistenz muss durchgehend bestätigt bleiben.
 
-Bei erfolgreichem Test wird 0.44.6.2 operative Referenzkandidatin. Bei Fehlschlag bleibt 0.44.6.1 die Arbeitsreferenz; die Recovery wird dann als zustandsbehafteter Bestandteil von 0.45 umgesetzt.
+Nach bestandenem Live-Test wird 0.44.6.3 operative Referenz. Danach geht die Entwicklung zurück in die Produkt-Roadmap.
 
 ## 0.45 – Integrierbares Parser-Core-Modul
 
-Ziel: Die bewährte Funktionalität als wiederverwendbares Modul für Evercade, SNES und weitere Projekte kapseln.
-
 - UI-unabhängiger Parser-Core
-- stabile Eingabe- und Ergebnisdatentypen
-- projektneutrales Suchprofil
+- stabile Ein- und Ergebnisdatentypen
+- projektneutrale Suchprofile
 - Ampelbewertung als eigenständige Funktion
-- JSON-Serialisierung für andere Projekte
-- Adapter für Cloudflare Worker und lokale Tests
-- unveränderter API-Vertrag für bestehende Clients
-- zustandsbehaftete Recovery-Schnittstelle, falls 0.44.6.2 nicht ausreichend stabil ist
+- JSON-Schnittstelle für andere Projekte
+- Adapter für Cloudflare, Evercade und SNES
+- Recovery-Schnittstelle für gespeicherte Suchaufträge
 
 ## 0.46 – Produktklassifizierung
 
 - Hauptprodukt, Zubehör, Ersatzteil, Bundle, Gesuch, Vermietung und Service unterscheiden
-- Zubehör-vs.-Hauptprodukt robuster erkennen
-- projektspezifische Klassifikationsregeln zulassen
-- Fehlklassifikationen aus Thule-, Evercade- und SNES-Testläufen als Regressionstests aufnehmen
+- projektspezifische Klassifikationsregeln
+- Regressionstests aus Thule-, Evercade- und SNES-Suchen
 
 ## 0.47 – Cartridge-Normalisierung
 
-- Evercade-Cartridge-Namen und Schreibvarianten vereinheitlichen
-- SNES-PAL-Titel und Varianten normalisieren
+- Evercade- und SNES-PAL-Titel vereinheitlichen
+- Schreibvarianten, Nummern und Editionen normalisieren
 - Einzelmodule aus Bundles erkennen
-- Dubletten über unterschiedliche Titel hinweg zusammenführen
 
 ## 0.48 – Projektintegration
 
-- stabile Suchschnittstelle für Evercade und SNES
-- gespeicherte Suchprofile pro fehlender Cartridge
-- Übergabe von Treffern, Ampel, Deal-Score und Angebotsdaten
-- Rückmeldung gekauft, ignoriert oder bereits vorhanden
+- Suchprofile pro fehlender Cartridge
+- strukturierte Übergabe von Treffer, Ampel und Angebotsdaten
+- Integration in Evercade- und SNES-Sammlungsmanager
 
 ## 0.49 – Deal Engine
 
-- Preis gegen Richtwert und Maximalpreis bewerten
-- Zustand, Vollständigkeit und Versand berücksichtigen
-- Deal-Klassen: sehr gut, interessant, prüfen, unpassend
-- Gesamtpreis inklusive Versand berechnen
+- Preis gegen Richtwert und Maximalpreis
+- Zustand, Vollständigkeit und Versand
+- Deal-Klassen und Gesamtpreis
 
 ## 0.50 – Automatische Deal-Suche
 
-- zeitgesteuerte Suche im Hintergrund
+- zeitgesteuerte Suche
 - nur neue oder geänderte Angebote melden
-- Ergebnisverlauf und Preisänderungen speichern
-- Integration in Evercade- und SNES-Benachrichtigungen
+- Ergebnis- und Preisverlauf
+- Benachrichtigungen für Evercade und SNES
 
 ## 0.51 – Betrieb und Qualität
 
-- feste Regressionstests für Pagination, Extraktion, Klassifizierung und Ampel
-- feste Beispielsuchen für Evercade und SNES
-- kompakte Betriebsdiagnose
+- feste Regressionstests
+- Referenzsuchen für Evercade und SNES
+- Betriebsdiagnose
 - Release- und Deployment-Checkliste
