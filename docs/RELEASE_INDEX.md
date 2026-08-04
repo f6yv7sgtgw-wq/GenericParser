@@ -4,7 +4,8 @@ Dieser Index ordnet die Versionsstände ihren Build-IDs und technischen Abschlus
 
 | Version | Build-ID | Technischer Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 0.44.6.3 | `gp-04463-20260804-1` | `681f4365937360419d4eb22042180bff981a46ff` | Recovery-Probe, gestaffeltes Backoff mit Jitter, bis zu zwei automatische Fortsetzungen; Live-Test ausstehend |
+| 0.44.6.3 | `gp-04463-20260804-2` | `6393800e37f300abb6a0af30bd8e4e11233a8e09` | Recovery-Probe, gestaffeltes Backoff und Resume-Control-Hotfix; manueller und automatischer Resume werden aus dem Recovery-Zustand freigegeben |
+| 0.44.6.3 Build 1 | `gp-04463-20260804-1` | `681f4365937360419d4eb22042180bff981a46ff` | Erste Recovery-Hardening-Fassung; Probe erfolgreich, Fortsetzen-Schaltfläche blieb jedoch deaktiviert |
 | 0.44.6.2 | `gp-04462-20260804-1` | `f55f31bcd878ec1edb0b8fc0ee9b5330c8ef0a0a` | Einmalige automatische Fortsetzung; bestätigte Arbeitsreferenz mit 219 Ergebnissen vor Recovery |
 | 0.44.6.1 | `gp-04461-20260804-1` | `8f5b76cdcfe469f8ae4005a9dd5ee23d6d451931` | Diagnosefix und verständliche 503-/Referenzanzeige |
 | 0.44.6 | `gp-0446-20260804-1` | `1178738c76fed1f5ff08b3f5841eb869650073ff` | Funktionaler Rückbau auf den 0.44.4-Suchkern |
@@ -25,21 +26,21 @@ Dieser Index ordnet die Versionsstände ihren Build-IDs und technischen Abschlus
 ## Aktueller Stand
 
 ```text
-Version:               0.44.6.3
-Paketversion:          0.44.6.3
-Build-ID:              gp-04463-20260804-1
-API-Vertrag:           match-v6.11.4-reference-recovery-hardening
+Version:                 0.44.6.3
+Paketversion:            0.44.6.3
+Build-ID:                gp-04463-20260804-2
+API-Vertrag:             match-v6.11.4-reference-recovery-hardening
 Fachlicher Referenzkern: 0.44.4
-Arbeitsreferenz:       0.44.6.2
-Status:                Implementiert, Cloudflare-Live-Test ausstehend
+Arbeitsreferenz:         0.44.6.2
+Status:                  Resume-Hotfix implementiert, Cloudflare-Live-Test ausstehend
 ```
 
 ## Downloadformat
 
-Technischer Abschlussstand 0.44.6.3:
+Technischer Abschlussstand 0.44.6.3 Build 2:
 
 ```text
-https://github.com/f6yv7sgtgw-wq/GenericParser/archive/681f4365937360419d4eb22042180bff981a46ff.zip
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/6393800e37f300abb6a0af30bd8e4e11233a8e09.zip
 ```
 
 Aktueller Hauptbranch einschließlich Dokumentation:
