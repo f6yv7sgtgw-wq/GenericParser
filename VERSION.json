@@ -1,13 +1,13 @@
 {
   "product": "GenericParser",
-  "version": "0.44.5.1",
-  "package_version": "0.44.5.1",
-  "build_id": "gp-04451-20260804-1",
-  "api_contract": "match-v6.12.1-direct-free-worker-extraction",
+  "version": "0.44.5.2",
+  "package_version": "0.44.5.2",
+  "build_id": "gp-04452-20260804-1",
+  "api_contract": "match-v6.12.2-cursor-price-diagnostics",
   "entrypoint": "src/generic_parser/cloudflare_worker.py:Default.fetch",
-  "runtime_module": "src/generic_parser/worker_runtime_v04451.py",
-  "runtime_base": "0.44.5",
-  "controller_source": "cloudflare/public/controller-04451.js",
+  "runtime_module": "src/generic_parser/worker_runtime_v04452.py",
+  "runtime_base": "0.44.5.1",
+  "controller_source": "cloudflare/public/controller-04452.js",
   "controller_base": "cloudflare/public/controller-0411.js",
   "functional_reference_version": "0.44.4",
   "technical_base": "0.43.6.3",
@@ -18,23 +18,20 @@
   "operational_reference": false,
   "candidate_for_operational_reference": true,
   "live_cloudflare_test": false,
-  "purpose": "retain the direct Free Worker from 0.44.5 while restoring result-card extraction and preventing false empty-page completion",
-  "confirmed_0445_regression": {
+  "purpose": "retain the direct Free Worker and link extraction while restoring real next-link pagination, card price extraction and persisted coverage diagnostics",
+  "confirmed_04451_findings": {
     "query": "Snes",
-    "reported_total": 6669,
-    "candidate_cards": 0,
-    "returned_results": 0,
-    "incorrect_stop_reason": "empty_page_verified",
+    "reported_total": 6665,
+    "returned_results": 29,
+    "requests": 6,
+    "incorrect_stop_reason": "pagination_repeated_page",
+    "prices_recognized": 0,
+    "diagnostic_blocks": 0,
     "cpu_limit_error": false
   },
   "runtime_architecture": {
-    "model": "direct-worker-stdlib-link-fallback-v1",
+    "model": "direct-worker-stdlib-cursor-price-v1",
     "worker_entrypoint": "WorkerEntrypoint.Default.fetch",
-    "manual_routes": [
-      "GET /health",
-      "GET /api/version",
-      "POST /api/search"
-    ],
     "removed_from_live_path": [
       "importlib package bootstrap",
       "generic_parser package __init__",
@@ -46,37 +43,47 @@
     "outbound_fetch": "Cloudflare workers.fetch",
     "payload_validation": "lightweight explicit validation"
   },
+  "pagination": {
+    "strategy": "persisted source HTML Weiter cursor",
+    "cursor_storage": "browser localStorage by query and virtual page",
+    "cursor_request_field": "cursor_url",
+    "short_page_transition": "next physical source page starts at next four-packet boundary",
+    "reported_total_is_diagnostic_only": true,
+    "repeated_page_guard_retained": true
+  },
   "extraction": {
     "primary_strategy": "article_data_adid",
-    "fallback_strategy": "unique_s_anzeige_link_windows",
-    "listing_id_source": "numeric id from /s-anzeige/ URL",
-    "supported_containers": [
-      "article",
-      "li.ad-listitem",
-      "div.aditem",
-      "bounded link window"
+    "fallback_strategy": "complete_li_or_article_else_next_unique_link",
+    "navigation_only_candidates_removed": true,
+    "price_strategies": [
+      "legacy price class",
+      "explicit Euro text",
+      "structured data-price"
     ],
     "false_empty_page_guard": true,
-    "populated_page_without_candidates": "HTTP 502 ParserLayoutError",
-    "diagnostic_schema": "direct-stdlib-link-fallback-v1",
-    "diagnostic_fields": [
-      "html_bytes",
-      "html_article_tags",
-      "html_article_data_adid",
-      "html_all_data_adid",
-      "html_s_anzeige_links",
-      "html_unique_s_anzeige_links",
-      "candidate_card_count",
-      "article_candidate_count",
-      "link_candidate_count",
+    "diagnostic_schema": "direct-stdlib-cursor-price-diagnostics-v1"
+  },
+  "diagnostic_events": {
+    "enabled": true,
+    "event_type": "coverage_diagnostics",
+    "fields": [
       "extraction_strategy",
-      "reported_total"
+      "candidate_card_count",
+      "navigation_candidates_removed",
+      "selected_range_count",
+      "extracted_count",
+      "price_recognized_count",
+      "price_missing_count",
+      "actual_source_url",
+      "cursor_url",
+      "cursor_next_page",
+      "cursor_transition",
+      "returned_ids"
     ]
   },
   "retained_behavior": [
     "seven-result work packets",
     "five-second client pause",
-    "real Kleinanzeigen next-link diagnostics",
     "robust title fallback",
     "progress persistence and resume",
     "data consistency checks",
@@ -84,22 +91,11 @@
     "empty optional fields ignored",
     "compact result cards"
   ],
-  "constraints": {
-    "target_plan": "Cloudflare Workers Free",
-    "packet_size": 7,
-    "pause_ms": 5000,
-    "runtime_card_patch": false,
-    "search_contract_compatible_with_0444": true,
-    "asgi_in_live_path": false,
-    "fastapi_in_live_path": false,
-    "pydantic_in_live_path": false,
-    "httpx_in_live_path": false,
-    "dynamic_package_bootstrap": false
-  },
   "acceptance_test": {
     "version_endpoint_after_cold_start": "pending",
-    "snes_first_packet_returns_results": "pending",
-    "reported_total_with_zero_candidates_must_error": true,
+    "snes_real_next_page_changes_ids": "pending",
+    "prices_recognized_on_result_cards": "pending",
+    "coverage_diagnostic_blocks_present": "pending",
     "minimum_work_packets": 50,
     "minimum_saved_results": 300,
     "cpu_limit_errors_allowed": 0,
@@ -107,5 +103,5 @@
     "data_consistency_required": true
   },
   "next_release_after_acceptance": "0.45.0",
-  "metadata_schema": 6
+  "metadata_schema": 7
 }
