@@ -6,7 +6,7 @@ from .normalization import compact_text, normalize_text, parse_location, parse_p
 from .service import GenericParser, ListingSource
 from .sources.kleinanzeigen import FetchedPage, KleinanzeigenAdapter, KleinanzeigenBlockedError, KleinanzeigenHttpClient, KleinanzeigenLayoutError, LocationVerification, KleinanzeigenPageParser, KleinanzeigenUrlBuilder, PageDiagnostics, PageState, extract_location_id, slugify_keyword
 
-__version__ = "0.44.6"
+__version__ = "0.44.6.1"
 
 __all__ = [
     "ConfigurationError", "GenericParser", "FetchedPage", "KleinanzeigenAdapter",
