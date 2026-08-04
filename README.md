@@ -4,59 +4,56 @@ Wiederverwendbarer Kleinanzeigen-Parser und mobile PWA für die Einbindung in **
 
 ## Aktueller Stand
 
-- **Produktversion:** `0.42.7`
-- **Paketversion:** `0.42.7`
-- **Build-ID:** `gp-0427-20260803-1`
-- **API-Vertrag:** `match-v6.1-page-worker`
+- **Produktversion:** `0.44.6.2`
+- **Paketversion:** `0.44.6.2`
+- **Build-ID:** `gp-04462-20260804-1`
+- **API-Vertrag:** `match-v6.11.3-reference-auto-resume`
 - **Zielplattform:** Cloudflare Workers Free
-- **Worker-Modell:** CPU-schonende virtuelle Arbeitspakete
+- **Funktionale Referenz:** `0.44.4`
+- **Suchkern:** unveränderter Referenzpfad mit 7er-Arbeitspaketen
 
-## Ursache der bisherigen Abbrüche
+## Bestätigter Betriebsbefund
 
-Die Cloudflare-Traces weisen den Fehler eindeutig als `Worker exceeded CPU time limit` aus. Der frühere Python-Pfad baute für jede Kleinanzeigen-Seite einen vollständigen BeautifulSoup-DOM auf, normalisierte und bewertete alle Karten und überschritt dadurch das CPU-Budget des Free-Tarifs.
+Der Referenzkern verarbeitet Treffer, Preise, Bilder, Ampelregeln und echte Weiter-Navigation korrekt. In langen Läufen kann der Cloudflare-Python-Worker jedoch nach einem HTML-503 beim anschließenden Retry mit `Cloudflare 1101 vor ASGI` abbrechen. Der Suchstand wird dabei zuverlässig gespeichert.
 
-## Architektur 0.42.7
+0.44.6.1 bot nach `retry_exhausted` ausschließlich die manuelle Schaltfläche **Letzte Suche fortsetzen**. 0.44.6.2 testet eine begrenzte automatische Recovery, ohne den Parser erneut umzubauen.
+
+## Recovery-Ablauf 0.44.6.2
 
 ```text
-Browser/PWA
-→ konsistenter Versions-Handshake
-→ 5 Sekunden Pause zwischen Aufrufen
-→ minimaler Cloudflare-ASGI-Bootstrap
-→ CPU-schonender Search-Service
-→ eine Kleinanzeigen-Quellseite wird in vier virtuelle Arbeitspakete zerlegt
-→ höchstens sieben Karten pro Worker-Aufruf
-→ einfache, begrenzte HTML-Extraktion ohne vollständigen DOM
-→ Suchstand nach jedem Paket speichern
-→ nächstes Paket als eigener Worker-Aufruf
+Suchlauf mit gespeichertem Fortschritt
+→ Terminalfehler: 1101 oder wiederholtes HTML-503
+→ retry_exhausted
+→ 90 Sekunden Ruhezeit
+→ /api/version mit Cache-Bypass prüfen
+→ Version, Build und API-Vertrag müssen übereinstimmen
+→ vorhandene gespeicherte Suche einmal automatisch fortsetzen
+→ bei erneutem Terminalfehler nur noch manuell fortsetzen
 ```
 
-Die Ausführung ist bewusst langsam. Eine Quellseite mit ungefähr 25 Anzeigen benötigt bis zu vier einzelne Worker-Aufrufe. Der Browser wartet zwischen den Aufrufen fünf Sekunden und kann den gespeicherten Stand später fortsetzen.
+Grenzen:
 
-## Kernfunktionen
+- höchstens **ein** automatischer Resume-Versuch je Suchkette
+- bis zu vier Bereitschaftsprüfungen im Abstand von 15 Sekunden
+- kein unbegrenzter Retry-Kreis
+- manueller Resume überschreibt eine wartende Automatik
+- Löschen des Suchstands löscht auch den Recovery-Zustand
+- Cloudflare garantiert nicht, dass die Bereitschaftsprüfung eine neue Worker-Instanz erzeugt
 
-- Kleinanzeigen-Suche in kleinen CPU-schonenden Arbeitspaketen
-- höchstens sieben Karten pro Worker-Invocation
-- keine vollständige BeautifulSoup-DOM-Rekonstruktion im Free-Tarif-Pfad
+## Unveränderter Referenzkern
+
+- höchstens sieben Karten pro Worker-Aufruf
+- fünf Sekunden Pause zwischen erfolgreichen Arbeitspaketen
+- echte Kleinanzeigen-Weiter-Navigation
+- robuste Titel-, Preis- und Kartenextraktion
 - persistenter Suchstand und Fortsetzung
 - Deduplizierung über alle Arbeitspakete
-- Pflicht- und Ausschlussbegriffe sowie Maximalpreis im leichten Matching
-- sanfter Suchstopp und Session-Isolation
-- Eventlog mit Request-, Paket-, Versions- und Fehlerdaten
-- Deployment-Handshake zwischen UI, Controller und Worker
-- PWA für Mobilgeräte
-- Abschluss, sobald die gemeldete Gesamtzahl oder eine kurze Quellseite erreicht ist
-
-## Versionskonsistenz
-
-UI, Controller, Worker, Eventlog und PWA-Cache verwenden gemeinsam:
-
-```text
-Version:     0.42.7
-Build-ID:    gp-0427-20260803-1
-API-Vertrag: match-v6.1-page-worker
-```
-
-Eine Live-Suche wird nur freigegeben, wenn der Handshake vollständig konsistent ist.
+- Pflicht- und Ausschlussbegriffe
+- Maximalpreis und Richtwert
+- Ampelbewertung nur für tatsächlich gesetzte Kriterien
+- leere optionale Felder werden ignoriert
+- Datenkonsistenzprüfung
+- Eventlog mit Request-, Versions-, 503-, 1101- und Recovery-Ereignissen
 
 ## Cloud-Version lokal testen
 
@@ -100,6 +97,15 @@ Der echte Kleinanzeigen-Live-Smoke-Test ist standardmäßig deaktiviert:
 GENERIC_PARSER_LIVE_TEST=1 pytest -m live -q
 ```
 
-## Versionshistorie
+## Abnahme von 0.44.6.2
 
-Die zusammengefasste Historie steht in [`CHANGELOG.md`](CHANGELOG.md). Die Zuordnung von Versionen, Build-IDs und Abschluss-Commits steht in [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md).
+Der Live-Test muss zeigen:
+
+1. `auto_resume_scheduled` nach einer bestätigten 503/1101-Kette.
+2. 90 Sekunden Ruhezeit und anschließende konsistente `/api/version`-Antwort.
+3. `auto_resume_start` und eine neue `search_resume`-Session.
+4. Fortsetzung auf dem gespeicherten Arbeitspaket statt Neustart bei Seite 1.
+5. Keine erneut als neu gezählten Anzeigen.
+6. Bei einem zweiten Terminalfehler kein weiterer automatischer Versuch.
+
+Die Versionshistorie steht in [`CHANGELOG.md`](CHANGELOG.md). Die Roadmap steht in [`ROADMAP.md`](ROADMAP.md).
