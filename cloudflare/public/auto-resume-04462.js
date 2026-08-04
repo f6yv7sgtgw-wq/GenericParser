@@ -359,6 +359,22 @@
     }
   }
 
+  function restoreTerminalAfterReload(events) {
+    if (!recovery || !['running', 'auto_running'].includes(recovery.status)) return;
+    const sessionId = recovery.currentSessionId || recovery.rootSessionId;
+    const terminal = [...events]
+      .reverse()
+      .find(event => event.type === 'search_end' && event.sessionId === sessionId && event.reason === 'retry_exhausted');
+    if (!terminal || Date.now() - eventEpoch(terminal) > MAX_PERSISTED_AGE_MS) return;
+    const evidence = sessionEvidence(events, sessionId);
+    if (!evidence.recoverable) return;
+    if (recovery.status === 'auto_running' || Number(recovery.autoResumeCount || 0) >= options.maxAutoResumes) {
+      requireManual('auto_resumed_session_failed_after_reload', 'Auch die automatisch fortgesetzte Session wurde unterbrochen.');
+      return;
+    }
+    scheduleRecovery(terminal, evidence);
+  }
+
   function tick() {
     if (!recovery) return;
     if (['waiting', 'probing'].includes(recovery.status)) {
@@ -374,6 +390,8 @@
     events.forEach(event => processedSignatures.add(eventSignature(event)));
     if (recovery && Date.now() - Number(recovery.updatedAt || 0) > MAX_PERSISTED_AGE_MS && ['waiting', 'probing'].includes(recovery.status)) {
       requireManual('persisted_recovery_expired', 'Die automatische Fortsetzung ist abgelaufen.');
+    } else {
+      restoreTerminalAfterReload(events);
     }
     tick();
     setInterval(() => {
