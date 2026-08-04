@@ -1,8 +1,8 @@
 # GenericParser Roadmap
 
-## Referenz 0.44.4
+## Funktionale Referenz 0.44.4
 
-0.44.4 ist die fachliche Referenz für:
+0.44.4 bleibt die fachliche Vergleichsbasis für:
 
 - stabilen Suchstart und manuellen Stopp
 - Cloudflare-Free-Tarif-kompatible Arbeitspakete
@@ -14,22 +14,36 @@
 - Ampelbewertung ausschließlich aktiver Regeln
 - kompakte Ergebniskarten
 
-Der Live-Test vom 04.08.2026 bestätigte die Fachlogik und Datenkonsistenz. Ein langer Lauf wurde nach 37 erfolgreichen Anfragen und 248 gespeicherten Ergebnissen durch `Python Worker exceeded CPU time limit` beendet. Der Trace zeigt den Abbruch beim Import vor ASGI und vor dem ausgehenden Kleinanzeigen-Aufruf. Deshalb ist 0.44.4 die funktionale, aber noch nicht die operative Runtime-Referenz.
+Der Live-Test vom 04.08.2026 bestätigte Fachlogik und Datenkonsistenz. Ein langer Lauf wurde nach 37 erfolgreichen Anfragen und 248 gespeicherten Ergebnissen durch `Python Worker exceeded CPU time limit` beendet. Der Trace zeigt den Abbruch beim Import vor ASGI und vor dem ausgehenden Kleinanzeigen-Aufruf. Deshalb ist 0.44.4 die funktionale, aber nicht die operative Runtime-Referenz.
 
-## 0.44.5 – Free-Runtime-Hardening
+## 0.44.5 – Free-Runtime-Hardening – implementiert, Live-Test ausstehend
 
-Ziel: 0.44.4 unverändert fachlich erhalten und den Cloudflare-Free-Startpfad unter das CPU-Limit bringen.
+Ziel: Die 0.44.4-Fachlogik erhalten und den Cloudflare-Free-Startpfad unter das CPU-Limit bringen.
+
+Umgesetzt:
 
 - direkter `WorkerEntrypoint` statt ASGI/FastAPI im Cloudflare-Pfad
-- kein Pydantic-Modellaufbau pro kaltem Isolat
+- eigenständiger Standardbibliothek-Parser `worker_runtime_v0445.py`
+- kein Import des umfangreichen `generic_parser/__init__.py` im Live-Pfad
 - keine dynamische `importlib`-Paketinitialisierung
-- statische, kleine Imports im Request-Pfad
-- leichte JSON-Validierung ohne Änderung des API-Vertrags
-- identische Suchantworten und Ampelresultate zu 0.44.4
-- Cold-Start- und Wiederholungs-Test
-- langer Regressionstest mit gespeichertem Fortschritt
+- kein Pydantic-Modellaufbau
+- kein `httpx`; externer Abruf über Cloudflares `workers.fetch`
+- manueller Router für `/health`, `/api/version` und `/api/search`
+- leichte explizite JSON-Validierung
+- kompatible Seiten-, Diagnose-, Konsistenz- und Ampelantworten
+- unveränderte 7er-Arbeitspakete und 5-Sekunden-Pause im Client
+- isolierte Regressionstests für Importbaum, aktive Regeln, harte Ausschlüsse und Seitenvertrag
 
-Erfolgskriterium: Kein CPU-Abbruch vor dem ersten ausgehenden Fetch. Erst danach wird 0.44.5 operative Referenz.
+Abnahmetest nach Deployment:
+
+1. `/api/version` mehrfach nach kaltem Start aufrufen.
+2. Mindestens 50 Arbeitspakete und 300 Ergebnisse verarbeiten.
+3. Keine `CpuLimitExceeded`- oder Cloudflare-1101-Ereignisse.
+4. IDs und Ampelbewertungen stichprobenartig gegen 0.44.4 vergleichen.
+5. Manuellen Stopp und Fortsetzen prüfen.
+6. Datenkonsistenz muss durchgehend bestätigt bleiben.
+
+Erst nach bestandenem Live-Test wird 0.44.5 operative Referenz.
 
 ## 0.45 – Integrierbares Parser-Core-Modul
 
