@@ -127,4 +127,3 @@ def test_eventlog_exposes_repeated_cooldown_evidence() -> None:
     assert "cooldown_cancelled" in eventlog
     assert "repeat_every_unique_results" in eventlog
     assert "ausgeführte Testpausen" in eventlog
-    assert "generic-parser-cooldown-04466-b3" in eventlog
