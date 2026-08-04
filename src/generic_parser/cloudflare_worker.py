@@ -1,6 +1,6 @@
-"""Cloudflare-Python-Worker entrypoint for GenericParser 0.44.6.1.
+"""Cloudflare-Python-Worker entrypoint for GenericParser 0.44.6.2.
 
-Diagnostic-only release on the proven 0.44.4 ASGI/search path. Search,
+Controller-recovery release on the proven 0.44.4 ASGI/search path. Search,
 extraction, pagination and traffic-light behavior remain unchanged.
 """
 from __future__ import annotations
@@ -32,7 +32,7 @@ def _load_generic_parser_package():
 
 
 _load_generic_parser_package()
-from generic_parser.cloudflare_v04461 import app  # noqa: E402
+from generic_parser.cloudflare_v04462 import app  # noqa: E402
 
 
 class Default(WorkerEntrypoint):
