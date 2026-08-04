@@ -4,41 +4,42 @@ Wiederverwendbarer Kleinanzeigen-Parser und mobile PWA für die Einbindung in **
 
 ## Aktueller Stand
 
-- **Produktversion:** `0.44.6.2`
-- **Paketversion:** `0.44.6.2`
-- **Build-ID:** `gp-04462-20260804-1`
-- **API-Vertrag:** `match-v6.11.3-reference-auto-resume`
+- **Produktversion:** `0.44.6.3`
+- **Paketversion:** `0.44.6.3`
+- **Build-ID:** `gp-04463-20260804-1`
+- **API-Vertrag:** `match-v6.11.4-reference-recovery-hardening`
+- **Arbeitsreferenz:** `0.44.6.2`
+- **Fachlicher Suchkern:** unverändert aus `0.44.4`
 - **Zielplattform:** Cloudflare Workers Free
-- **Funktionale Referenz:** `0.44.4`
-- **Suchkern:** unveränderter Referenzpfad mit 7er-Arbeitspaketen
 
-## Bestätigter Betriebsbefund
+## Recovery-Hardening 0.44.6.3
 
-Der Referenzkern verarbeitet Treffer, Preise, Bilder, Ampelregeln und echte Weiter-Navigation korrekt. In langen Läufen kann der Cloudflare-Python-Worker jedoch nach einem HTML-503 beim anschließenden Retry mit `Cloudflare 1101 vor ASGI` abbrechen. Der Suchstand wird dabei zuverlässig gespeichert.
-
-0.44.6.1 bot nach `retry_exhausted` ausschließlich die manuelle Schaltfläche **Letzte Suche fortsetzen**. 0.44.6.2 testet eine begrenzte automatische Recovery, ohne den Parser erneut umzubauen.
-
-## Recovery-Ablauf 0.44.6.2
+0.44.6.3 verändert nicht Parser, Pagination, Extraktion oder Ampel. Die Version verbessert ausschließlich die automatische Fortsetzung nach temporären Cloudflare-Ausfällen.
 
 ```text
-Suchlauf mit gespeichertem Fortschritt
-→ Terminalfehler: 1101 oder wiederholtes HTML-503
-→ retry_exhausted
-→ 90 Sekunden Ruhezeit
-→ /api/version mit Cache-Bypass prüfen
-→ Version, Build und API-Vertrag müssen übereinstimmen
-→ vorhandene gespeicherte Suche einmal automatisch fortsetzen
-→ bei erneutem Terminalfehler nur noch manuell fortsetzen
+Terminalfehler: 1101, 1102 oder wiederholtes HTML-503
+→ Suchstand speichern
+→ 90 s Ruhezeit ±10 %
+→ /api/recovery-probe
+→ Python-Runtime, ASGI, Search-Service und Referenzkern prüfen
+→ Auto-Resume 1
+→ bei erneutem Terminalfehler 180 s ±10 %
+→ erneut vollständigen Suchpfad prüfen
+→ Auto-Resume 2
+→ danach nur noch manuell fortsetzen
 ```
 
-Grenzen:
+Die Recovery-Probe lädt den Search-Service und validiert das Request-Modell, die Suchfunktion und den Referenzkern `generic_parser.search_service_v0444`. Sie führt selbst keine Kleinanzeigen-Suche aus.
 
-- höchstens **ein** automatischer Resume-Versuch je Suchkette
-- bis zu vier Bereitschaftsprüfungen im Abstand von 15 Sekunden
-- kein unbegrenzter Retry-Kreis
-- manueller Resume überschreibt eine wartende Automatik
-- Löschen des Suchstands löscht auch den Recovery-Zustand
-- Cloudflare garantiert nicht, dass die Bereitschaftsprüfung eine neue Worker-Instanz erzeugt
+Zusätzliche Diagnosewerte:
+
+- `cf-error-type`
+- `cf-error-origin`
+- `Retry-After`
+- Ray-ID
+- Recovery-Zyklus und Wartezeit
+- Probe-Versuch und Probe-Dauer
+- sichtbare Recovery-Kachel in der Suchoberfläche
 
 ## Unveränderter Referenzkern
 
@@ -47,13 +48,12 @@ Grenzen:
 - echte Kleinanzeigen-Weiter-Navigation
 - robuste Titel-, Preis- und Kartenextraktion
 - persistenter Suchstand und Fortsetzung
-- Deduplizierung über alle Arbeitspakete
+- Deduplizierung
 - Pflicht- und Ausschlussbegriffe
 - Maximalpreis und Richtwert
-- Ampelbewertung nur für tatsächlich gesetzte Kriterien
+- Ampelbewertung nur für gesetzte Kriterien
 - leere optionale Felder werden ignoriert
 - Datenkonsistenzprüfung
-- Eventlog mit Request-, Versions-, 503-, 1101- und Recovery-Ereignissen
 
 ## Cloud-Version lokal testen
 
@@ -74,38 +74,24 @@ Optionaler Zugriffsschutz:
 uv run --group cloudflare pywrangler secret put APP_TOKEN
 ```
 
-## Lokales Webinterface
+## Lokale Tests
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -e ".[dev]"
-generic-parser-web
+python -m pytest -q tests/test_recovery_hardening_v04463.py
+node --check cloudflare/public/controller-04463.js
+node --check cloudflare/public/auto-resume-04463.js
+node --check cloudflare/public/eventlog-04463.js
 ```
 
-Danach `http://127.0.0.1:8000` öffnen.
+## Abnahme von 0.44.6.3
 
-## Tests
+1. `/api/version` meldet Version, Build und API-Vertrag konsistent.
+2. `/api/recovery-probe` meldet `status: ready` und den geladenen 0.44.4-Referenzkern.
+3. Normale Suchergebnisse entsprechen 0.44.6.2.
+4. Nach einem Terminalfehler wird `recovery_scheduled` protokolliert.
+5. Nach erfolgreicher Probe folgen `recovery_probe_ready`, `recovery_resume_start` und `recovery_resume_running`.
+6. Die Suche setzt auf dem gespeicherten Arbeitspaket fort.
+7. Es entstehen keine zusätzlichen Dubletten.
+8. Nach höchstens zwei automatischen Fortsetzungen bleibt die manuelle Fortsetzung verfügbar.
 
-```bash
-python -m pytest -q
-```
-
-Der echte Kleinanzeigen-Live-Smoke-Test ist standardmäßig deaktiviert:
-
-```bash
-GENERIC_PARSER_LIVE_TEST=1 pytest -m live -q
-```
-
-## Abnahme von 0.44.6.2
-
-Der Live-Test muss zeigen:
-
-1. `auto_resume_scheduled` nach einer bestätigten 503/1101-Kette.
-2. 90 Sekunden Ruhezeit und anschließende konsistente `/api/version`-Antwort.
-3. `auto_resume_start` und eine neue `search_resume`-Session.
-4. Fortsetzung auf dem gespeicherten Arbeitspaket statt Neustart bei Seite 1.
-5. Keine erneut als neu gezählten Anzeigen.
-6. Bei einem zweiten Terminalfehler kein weiterer automatischer Versuch.
-
-Die Versionshistorie steht in [`CHANGELOG.md`](CHANGELOG.md). Die Roadmap steht in [`ROADMAP.md`](ROADMAP.md).
+Weitere Informationen: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md) und [`VERSION.json`](VERSION.json).
