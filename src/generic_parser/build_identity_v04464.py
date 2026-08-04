@@ -1,0 +1,13 @@
+"""Shared deployment identity for GenericParser 0.44.6.4."""
+
+VERSION = "0.44.6.4"
+BUILD_ID = "gp-04464-20260804-1"
+API_CONTRACT = "match-v6.11.5-lazy-bootstrap-recovery"
+ENTRYPOINT = "generic_parser.cloudflare_worker:Default.fetch"
+BOOTSTRAP_MODULE = "generic_parser.cloudflare_v04464"
+SEARCH_MODULE = "generic_parser.search_service_v04464"
+WORKER_UNIT = "reference-0444+lazy-package-bootstrap+light-recovery-probe"
+FUNCTIONAL_REFERENCE = "0.44.4"
+RUNTIME_REFERENCE = "0.44.6.2"
+RECOVERY_REFERENCE = "0.44.6.3-build-2"
+TECHNICAL_BASE = "0.43.6.3"
