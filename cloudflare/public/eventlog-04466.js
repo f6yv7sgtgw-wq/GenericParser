@@ -3,7 +3,7 @@
   const I = window.GP_BUILD_IDENTITY;
   if (!I) throw new Error('Shared build identity missing');
   const KEY = I.eventLogKey;
-  const LEGACY_KEYS = ['generic-parser-eventlog-04465','generic-parser-eventlog-04464','generic-parser-eventlog-04463','generic-parser-eventlog-04462','generic-parser-eventlog-04461','generic-parser-eventlog-0446'];
+  const LEGACY_KEYS = ['generic-parser-eventlog-04466','generic-parser-eventlog-04465','generic-parser-eventlog-04464','generic-parser-eventlog-04463','generic-parser-eventlog-04462','generic-parser-eventlog-04461','generic-parser-eventlog-0446'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
   function readKey(key) {
@@ -35,15 +35,16 @@
     auto_resume_health_failed: ['Worker noch nicht bereit', 'Die Bereitschaftsprüfung wird nach dem hinterlegten Intervall wiederholt.'],
     auto_resume_health_ready: ['Worker bereit', 'Die Bereitschaftsprüfung war erfolgreich.'],
     auto_resume_start: ['Automatische Fortsetzung gestartet', 'Der gespeicherte Suchstand wird einmal automatisch fortgesetzt.'],
+    auto_resume_control_retry: ['Fortsetzen-Steuerung erneut ausgelöst', 'Die erste Auslösung startete keine neue Suchsession; ein zweiter Versuch wurde ausgeführt.'],
     auto_resume_running: ['Fortgesetzte Session läuft', 'Die automatische Fortsetzung hat eine neue Suchsession gestartet.'],
     auto_resume_completed: ['Automatische Fortsetzung beendet', 'Die automatisch fortgesetzte Session wurde regulär beendet.'],
-    auto_resume_manual_required: ['Manuelles Fortsetzen erforderlich', 'Der einmalige automatische Versuch ist beendet; der Suchstand bleibt gespeichert.'],
+    auto_resume_manual_required: ['Manuelles Fortsetzen erforderlich', 'Der automatische Versuch ist beendet; der Suchstand bleibt gespeichert.'],
     auto_resume_cancelled: ['Automatik abgebrochen', 'Der Nutzer hat die gespeicherte Suche manuell fortgesetzt.'],
     auto_resume_state_cleared: ['Fortsetzungsstand gelöscht', 'Automatischer und manueller Suchstand wurden zurückgesetzt.'],
-    auto_resume_loader_error: ['Recovery-Loader fehlgeschlagen', 'Der unveränderte 0.44.6.2-Recoverycode konnte nicht geladen werden.'],
+    auto_resume_loader_error: ['Recovery-Loader fehlgeschlagen', 'Die Recovery-Schicht konnte nicht geladen werden.'],
     cooldown_threshold_reached: ['Cooldown-Schwelle erreicht', 'Die wiederholte Testpause wird an dieser Ergebnisschwelle gestartet.'],
-    cooldown_start: ['90-Sekunden-Testpause gestartet', 'Die normale Seitenpause wurde für diese Schwelle durch 90 Sekunden ersetzt.'],
-    cooldown_resume: ['Suche nach Testpause fortgesetzt', 'Das nächste Arbeitspaket wurde nach 90 Sekunden wieder freigegeben.'],
+    cooldown_start: ['120-Sekunden-Testpause gestartet', 'Die normale Seitenpause wurde für diese Schwelle durch 120 Sekunden ersetzt.'],
+    cooldown_resume: ['Suche nach Testpause fortgesetzt', 'Das nächste Arbeitspaket wurde nach 120 Sekunden wieder freigegeben.'],
     cooldown_cancelled: ['Testpause abgebrochen', 'Die geplante Pause wurde durch einen Suchstopp beendet.'],
   };
 
@@ -97,8 +98,8 @@
         `<span>API-Vertrag: ${esc(worker.api_contract || '?')}</span>`,
         `<span>Testbasis: ${esc(worker.operational_reference || '0.44.6.5')} · Laufzeit ${esc(worker.runtime_reference || '0.44.6.2')}</span>`,
         `<span>Diagnosemodus: ${referenceMode ? 'Referenz 0.44.4' : 'Standard'} · ${esc(schemaText)}</span>`,
-        `<span>Testpause: ${cooldown.enabled ? `${step}, ${step * 2}, ${step * 3} … Treffer → ${Math.round(Number(cooldown.duration_ms || 90000) / 1000)} s` : 'nicht aktiv'}</span>`,
-        `<span>Fehler-Recovery: ${recovery.enabled ? `ein Versuch nach ${Math.round(Number(recovery.quiet_period_ms || 0) / 1000)} s` : 'nicht aktiv'}</span>`
+        `<span>Testpause: ${cooldown.enabled ? `${step}, ${step * 2}, ${step * 3} … Treffer → ${Math.round(Number(cooldown.duration_ms || 120000) / 1000)} s` : 'nicht aktiv'}</span>`,
+        `<span>Fehler-Recovery: ${recovery.enabled ? `ein Versuch nach ${Math.round(Number(recovery.quiet_period_ms || 0) / 1000)} s · ${Number(recovery.resume_control_attempts || 1)} Steuerungsversuche` : 'nicht aktiv'}</span>`
       ].join('');
     } catch (error) {
       box.className = 'diagnostic error';
@@ -141,8 +142,8 @@
   document.getElementById('clear-log').onclick = () => {
     localStorage.removeItem(KEY);
     LEGACY_KEYS.forEach(key => localStorage.removeItem(key));
-    localStorage.removeItem('generic-parser-auto-resume-04466');
-    localStorage.removeItem('generic-parser-cooldown-04466-b2');
+    localStorage.removeItem('generic-parser-auto-resume-044661');
+    localStorage.removeItem(I.testCooldown?.stateKey || 'generic-parser-cooldown-044661');
     render();
   };
   document.getElementById('copy-log').onclick = async () => {
