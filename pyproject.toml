@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generic-kleinanzeigen-parser"
-version = "0.44.6.6"
-description = "GenericParser cooldown test on stable 0.44.6.5 rollback: one 90-second client pause after 120 unique results"
+version = "0.44.6.6.1"
+description = "GenericParser test on stable 0.44.6.5: repeated 120-second cooldowns and recovery-control retry"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [{ name = "Jan Leduc" }]
-keywords = ["kleinanzeigen", "parser", "cloudflare-workers", "pwa", "matching", "scoring", "traffic-light", "reference", "pagination", "cooldown", "test-release"]
+keywords = ["kleinanzeigen", "parser", "cloudflare-workers", "pwa", "matching", "scoring", "traffic-light", "reference", "pagination", "cooldown", "recovery", "test-release"]
 dependencies = [
   "PyYAML>=6.0",
   "beautifulsoup4>=4.12",
