@@ -1,13 +1,13 @@
 {
   "product": "GenericParser",
-  "version": "0.44.5.2",
-  "package_version": "0.44.5.2",
-  "build_id": "gp-04452-20260804-1",
-  "api_contract": "match-v6.12.2-cursor-price-diagnostics",
+  "version": "0.44.6",
+  "package_version": "0.44.6",
+  "build_id": "gp-0446-20260804-1",
+  "api_contract": "match-v6.11.1-reference-0444-rollback",
   "entrypoint": "src/generic_parser/cloudflare_worker.py:Default.fetch",
-  "runtime_module": "src/generic_parser/worker_runtime_v04452.py",
-  "runtime_base": "0.44.5.1",
-  "controller_source": "cloudflare/public/controller-04452.js",
+  "bootstrap_module": "generic_parser.cloudflare_v0446",
+  "search_module": "generic_parser.search_service_v0446",
+  "controller_source": "cloudflare/public/controller-0446.js",
   "controller_base": "cloudflare/public/controller-0411.js",
   "functional_reference_version": "0.44.4",
   "technical_base": "0.43.6.3",
@@ -16,74 +16,23 @@
   "status": "implementation-complete-live-test-required",
   "functional_reference": false,
   "operational_reference": false,
-  "candidate_for_operational_reference": true,
+  "candidate_for_functional_reference": true,
   "live_cloudflare_test": false,
-  "purpose": "retain the direct Free Worker and link extraction while restoring real next-link pagination, card price extraction and persisted coverage diagnostics",
-  "confirmed_04451_findings": {
-    "query": "Snes",
-    "reported_total": 6665,
-    "returned_results": 29,
-    "requests": 6,
-    "incorrect_stop_reason": "pagination_repeated_page",
-    "prices_recognized": 0,
-    "diagnostic_blocks": 0,
-    "cpu_limit_error": false
-  },
-  "runtime_architecture": {
-    "model": "direct-worker-stdlib-cursor-price-v1",
-    "worker_entrypoint": "WorkerEntrypoint.Default.fetch",
-    "removed_from_live_path": [
-      "importlib package bootstrap",
-      "generic_parser package __init__",
-      "ASGI",
-      "FastAPI",
-      "Pydantic",
-      "httpx"
-    ],
-    "outbound_fetch": "Cloudflare workers.fetch",
-    "payload_validation": "lightweight explicit validation"
-  },
-  "pagination": {
-    "strategy": "persisted source HTML Weiter cursor",
-    "cursor_storage": "browser localStorage by query and virtual page",
-    "cursor_request_field": "cursor_url",
-    "short_page_transition": "next physical source page starts at next four-packet boundary",
-    "reported_total_is_diagnostic_only": true,
-    "repeated_page_guard_retained": true
-  },
-  "extraction": {
-    "primary_strategy": "article_data_adid",
-    "fallback_strategy": "complete_li_or_article_else_next_unique_link",
-    "navigation_only_candidates_removed": true,
-    "price_strategies": [
-      "legacy price class",
-      "explicit Euro text",
-      "structured data-price"
-    ],
-    "false_empty_page_guard": true,
-    "diagnostic_schema": "direct-stdlib-cursor-price-diagnostics-v1"
-  },
-  "diagnostic_events": {
-    "enabled": true,
-    "event_type": "coverage_diagnostics",
-    "fields": [
-      "extraction_strategy",
-      "candidate_card_count",
-      "navigation_candidates_removed",
-      "selected_range_count",
-      "extracted_count",
-      "price_recognized_count",
-      "price_missing_count",
-      "actual_source_url",
-      "cursor_url",
-      "cursor_next_page",
-      "cursor_transition",
-      "returned_ids"
-    ]
+  "purpose": "restore the complete proven 0.44.4 search, extraction, pagination and active-rule traffic-light flow after the 0.44.5.x direct-runtime regressions",
+  "rollback": {
+    "reference_commit": "315f19f1cb928f7c3005851d4b74c08770abe592",
+    "reference_version": "0.44.4",
+    "search_core": "delegated unchanged to generic_parser.search_service_v0444",
+    "pagination": "reference source HTML Weiter navigation",
+    "extraction": "reference 0.43.6.3 robust card extraction",
+    "traffic_light": "reference 0.44.4 active-rules-v2",
+    "controller": "reference controller-0411 flow with identity-only wrapper",
+    "experimental_0445_runtime_used": false
   },
   "retained_behavior": [
     "seven-result work packets",
     "five-second client pause",
+    "real Kleinanzeigen next-link pagination",
     "robust title fallback",
     "progress persistence and resume",
     "data consistency checks",
@@ -91,17 +40,24 @@
     "empty optional fields ignored",
     "compact result cards"
   ],
-  "acceptance_test": {
-    "version_endpoint_after_cold_start": "pending",
-    "snes_real_next_page_changes_ids": "pending",
-    "prices_recognized_on_result_cards": "pending",
-    "coverage_diagnostic_blocks_present": "pending",
-    "minimum_work_packets": 50,
-    "minimum_saved_results": 300,
-    "cpu_limit_errors_allowed": 0,
-    "manual_stop_and_resume": true,
-    "data_consistency_required": true
+  "runtime": {
+    "model": "reference-0444-asgi",
+    "asgi": true,
+    "fastapi": true,
+    "pydantic": true,
+    "dynamic_package_bootstrap": true,
+    "note": "0.44.6 prioritizes restored functional coverage. The previously observed Free-plan Python import CPU risk is not claimed as solved and must be checked in the live test."
   },
-  "next_release_after_acceptance": "0.45.0",
-  "metadata_schema": 7
+  "acceptance_test": {
+    "version_endpoint": "pending",
+    "compare_first_results_to_0444": true,
+    "real_next_page_changes_ids": true,
+    "minimum_work_packets": 20,
+    "minimum_saved_results": 100,
+    "manual_stop_and_resume": true,
+    "data_consistency_required": true,
+    "cpu_limit_observation_required": true
+  },
+  "next_step_after_acceptance": "resume 0.45 parser-core roadmap from the stable reference behavior",
+  "metadata_schema": 8
 }
