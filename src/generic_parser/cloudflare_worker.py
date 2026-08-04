@@ -1,8 +1,8 @@
-"""Cloudflare-Python-Worker entrypoint for GenericParser 0.44.6.6 Build 2.
+"""Cloudflare-Python-Worker entrypoint for GenericParser 0.44.6.6.1.
 
 Test release on the clean 0.44.6.5 rollback. Search, extraction, pagination,
-traffic-light behavior and the single browser-side auto-resume remain unchanged.
-Only the browser page delay is replaced by 90 seconds at every 120-result threshold.
+traffic-light behavior and the 0.44.4 search core remain unchanged. The only
+experiments are browser-side 120-second cooldowns and recovery-control retry.
 """
 from __future__ import annotations
 
