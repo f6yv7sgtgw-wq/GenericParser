@@ -6,7 +6,7 @@ Wiederverwendbarer Kleinanzeigen-Parser und mobile PWA für die Einbindung in **
 
 - **Produktversion:** `0.44.6.3`
 - **Paketversion:** `0.44.6.3`
-- **Build-ID:** `gp-04463-20260804-1`
+- **Build-ID:** `gp-04463-20260804-2`
 - **API-Vertrag:** `match-v6.11.4-reference-recovery-hardening`
 - **Arbeitsreferenz:** `0.44.6.2`
 - **Fachlicher Suchkern:** unverändert aus `0.44.4`
@@ -31,15 +31,18 @@ Terminalfehler: 1101, 1102 oder wiederholtes HTML-503
 
 Die Recovery-Probe lädt den Search-Service und validiert das Request-Modell, die Suchfunktion und den Referenzkern `generic_parser.search_service_v0444`. Sie führt selbst keine Kleinanzeigen-Suche aus.
 
-Zusätzliche Diagnosewerte:
+## Resume-Control-Hotfix – Build 2
 
-- `cf-error-type`
-- `cf-error-origin`
-- `Retry-After`
-- Ray-ID
-- Recovery-Zyklus und Wartezeit
-- Probe-Versuch und Probe-Dauer
-- sichtbare Recovery-Kachel in der Suchoberfläche
+Der erste Live-Test von Build 1 bestätigte die Recovery-Probe, aber die sichtbare Schaltfläche **Letzte Suche fortsetzen** blieb intern deaktiviert. Dadurch konnten weder der automatische `button.click()` noch ein manueller Klick die gespeicherte Suche starten.
+
+Build 2 koppelt die Schaltfläche direkt an den persistenten Recovery-Zustand:
+
+- Freigabe in `waiting`, `probing`, `starting_auto` und `manual_required`
+- manuelles Fortsetzen während der Wartezeit möglich
+- automatischer Resume kann dieselbe freigegebene Schaltfläche auslösen
+- Wiederherstellung nach Seiten-Reload
+- erneutes Sperren während einer laufenden oder abgeschlossenen Suche
+- Eventlog-Eintrag `resume_control_ready`
 
 ## Unveränderter Referenzkern
 
@@ -68,12 +71,6 @@ uv run --group cloudflare pywrangler login
 uv run --group cloudflare pywrangler deploy
 ```
 
-Optionaler Zugriffsschutz:
-
-```bash
-uv run --group cloudflare pywrangler secret put APP_TOKEN
-```
-
 ## Lokale Tests
 
 ```bash
@@ -83,13 +80,13 @@ node --check cloudflare/public/auto-resume-04463.js
 node --check cloudflare/public/eventlog-04463.js
 ```
 
-## Abnahme von 0.44.6.3
+## Abnahme von 0.44.6.3 Build 2
 
-1. `/api/version` meldet Version, Build und API-Vertrag konsistent.
-2. `/api/recovery-probe` meldet `status: ready` und den geladenen 0.44.4-Referenzkern.
-3. Normale Suchergebnisse entsprechen 0.44.6.2.
-4. Nach einem Terminalfehler wird `recovery_scheduled` protokolliert.
-5. Nach erfolgreicher Probe folgen `recovery_probe_ready`, `recovery_resume_start` und `recovery_resume_running`.
+1. `/api/version` meldet `gp-04463-20260804-2`.
+2. Ein vorhandener Recovery-Zustand schaltet **Letzte Suche fortsetzen** sichtbar und aktiv.
+3. Ein manueller Klick startet die gespeicherte Suche.
+4. `/api/recovery-probe` meldet `status: ready` und den geladenen 0.44.4-Referenzkern.
+5. Nach erfolgreicher Probe folgen `recovery_probe_ready`, `resume_control_ready`, `recovery_resume_start` und `recovery_resume_running`.
 6. Die Suche setzt auf dem gespeicherten Arbeitspaket fort.
 7. Es entstehen keine zusätzlichen Dubletten.
 8. Nach höchstens zwei automatischen Fortsetzungen bleibt die manuelle Fortsetzung verfügbar.
