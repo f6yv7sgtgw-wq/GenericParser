@@ -2,15 +2,17 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
-## 0.44.6.6 – 2026-08-04 – Testversion
+## 0.44.6.6 Build 2 – 2026-08-04 – Testversion
 
 - Stabile Referenz 0.44.6.5 vollständig beibehalten.
-- Genau eine Laufzeitänderung ergänzt: Nach mindestens 120 eindeutigen Treffern hält der Browser den nächsten `/api/search`-Aufruf 90 Sekunden zurück.
-- Das zuletzt geladene Arbeitspaket wird vor der Pause normal ausgewertet, gespeichert und angezeigt.
+- Build 1 war nur in Metadaten als Cooldown-Test sichtbar; im aktiven Controller fanden keine Testpausen statt.
+- Build 2 ersetzt die normale Seitenpause bei 120, 240, 360 und jedem weiteren Vielfachen von 120 eindeutigen Treffern durch 90 Sekunden.
+- Das zuletzt geladene Arbeitspaket wird vor jeder Pause normal ausgewertet, gespeichert und angezeigt.
 - Während der Pause erhält der Worker keinen neuen Suchauftrag; danach läuft dieselbe Session automatisch weiter.
-- Testpause höchstens einmal pro Suchsession.
+- Die jeweils nächste Schwelle wird browserseitig gespeichert, sodass dieselbe Schwelle nicht doppelt ausgelöst wird.
 - Eventlog um `cooldown_threshold_reached`, `cooldown_start`, `cooldown_resume` und `cooldown_cancelled` ergänzt.
-- Worker, Parser, Pagination, 7er-Pakete, normale 5-Sekunden-Pause, Ampel, Retry und Fehler-Recovery bleiben unverändert.
+- Worker, Parser, Pagination, 7er-Pakete, Ampel, Retry und Fehler-Recovery bleiben unverändert.
+- Außerhalb der Schwellen bleibt die normale 5-Sekunden-Pause aktiv.
 - 0.44.6.5 bleibt die stabile Referenz; Cloudflare-Livetest erforderlich.
 
 ## 0.44.6.5 – 2026-08-04 – stabile Rollback-Referenz
