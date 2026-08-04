@@ -1,8 +1,8 @@
-"""Cloudflare-Python-Worker entrypoint for GenericParser 0.44.6.5.
+"""Cloudflare-Python-Worker entrypoint for GenericParser 0.44.6.6.
 
-Clean rollback to the confirmed 0.44.6.2 ASGI/search path. Search, extraction,
-pagination, traffic-light behavior and the single browser-side auto-resume
-remain unchanged from the accepted reference behavior.
+Test release on the clean 0.44.6.5 rollback. Search, extraction, pagination,
+traffic-light behavior and the single browser-side auto-resume remain unchanged.
+Only the browser request stream pauses once for 90 seconds after 120 results.
 """
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ def _load_generic_parser_package():
 
 
 _load_generic_parser_package()
-from generic_parser.cloudflare_v04465 import app  # noqa: E402
+from generic_parser.cloudflare_v04466 import app  # noqa: E402
 
 
 class Default(WorkerEntrypoint):
