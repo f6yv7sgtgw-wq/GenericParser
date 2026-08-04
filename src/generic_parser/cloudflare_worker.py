@@ -1,8 +1,8 @@
-"""Direct Cloudflare Python Worker for GenericParser 0.44.5.1.
+"""Direct Cloudflare Python Worker for GenericParser 0.44.5.2.
 
-The live request path deliberately avoids importlib, package __init__, ASGI,
-FastAPI, Pydantic and httpx. The extraction hotfix adds link-driven card
-recovery and a false-empty-page guard.
+The live request path avoids importlib, package __init__, ASGI, FastAPI,
+Pydantic and httpx. The 0.44.5.2 runtime adds persisted cursor pagination,
+complete-card price recovery and explicit coverage diagnostics.
 """
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 
 from workers import Response, WorkerEntrypoint, fetch as worker_fetch
 
-import worker_runtime_v04451 as runtime
+import worker_runtime_v04452 as runtime
 
 
 def _headers():
@@ -78,18 +78,21 @@ class Default(WorkerEntrypoint):
                 "service_loaded": True,
                 "packet_size": runtime.PACKET_SIZE,
                 "pause_ms": 5000,
-                "pagination_strategy": "source_html_weiter_link",
+                "pagination_strategy": "persisted_source_html_weiter_cursor",
                 "functional_reference": "0.44.4",
-                "operational_candidate": "0.44.5.1",
+                "operational_candidate": "0.44.5.2",
                 "traffic_light_model": "v2-active-rules",
                 "empty_fields_ignored": True,
                 "direct_worker": True,
                 "robust_title_fallback": True,
                 "diagnostic_alignment": True,
                 "result_information": True,
-                "coverage_schema": "direct-stdlib-link-fallback-v1",
+                "coverage_schema": "direct-stdlib-cursor-price-diagnostics-v1",
                 "link_card_fallback": True,
                 "false_empty_page_guard": True,
+                "cursor_pagination": True,
+                "price_fallback": True,
+                "diagnostic_events": True,
                 "runtime_imports": {
                     "importlib": False,
                     "asgi": False,
