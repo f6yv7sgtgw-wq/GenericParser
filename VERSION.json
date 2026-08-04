@@ -10,12 +10,32 @@
   "identity_source": "src/generic_parser/build_identity_v0444.py",
   "controller_source": "cloudflare/public/controller-0444.js",
   "controller_base": "cloudflare/public/controller-0411.js",
-  "reference_version": "0.44.2",
+  "reference_version": "0.44.4",
+  "reference_scope": [
+    "search_flow",
+    "pagination",
+    "work_packets",
+    "progress_resume",
+    "data_consistency",
+    "active_rule_traffic_light",
+    "result_card_contract"
+  ],
   "technical_base": "0.43.6.3",
   "release_date": "2026-08-03",
+  "reference_set_date": "2026-08-04",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "implementation-complete-live-test-required",
-  "live_cloudflare_test": false,
+  "status": "functional-reference-runtime-hardening-required",
+  "functional_reference": true,
+  "operational_reference": false,
+  "live_cloudflare_test": true,
+  "live_test_result": {
+    "logic_and_data_flow": "passed",
+    "long_exhaustive_run": "interrupted_after_saved_progress",
+    "confirmed_failure": "python_worker_cpu_limit_during_import_before_outbound_fetch",
+    "results_saved": 248,
+    "successful_requests_before_failure": 37,
+    "data_consistency": true
+  },
   "features": [
     "evaluate_only_fields_with_user_input",
     "ignore_empty_required_excluded_model_brand_price_and_market_value_fields",
@@ -45,6 +65,20 @@
       "incomplete_rule_when_incomplete_detected"
     ]
   },
+  "runtime_issue": {
+    "confirmed": true,
+    "platform": "Cloudflare Workers Free Python runtime",
+    "phase": "import_before_asgi_and_before_outbound_fetch",
+    "symptom": "CpuLimitExceeded",
+    "not_caused_by": [
+      "kleinanzeigen_pagination",
+      "traffic_light_rules",
+      "network_wait_time",
+      "saved_progress_consistency"
+    ],
+    "planned_fix_version": "0.44.5",
+    "planned_fix": "replace ASGI FastAPI Pydantic and dynamic import startup path with a lightweight direct WorkerEntrypoint adapter while preserving the 0.44.4 API contract"
+  },
   "constraints": {
     "target_plan": "Cloudflare Workers Free",
     "packet_size": 7,
@@ -52,7 +86,10 @@
     "runtime_card_patch": false,
     "search_behavior_changed_from_0442": false,
     "pagination_changed_from_0442": false,
-    "empty_fields_ignored": true
+    "empty_fields_ignored": true,
+    "free_runtime_cpu_hardening_pending": true
   },
-  "metadata_schema": 3
+  "next_release": "0.44.5",
+  "next_roadmap_release_after_stabilization": "0.45.0",
+  "metadata_schema": 4
 }
