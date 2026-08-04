@@ -4,9 +4,11 @@ Dieser Index ordnet die Versionsstände ihren Build-IDs und technischen Abschlus
 
 | Version | Build-ID | Technischer Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 0.44.6.3 | `gp-04463-20260804-2` | `6393800e37f300abb6a0af30bd8e4e11233a8e09` | Recovery-Probe, gestaffeltes Backoff und Resume-Control-Hotfix; manueller und automatischer Resume werden aus dem Recovery-Zustand freigegeben |
-| 0.44.6.3 Build 1 | `gp-04463-20260804-1` | `681f4365937360419d4eb22042180bff981a46ff` | Erste Recovery-Hardening-Fassung; Probe erfolgreich, Fortsetzen-Schaltfläche blieb jedoch deaktiviert |
-| 0.44.6.2 | `gp-04462-20260804-1` | `f55f31bcd878ec1edb0b8fc0ee9b5330c8ef0a0a` | Einmalige automatische Fortsetzung; bestätigte Arbeitsreferenz mit 219 Ergebnissen vor Recovery |
+| 0.44.6.5 | `gp-04465-20260804-1` | `ddba9bf55c999b349d98f1438b31a710bd570155` | Sauberer technischer Rollback auf 0.44.6.2; aktiver 0.44.4-Suchkern, 0.44.6.2-ASGI-Pfad und einmalige Recovery |
+| 0.44.6.4 | `gp-04464-20260804-1` | `685b8032bca0b18f6f0a7066f4916e83a092e2cf` | Lazy-Bootstrap-Experiment; Live-Test scheiterte bereits auf Seite 0 mit 0 Ergebnissen, verworfen |
+| 0.44.6.3 Build 2 | `gp-04463-20260804-2` | `6393800e37f300abb6a0af30bd8e4e11233a8e09` | Recovery-Probe und Resume-Control-Hotfix; Probe blieb im Live-Betrieb wiederholt auf HTTP 500, verworfen |
+| 0.44.6.3 Build 1 | `gp-04463-20260804-1` | `681f4365937360419d4eb22042180bff981a46ff` | Erste Recovery-Hardening-Fassung; Fortsetzen-Schaltfläche blieb deaktiviert |
+| 0.44.6.2 | `gp-04462-20260804-1` | `f55f31bcd878ec1edb0b8fc0ee9b5330c8ef0a0a` | Bestätigte Arbeitsreferenz; 34 Arbeitspakete und 219 Ergebnisse vor späterer Unterbrechung |
 | 0.44.6.1 | `gp-04461-20260804-1` | `8f5b76cdcfe469f8ae4005a9dd5ee23d6d451931` | Diagnosefix und verständliche 503-/Referenzanzeige |
 | 0.44.6 | `gp-0446-20260804-1` | `1178738c76fed1f5ff08b3f5841eb869650073ff` | Funktionaler Rückbau auf den 0.44.4-Suchkern |
 | 0.44.5.2 | `gp-04452-20260804-1` | `6a77260ba8d5db781f0ce9f58b770fa53520d672` | Experimentelle Direct-Worker-Linie; nicht als Referenz verwendet |
@@ -26,21 +28,22 @@ Dieser Index ordnet die Versionsstände ihren Build-IDs und technischen Abschlus
 ## Aktueller Stand
 
 ```text
-Version:                 0.44.6.3
-Paketversion:            0.44.6.3
-Build-ID:                gp-04463-20260804-2
-API-Vertrag:             match-v6.11.4-reference-recovery-hardening
-Fachlicher Referenzkern: 0.44.4
-Arbeitsreferenz:         0.44.6.2
-Status:                  Resume-Hotfix implementiert, Cloudflare-Live-Test ausstehend
+Version:                    0.44.6.5
+Paketversion:               0.44.6.5
+Build-ID:                   gp-04465-20260804-1
+API-Vertrag:                match-v6.11.6-clean-rollback-04462
+Fachlicher Referenzkern:    0.44.4
+Operative Referenzbasis:    0.44.6.2
+Rollback-Referenzcommit:    f55f31bcd878ec1edb0b8fc0ee9b5330c8ef0a0a
+Status:                     Implementiert, Cloudflare-Live-Test ausstehend
 ```
 
 ## Downloadformat
 
-Technischer Abschlussstand 0.44.6.3 Build 2:
+Technischer Abschlussstand 0.44.6.5:
 
 ```text
-https://github.com/f6yv7sgtgw-wq/GenericParser/archive/6393800e37f300abb6a0af30bd8e4e11233a8e09.zip
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/ddba9bf55c999b349d98f1438b31a710bd570155.zip
 ```
 
 Aktueller Hauptbranch einschließlich Dokumentation:
