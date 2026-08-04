@@ -2,7 +2,33 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
-## 0.44.6.3 – 2026-08-04
+## 0.44.6.6 – 2026-08-04 – Testversion
+
+- Stabile Referenz 0.44.6.5 vollständig beibehalten.
+- Genau eine Laufzeitänderung ergänzt: Nach mindestens 120 eindeutigen Treffern hält der Browser den nächsten `/api/search`-Aufruf 90 Sekunden zurück.
+- Das zuletzt geladene Arbeitspaket wird vor der Pause normal ausgewertet, gespeichert und angezeigt.
+- Während der Pause erhält der Worker keinen neuen Suchauftrag; danach läuft dieselbe Session automatisch weiter.
+- Testpause höchstens einmal pro Suchsession.
+- Eventlog um `cooldown_threshold_reached`, `cooldown_start`, `cooldown_resume` und `cooldown_cancelled` ergänzt.
+- Worker, Parser, Pagination, 7er-Pakete, normale 5-Sekunden-Pause, Ampel, Retry und Fehler-Recovery bleiben unverändert.
+- 0.44.6.5 bleibt die stabile Referenz; Cloudflare-Livetest erforderlich.
+
+## 0.44.6.5 – 2026-08-04 – stabile Rollback-Referenz
+
+- Technischer Rückbau auf das bestätigte Verhalten von 0.44.6.2.
+- Worker-Einstieg, FastAPI-Bootstrap, Controller und einmalige 90-Sekunden-Fehler-Recovery aus der Referenzlinie wiederhergestellt.
+- Unveränderter 0.44.4-Suchkern mit 7er-Arbeitspaketen, 5-Sekunden-Pause und echter Weiter-Navigation.
+- Recovery-Probes und zwei Auto-Resume-Zyklen aus 0.44.6.3 deaktiviert.
+- Lazy-ASGI-Bootstrap aus 0.44.6.4 deaktiviert.
+- Live bestätigt: Rollback funktioniert.
+
+## 0.44.6.4 – 2026-08-04 – verworfenes Experiment
+
+- Leichten direkten Versions- und Recovery-Probe-Einstieg mit Lazy-ASGI-Import getestet.
+- Regression im Live-Test: erste Suche scheiterte bereits auf Seite 0 mit 503/1101 und 0 Ergebnissen.
+- Version verworfen und durch 0.44.6.5 zurückgebaut.
+
+## 0.44.6.3 – 2026-08-04 – verworfenes Recovery-Experiment
 
 - Arbeitsreferenz 0.44.6.2 beibehalten und den 0.44.4-Suchkern unverändert delegiert.
 - Neuen Endpunkt `/api/recovery-probe` ergänzt, der Python-Runtime, Search-Service, Request-Modell, Suchfunktion und Referenzkern prüft, ohne Kleinanzeigen aufzurufen.
@@ -10,10 +36,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Gestaffeltes Recovery-Backoff von 90, 180 und 360 Sekunden mit ±10 Prozent Jitter eingeführt.
 - Probe-Wiederholungen nach 30, 60 und 120 Sekunden; höchstens drei Probes je Zyklus.
 - Höchstens zwei automatische Fortsetzungen je Suchkette; danach manueller Fallback.
-- Sichtbare Recovery-Kachel mit Zyklus, Probe, nächster Aktion, Fehlerklasse und letzter Probe ergänzt.
-- Recovery-Zustand über Seiten-Reloads erhalten und Endlosschleifen verhindert.
-- Suchkern, Pagination, Extraktion, Ampel, 7er-Pakete und 5-Sekunden-Pause bleiben unverändert.
-- Live-Test erforderlich.
+- Live-Befund: Recovery-Probe blieb wiederholt mit HTTP 500 hängen; Linie verworfen.
 
 ## 0.44.6.2 – 2026-08-04
 
@@ -23,19 +46,16 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Bis zu vier `/api/version`-Prüfungen im Abstand von 15 Sekunden.
 - Fortsetzung verwendet den bereits vorhandenen persistenten Suchstand und die bestehende Resume-Funktion.
 - Höchstens ein automatischer Resume je Suchkette; danach bleibt nur manuelles Fortsetzen.
-- Manuelles Fortsetzen überschreibt eine wartende Automatik.
-- Eventlog um Planung, Health-Checks, Start, laufende Session, Abschluss und manuellen Fallback ergänzt.
 - Suchkern, Pagination, Extraktion, Ampellogik, 7er-Pakete und 5-Sekunden-Pause bleiben unverändert auf Referenz 0.44.4.
-- Live-Test: 34 erfolgreiche Arbeitspakete und 219 gespeicherte Ergebnisse vor der nächsten 503/1101-Kette; Version als Arbeitsreferenz bestätigt.
+- Live-Test: 34 erfolgreiche Arbeitspakete und 219 gespeicherte Ergebnisse vor der nächsten 503/1101-Kette.
 
 ## 0.44.6.1 – 2026-08-04
 
 - Falsche Versionsabweichung im Referenzmodus beseitigt.
 - Versionsprüfung auf Version, Build und API-Vertrag begrenzt.
 - Fehlendes erweitertes Diagnoseschema korrekt als optional dargestellt.
-- HTML-503 verständlich als temporärer Abruffehler eingeordnet.
+- HTML-503 verständlich als temporären Abruffehler eingeordnet.
 - Live-Test: neun erfolgreiche Arbeitspakete, 60 gespeicherte Ergebnisse, danach 503 und Cloudflare 1101 vor ASGI.
-- Suchstand und manuelles Fortsetzen blieben verfügbar.
 
 ## 0.44.6 – 2026-08-04
 
@@ -63,7 +83,6 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Eine Kleinanzeigen-Quellseite wird in bis zu vier Pakete mit höchstens sieben Karten zerlegt.
 - Vollständige BeautifulSoup-DOM-Rekonstruktion und schweres Legacy-Scoring aus dem produktiven Free-Pfad entfernt.
 - Browser wartet fünf Sekunden zwischen den Paketen und speichert nach jedem Paket den Suchstand.
-- Gemeinsame Identität `0.42.7` / `gp-0427-20260803-1` / `match-v6.1-page-worker` für Worker, UI, Controller, Handshake, Eventlog und Cache.
 - Technischer Abschluss-Commit: `119a05985d11017940b775bb2c6cc7bc6acd992a`.
 
 ## 0.42.6 – 2026-08-02
@@ -82,8 +101,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 
 - Gemeinsame Build-Identität für Suchseite, Controller, Handshake, Worker und Eventlog eingeführt.
 - Das Eventlog prüft seine Version und Build-ID beim Öffnen gegen `/api/version`.
-- Das Eventlog verwendet einen eigenen 0.42.4-Speicherschlüssel und kann nicht mehr unbemerkt alte 0.42.2-Einträge anzeigen.
-- Eventlog-Link, Assets und Service-Worker-Cache mit `v=0.424` cachegebustet.
+- Das Eventlog verwendet einen eigenen 0.42.4-Speicherschlüssel.
 - Produktionsstand: `0.42.4` / `gp-0424-20260802-1` / `match-v6.1-page-worker`.
 
 ## 0.42.3 – 2026-08-02
@@ -91,7 +109,6 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Pagination beendet die Suche, sobald `reported_total` erreicht ist.
 - Kurze HTML-Ergebnisseiten werden als Abschluss erkannt.
 - Unnötige Folgeseiten und dadurch ausgelöste 503/1101-Ketten werden vermieden.
-- UI, Controller, Handshake, Worker, Eventlog und PWA-Cache auf `0.42.3` / `gp-0423-20260802-1` vereinheitlicht.
 - Technischer Abschluss-Commit: `9c8841fecac53ffaa127a7ed83ca94492a260a88`.
 
 ## 0.42.2 – 2026-08-02
@@ -100,7 +117,6 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - App-freier Ein-Seiten-Search-Service eingeführt.
 - Nur der 0.42.2-Bootstrap besitzt Routen und Middleware.
 - Konsistenzprüfung für abgerufene, sichtbare und ausgeblendete Treffer ergänzt.
-- UI, Controller, Handshake, Worker, Eventlog und PWA-Cache vereinheitlicht.
 
 ## 0.42.1 – 2026-08-02
 
