@@ -4,7 +4,8 @@ Dieser Index ordnet die Versionsstände ihren Build-IDs und technischen Abschlus
 
 | Version | Build-ID | Technischer Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 0.44.6.6 Test | `gp-04466-20260804-1` | `9d31912c125eea6e3b947178fc560211a80b2068` | Ein-Änderungs-Test: einmalige 90-Sekunden-Requestpause nach mindestens 120 eindeutigen Treffern; 0.44.6.5 bleibt Referenz |
+| 0.44.6.6 Build 2 Test | `gp-04466-20260804-2` | `d27d2fc51a5720c9a7f512330f5c5710f8a733b5` | Wiederholte 90-Sekunden-Pause bei 120, 240, 360 … eindeutigen Treffern; normale 5-Sekunden-Pause wird an der Schwelle ersetzt; 0.44.6.5 bleibt Referenz |
+| 0.44.6.6 Build 1 Test | `gp-04466-20260804-1` | `9d31912c125eea6e3b947178fc560211a80b2068` | Metadaten kündigten eine einmalige Pause an, aktive Pausenlogik fehlte im Live-Test; ersetzt durch Build 2 |
 | 0.44.6.5 | `gp-04465-20260804-1` | `ddba9bf55c999b349d98f1438b31a710bd570155` | Sauberer technischer Rollback auf 0.44.6.2; stabile Referenz mit aktivem 0.44.4-Suchkern |
 | 0.44.6.4 | `gp-04464-20260804-1` | `685b8032bca0b18f6f0a7066f4916e83a092e2cf` | Lazy-Bootstrap-Experiment; Live-Test scheiterte bereits auf Seite 0 mit 0 Ergebnissen, verworfen |
 | 0.44.6.3 Build 2 | `gp-04463-20260804-2` | `6393800e37f300abb6a0af30bd8e4e11233a8e09` | Recovery-Probe und Resume-Control-Hotfix; Probe blieb im Live-Betrieb wiederholt auf HTTP 500, verworfen |
@@ -29,23 +30,23 @@ Dieser Index ordnet die Versionsstände ihren Build-IDs und technischen Abschlus
 ## Aktueller Stand
 
 ```text
-Version:                    0.44.6.6 Test
+Version:                    0.44.6.6 Build 2 Test
 Paketversion:               0.44.6.6
-Build-ID:                   gp-04466-20260804-1
+Build-ID:                   gp-04466-20260804-2
 API-Vertrag:                match-v6.11.7-rollback-04465-cooldown-test
 Fachlicher Referenzkern:    0.44.4
 Stabile Referenz:           0.44.6.5
 Laufzeitbasis:              0.44.6.2
-Teständerung:               einmal 90 s Pause nach mindestens 120 Treffern
+Teständerung:               90 s Pause bei 120, 240, 360 … Treffern
 Status:                     Implementiert, Cloudflare-Live-Test ausstehend
 ```
 
 ## Downloadformat
 
-Technischer Abschlussstand 0.44.6.6:
+Technischer Abschlussstand 0.44.6.6 Build 2:
 
 ```text
-https://github.com/f6yv7sgtgw-wq/GenericParser/archive/9d31912c125eea6e3b947178fc560211a80b2068.zip
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/d27d2fc51a5720c9a7f512330f5c5710f8a733b5.zip
 ```
 
 Stabile Referenz 0.44.6.5:
