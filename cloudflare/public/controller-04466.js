@@ -2,6 +2,8 @@
   'use strict';
   const I = window.GP_BUILD_IDENTITY;
   if (!I) throw new Error('Build identity missing');
+  const configuredThreshold = Number(I.testCooldown?.threshold || 120);
+  const configuredDurationMs = Number(I.testCooldown?.durationMs || 90000);
   window.GP_HANDSHAKE_READY = true;
   const sourceUrl = new URL('./controller-0411.js?v=0.4466-reference-source', location.href);
   fetch(sourceUrl, {cache: 'no-store'})
@@ -19,7 +21,7 @@
       }
 
       const declarationAnchor = '  let requestSequence = 0;';
-      const declarationPatch = `  let requestSequence = 0;\n  const TEST_COOLDOWN_THRESHOLD = Number(I.testCooldown?.threshold || 120);\n  const TEST_COOLDOWN_MS = Number(I.testCooldown?.durationMs || 90000);\n  let testCooldownSessionId = '';\n  let testCooldownPending = false;\n  let testCooldownDone = false;\n  const testCooldownSeen = new Set();`;
+      const declarationPatch = `  let requestSequence = 0;\n  const TEST_COOLDOWN_THRESHOLD = ${configuredThreshold};\n  const TEST_COOLDOWN_MS = ${configuredDurationMs};\n  let testCooldownSessionId = '';\n  let testCooldownPending = false;\n  let testCooldownDone = false;\n  const testCooldownSeen = new Set();`;
       if (!source.includes(declarationAnchor)) throw new Error('Cooldown declaration anchor missing');
       source = source.replace(declarationAnchor, declarationPatch);
 
@@ -43,7 +45,7 @@
       const toggle = document.getElementById('technical-toggle');
       const technical = document.getElementById('technical-content');
       if (toggle && technical) toggle.onclick = () => { const open = technical.classList.toggle('open'); toggle.setAttribute('aria-expanded', String(open)); toggle.textContent = open ? 'Technische Details schließen' : 'Technische Details anzeigen'; };
-      window.GP_CONTROLLER_IDENTITY = {version:I.version,buildId:I.buildId,apiContract:I.apiContract,module:'controller-04466.js',referenceVersion:'0.44.4',operationalReference:'0.44.6.5',runtimeReference:'0.44.6.2',searchCoreChanged:false,autoResume:true,testCooldown:true,cooldownThreshold:120,cooldownDurationMs:90000};
+      window.GP_CONTROLLER_IDENTITY = {version:I.version,buildId:I.buildId,apiContract:I.apiContract,module:'controller-04466.js',referenceVersion:'0.44.4',operationalReference:'0.44.6.5',runtimeReference:'0.44.6.2',searchCoreChanged:false,autoResume:true,testCooldown:true,cooldownThreshold:configuredThreshold,cooldownDurationMs:configuredDurationMs};
       window.dispatchEvent(new CustomEvent('gp-controller-ready',{detail:window.GP_CONTROLLER_IDENTITY}));
     })
     .catch(error => {
