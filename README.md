@@ -4,76 +4,69 @@ Wiederverwendbarer Kleinanzeigen-Parser und mobile PWA für die Einbindung in **
 
 ## Aktueller Stand
 
-- **Produktversion:** `0.44.6.5`
-- **Paketversion:** `0.44.6.5`
-- **Build-ID:** `gp-04465-20260804-1`
-- **API-Vertrag:** `match-v6.11.6-clean-rollback-04462`
-- **Operative Referenzbasis:** `0.44.6.2`
+- **Testversion:** `0.44.6.6`
+- **Build-ID:** `gp-04466-20260804-1`
+- **API-Vertrag:** `match-v6.11.7-rollback-04465-cooldown-test`
+- **Stabile Referenz:** `0.44.6.5`
+- **Laufzeitbasis:** `0.44.6.2`
 - **Fachlicher Suchkern:** unverändert aus `0.44.4`
-- **Rollback-Referenzcommit:** `f55f31bcd878ec1edb0b8fc0ee9b5330c8ef0a0a`
 - **Zielplattform:** Cloudflare Workers Free
 
-## Sauberer Rollback 0.44.6.5
+## 0.44.6.6 – Ein-Änderungs-Test
 
-0.44.6.5 nimmt die experimentellen Änderungen aus 0.44.6.3 und 0.44.6.4 aus dem aktiven Pfad. Die Version verwendet wieder das bestätigte Verhalten von 0.44.6.2 unter einer neuen, konsistenten Deployment-Identität.
-
-```text
-Worker-Einstieg und FastAPI-Bootstrap wie 0.44.6.2
-→ unveränderter 0.44.4-Suchkern
-→ höchstens sieben Ergebnisse pro Arbeitspaket
-→ fünf Sekunden Browserpause
-→ echte Weiter-Navigation
-→ Suchstand nach jedem Paket speichern
-```
-
-Recovery entspricht ebenfalls 0.44.6.2:
+Gegenüber der stabilen Referenz 0.44.6.5 wird ausschließlich eine geplante Pause ergänzt:
 
 ```text
-503/1101 und retry_exhausted
-→ Suchstand speichern
-→ 90 Sekunden Ruhezeit
-→ /api/version prüfen
-→ genau ein automatischer Resume-Versuch
-→ danach manueller Fallback
+mindestens 120 eindeutige Treffer verarbeitet
+→ aktuelles Paket vollständig auswerten und speichern
+→ vor dem nächsten /api/search-Aufruf 90 Sekunden warten
+→ Suche automatisch mit demselben Zustand fortsetzen
 ```
 
-Nicht aktiv sind:
+Die Pause läuft im Browser. Währenddessen erhält der Worker keinen neuen Suchauftrag und ist vollständig idle. Der Worker selbst wird nicht für 90 Sekunden blockiert.
 
-- `/api/recovery-probe` aus 0.44.6.3/0.44.6.4
-- zwei oder mehr automatische Resume-Zyklen
-- Lazy-ASGI-Bootstrap aus 0.44.6.4
-- direkter leichter Search-Worker aus 0.44.5.x
+Die Testpause wird pro Suchsession höchstens einmal ausgeführt. Sie erzeugt folgende Eventlog-Einträge:
 
-## Unveränderter Referenzkern
+- `cooldown_threshold_reached`
+- `cooldown_start`
+- `cooldown_resume`
+- `cooldown_cancelled`, falls während der Pause gestoppt wird
 
-- höchstens sieben Karten pro Worker-Aufruf
-- fünf Sekunden Pause zwischen erfolgreichen Arbeitspaketen
+## Unverändert gegenüber 0.44.6.5
+
+- ASGI-Workerpfad und FastAPI-Bootstrap
+- unveränderter 0.44.4-Suchkern
+- höchstens sieben Karten pro Arbeitspaket
+- fünf Sekunden normale Pause
 - echte Kleinanzeigen-Weiter-Navigation
-- robuste Titel-, Preis- und Kartenextraktion
-- persistenter Suchstand und Fortsetzung
-- Deduplizierung
+- Titel-, Preis-, Bild- und Kartenextraktion
+- Deduplizierung und persistenter Suchstand
 - Pflicht- und Ausschlussbegriffe
-- Maximalpreis und Richtwert
-- Ampelbewertung nur für gesetzte Kriterien
-- leere optionale Felder werden ignoriert
-- Datenkonsistenzprüfung
+- Maximalpreis, Richtwert und Ampel
+- einmalige 0.44.6.2-Fehler-Recovery nach 90 Sekunden
+- Retry-Verhalten und Ergebnisdarstellung
+
+0.44.6.6 ist ausdrücklich **keine neue Referenz**. Bei einer Regression wird auf 0.44.6.5 zurückgeschaltet.
 
 ## Lokale Tests
 
 ```bash
-python -m pytest -q tests/test_clean_rollback_v04465.py
-node --check cloudflare/public/controller-04465.js
-node --check cloudflare/public/auto-resume-04465.js
-node --check cloudflare/public/eventlog-04465.js
+python -m pytest -q tests/test_cooldown_v04466.py
+node --check cloudflare/public/controller-04466.js
+node --check cloudflare/public/auto-resume-04466.js
+node --check cloudflare/public/eventlog-04466.js
+node --check cloudflare/public/build-identity-04466.js
 ```
 
-## Abnahme von 0.44.6.5
+## Live-Abnahme
 
-1. `/api/version` meldet Version, Build und API-Vertrag konsistent.
-2. Eine neue Suche verarbeitet das erste Arbeitspaket wie 0.44.6.2.
-3. Ergebnisse, Pagination, Preise, Bilder und Ampel entsprechen 0.44.6.2.
-4. Der aktive Worker enthält keinen 0.44.6.4-Lazy-Bootstrap.
-5. Der Browser verwendet die einmalige 0.44.6.2-Recovery über `/api/version`.
-6. Nach einem Terminalfehler bleibt der Suchstand erhalten.
+1. `/api/version` meldet `0.44.6.6` und `gp-04466-20260804-1`.
+2. Bis zur Schwelle entsprechen Ergebnisse und Ablauf exakt 0.44.6.5.
+3. Nach mindestens 120 eindeutigen Treffern erscheint die 90-Sekunden-Testpause.
+4. Im Pausenfenster erfolgt kein weiterer `/api/search`-Request.
+5. Nach 90 Sekunden startet das nächste Arbeitspaket automatisch.
+6. Die Pause wird in derselben Session nicht erneut ausgelöst.
+7. Es entstehen keine zusätzlichen Dubletten.
+8. Fehler-Recovery und manuelles Stoppen bleiben funktionsfähig.
 
 Weitere Informationen: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md) und [`VERSION.json`](VERSION.json).
