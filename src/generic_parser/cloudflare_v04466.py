@@ -1,8 +1,8 @@
-"""GenericParser 0.44.6.6 cooldown test on the 0.44.6.5 rollback runtime.
+"""GenericParser 0.44.6.6 Build 2 cooldown test on the 0.44.6.5 rollback runtime.
 
 The proven 0.44.4 search path, 0.44.6.2 ASGI runtime behavior and single
 browser-side auto-resume remain unchanged. The only experiment is a client-side
-90-second request pause after at least 120 unique results.
+90-second replacement for the regular page delay at every 120 unique results.
 """
 from __future__ import annotations
 
@@ -108,10 +108,13 @@ async def version() -> JSONResponse:
         },
         "controller_test_cooldown": {
             "enabled": True,
-            "mode": "client_request_gate",
+            "mode": "replace_regular_delay",
             "threshold_unique_results": 120,
+            "repeat_every_unique_results": 120,
             "duration_ms": 90000,
-            "once_per_session": True,
+            "once_per_session": False,
+            "thresholds": "120,240,360,...",
+            "persistent_threshold_state": True,
             "worker_code_changed": False,
         },
         "last_import_error": _last_error,
