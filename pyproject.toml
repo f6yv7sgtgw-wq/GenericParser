@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generic-kleinanzeigen-parser"
-version = "0.44.4"
-description = "Kleinanzeigen-Parser auf Referenz 0.44.2 mit stabiler Suche und Ampelbewertung ausschließlich für aktive Regeln"
+version = "0.44.5"
+description = "Kleinanzeigen-Parser mit direktem Cloudflare-Free-Worker ohne ASGI/FastAPI im Live-Pfad und funktionaler Referenz 0.44.4"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [{ name = "Jan Leduc" }]
-keywords = ["kleinanzeigen", "parser", "cloudflare-workers", "pwa", "matching", "scoring", "traffic-light", "active-rules", "diagnostics"]
+keywords = ["kleinanzeigen", "parser", "cloudflare-workers", "pwa", "matching", "scoring", "traffic-light", "active-rules", "direct-worker", "free-plan", "diagnostics"]
 dependencies = [
   "PyYAML>=6.0",
   "beautifulsoup4>=4.12",
