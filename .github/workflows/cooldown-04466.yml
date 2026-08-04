@@ -1,9 +1,10 @@
-name: GenericParser 0.44.6.6 cooldown test
+name: GenericParser 0.44.6.6 Build 2 repeated cooldown test
 
 on:
   push:
     branches: [main]
     paths:
+      - 'VERSION.json'
       - 'src/generic_parser/cloudflare_worker.py'
       - 'src/generic_parser/cloudflare_v04466.py'
       - 'src/generic_parser/search_service_v04466.py'
@@ -39,7 +40,7 @@ jobs:
             src/generic_parser/cloudflare_v04466.py \
             src/generic_parser/search_service_v04466.py \
             src/generic_parser/build_identity_v04466.py
-      - name: Check browser scripts
+      - name: Check browser scripts and generated runtime
         run: |
           node --check cloudflare/public/controller-04466.js
           node --check cloudflare/public/auto-resume-04466.js
