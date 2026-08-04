@@ -12,8 +12,8 @@
   }
 
   const STEP = Math.max(1, Number(I.testCooldown?.threshold || 120));
-  const DURATION_MS = Math.max(0, Number(I.testCooldown?.durationMs || 90000));
-  const STATE_KEY = 'generic-parser-cooldown-04466-b3';
+  const DURATION_MS = Math.max(0, Number(I.testCooldown?.durationMs || 120000));
+  const STATE_KEY = String(I.testCooldown?.stateKey || 'generic-parser-cooldown-044661');
   const PROFILE_FIELDS = [
     'query', 'required-terms', 'excluded-terms', 'model-patterns', 'brands',
     'max-price', 'market-value', 'postal-code', 'location-id', 'radius-km'
@@ -111,7 +111,7 @@
         nextThreshold: state.nextThreshold,
         durationMs: DURATION_MS
       });
-      log('cooldown_start', '90-Sekunden-Testpause gestartet', {
+      log('cooldown_start', `${Math.round(DURATION_MS / 1000)}-Sekunden-Testpause gestartet`, {
         threshold,
         uniqueResults: count,
         nextThreshold: state.nextThreshold,
@@ -140,7 +140,7 @@
     state.lastObserved = count;
     writeState(state);
 
-    log('cooldown_resume', 'Suche nach 90-Sekunden-Testpause fortgesetzt', {
+    log('cooldown_resume', `Suche nach ${Math.round(DURATION_MS / 1000)}-Sekunden-Testpause fortgesetzt`, {
       threshold,
       uniqueResults: count,
       nextThreshold: state.nextThreshold,
@@ -157,6 +157,7 @@
     reference: '0.44.6.5',
     step: STEP,
     durationMs: DURATION_MS,
+    stateKey: STATE_KEY,
     mode: 'repeated-multiples-fail-open'
   };
 })();
