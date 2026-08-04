@@ -2,57 +2,60 @@
 
 ## Fachlicher Referenzkern 0.44.4
 
-0.44.4 bleibt die fachliche Vergleichsbasis für Suchfluss, echte Kleinanzeigen-Weiter-Navigation, robuste Extraktion, Datenkonsistenz und die Ampelbewertung ausschließlich aktiver Regeln. Der Kern wird in den späteren 0.44.6.x-Versionen unverändert über `search_service_v0444` verwendet.
+0.44.4 bleibt die fachliche Vergleichsbasis für Suchfluss, echte Kleinanzeigen-Weiter-Navigation, robuste Extraktion, Datenkonsistenz und die Ampelbewertung ausschließlich aktiver Regeln. Der Kern wird weiterhin unverändert über `search_service_v0444` verwendet.
 
-## Arbeitsreferenz 0.44.6.2
+## Stabile Referenz 0.44.6.5
 
-0.44.6.2 ist die bestätigte Arbeitsreferenz. Der Live-Test erreichte 34 erfolgreiche Arbeitspakete und 219 gespeicherte Ergebnisse, bevor eine Kette aus mehreren HTML-503-Antworten und Cloudflare 1101 vor ASGI auftrat. Suchstand, Treffer, Preise, Bilder, Ampeln, Pagination und Datenkonsistenz blieben erhalten. Die einmalige automatische Recovery wurde korrekt geplant.
+0.44.6.5 ist die stabile operative Rollback-Referenz. Sie verwendet:
 
-## 0.44.6.3 – Recovery-Hardening – implementiert, Live-Test ausstehend
+- den bestätigten ASGI- und FastAPI-Pfad aus 0.44.6.2
+- den unveränderten 0.44.4-Suchkern
+- 7er-Arbeitspakete
+- fünf Sekunden normale Browserpause
+- echte Weiter-Navigation
+- persistente Fortschrittssicherung
+- genau einen automatischen Fehler-Resume nach 90 Sekunden
 
-0.44.6.3 verändert nicht den Suchkern. Die Version verbessert ausschließlich die Recovery-Steuerung.
+Die Recovery- und Lazy-Bootstrap-Experimente aus 0.44.6.3 und 0.44.6.4 bleiben deaktiviert.
 
-Umgesetzt:
+## 0.44.6.6 – 120/90-Cooldown-Test
 
-- neuer `GET /api/recovery-probe`
-- Probe lädt Python-Runtime und Search-Service und validiert `SearchRequest`, `search_page` und den Referenzkern `generic_parser.search_service_v0444`
-- keine Kleinanzeigen-Anfrage innerhalb der Probe
-- Recovery-Trigger für Cloudflare 1101, 1102 und wiederholte HTML-503-Antworten
-- gestaffeltes Backoff von 90, 180 und 360 Sekunden
-- ±10 Prozent Jitter
-- Probe-Abstände von 30, 60 und 120 Sekunden
-- höchstens drei Probe-Versuche je Recovery-Zyklus
-- höchstens zwei automatische Fortsetzungen je Suchkette
-- danach ausschließlich manuelle Fortsetzung
-- Auswertung von `cf-error-type`, `cf-error-origin`, `Retry-After` und Ray-ID
-- sichtbare Recovery-Kachel mit Status, Versuchen, nächster Aktion und letzter Probe
-- persistenter Recovery-Stand über einen Seiten-Reload
-- keine unbegrenzte Retry- oder Resume-Schleife
+0.44.6.6 ist ausdrücklich eine Testversion und ersetzt 0.44.6.5 nicht als Referenz.
+
+Einzige Verhaltensänderung:
+
+```text
+mindestens 120 eindeutige Treffer
+→ aktuelles Paket vollständig speichern
+→ vor dem nächsten Suchauftrag 90 Sekunden warten
+→ automatisch weiterlaufen
+```
+
+Die Pause läuft im Browser als `client_request_gate`. Der Worker erhält währenddessen keinen Request. Die Pause wird pro Session nur einmal ausgelöst.
 
 Unverändert:
 
-- 7er-Arbeitspakete
-- 5 Sekunden normale Pause
-- Suchlogik aus 0.44.4
-- Pagination und Weiter-Link
-- Titel-, Karten- und Preisextraktion
-- Ampelbewertung
-- Deduplizierung
-- Speichern, Stoppen und manuelles Fortsetzen
+- Worker-Einstieg
+- Parser und Extraktion
+- Pagination
+- 7er-Paketgröße
+- 5-Sekunden-Normalpause
+- Ampel und Filter
+- Retry-Verhalten
+- 0.44.6.2-Fehler-Recovery
+- Karten und UI
 
-Abnahmetest:
+### Live-Abnahme
 
-1. `/api/version` meldet 0.44.6.3 und den Recovery-Hardening-Vertrag.
-2. `/api/recovery-probe` liefert `status: ready` und bestätigt den Referenzkern.
-3. Normale Treffer und Pagination entsprechen 0.44.6.2.
-4. Nach einem Terminalfehler erscheint `recovery_scheduled`.
-5. Der erste Zyklus wartet ungefähr 90 Sekunden, der zweite ungefähr 180 Sekunden; jeweils mit ±10 Prozent Jitter.
-6. Nach erfolgreicher Probe erscheinen `recovery_probe_ready`, `recovery_resume_start` und `recovery_resume_running`.
-7. Die Fortsetzung startet auf der gespeicherten Seite und erzeugt keine neuen Dubletten.
-8. Nach zwei gescheiterten automatischen Fortsetzungen bleibt ausschließlich die manuelle Fortsetzung verfügbar.
-9. Datenkonsistenz muss durchgehend bestätigt bleiben.
+1. Bis mindestens 120 eindeutige Treffer muss der Lauf exakt der Referenz 0.44.6.5 entsprechen.
+2. Nach der Schwelle müssen `cooldown_threshold_reached` und vor dem nächsten Request `cooldown_start` erscheinen.
+3. Zwischen `cooldown_start` und `cooldown_resume` dürfen mindestens 90 Sekunden lang keine neuen `/api/search`-Ereignisse erscheinen.
+4. Nach `cooldown_resume` muss die gleiche Session automatisch mit dem nächsten Arbeitspaket weiterlaufen.
+5. Die Pause darf in derselben Session nicht erneut erscheinen.
+6. Ergebnisse, Dubletten, Preise, Bilder, Ampeln und Datenkonsistenz müssen unverändert bleiben.
+7. Der entscheidende Vergleichswert ist der Fehlerpunkt beziehungsweise die maximal erreichte Trefferzahl gegenüber 0.44.6.5.
 
-Nach bestandenem Live-Test wird 0.44.6.3 operative Referenz. Danach geht die Entwicklung zurück in die Produkt-Roadmap.
+Bei einer Regression wird direkt auf 0.44.6.5 zurückgeschaltet. Nur ein reproduzierbarer Vorteil rechtfertigt eine spätere Übernahme.
 
 ## 0.45 – Integrierbares Parser-Core-Modul
 
