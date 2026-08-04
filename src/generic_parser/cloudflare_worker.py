@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 
 from workers import Response, WorkerEntrypoint, fetch as worker_fetch
 
-import worker_runtime_v04452 as runtime
+import worker_runtime_v04452_entry as runtime
 
 
 def _headers():
