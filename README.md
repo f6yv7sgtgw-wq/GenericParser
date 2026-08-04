@@ -4,60 +4,45 @@ Wiederverwendbarer Kleinanzeigen-Parser und mobile PWA für die Einbindung in **
 
 ## Aktueller Stand
 
-- **Produktversion:** `0.44.6.4`
-- **Paketversion:** `0.44.6.4`
-- **Build-ID:** `gp-04464-20260804-1`
-- **API-Vertrag:** `match-v6.11.5-lazy-bootstrap-recovery`
-- **Arbeitsreferenz:** `0.44.6.2`
-- **Recovery-Basis:** `0.44.6.3 Build 2`
+- **Produktversion:** `0.44.6.5`
+- **Paketversion:** `0.44.6.5`
+- **Build-ID:** `gp-04465-20260804-1`
+- **API-Vertrag:** `match-v6.11.6-clean-rollback-04462`
+- **Operative Referenzbasis:** `0.44.6.2`
 - **Fachlicher Suchkern:** unverändert aus `0.44.4`
+- **Rollback-Referenzcommit:** `f55f31bcd878ec1edb0b8fc0ee9b5330c8ef0a0a`
 - **Zielplattform:** Cloudflare Workers Free
 
-## Befund aus 0.44.6.3 Build 2
+## Sauberer Rollback 0.44.6.5
 
-Der Resume-Button war wieder funktionsfähig. Das Eventlog zeigte jedoch eine neue Endlossituation:
-
-```text
-Cloudflare 1101 auf dem gespeicherten Arbeitspaket
-→ Recovery geplant
-→ /api/recovery-probe
-→ HTTP 500
-→ Probe 2 und 3 ebenfalls HTTP 500
-→ manueller Resume
-→ erneut sofort Cloudflare 1101
-```
-
-Die Ursache war die Probe selbst: Sie importierte den vollständigen ASGI-, FastAPI- und Search-Service-Pfad und löste damit denselben schweren Import aus, den sie eigentlich absichern sollte.
-
-## Recovery-Fix 0.44.6.4
-
-0.44.6.4 trennt den leichten Worker-Einstieg vom eigentlichen Suchpfad:
+0.44.6.5 nimmt die experimentellen Änderungen aus 0.44.6.3 und 0.44.6.4 aus dem aktiven Pfad. Die Version verwendet wieder das bestätigte Verhalten von 0.44.6.2 unter einer neuen, konsistenten Deployment-Identität.
 
 ```text
-GET /api/version
-GET /api/recovery-probe
-→ direkte JSON-Antwort im WorkerEntrypoint
-→ kein ASGI
-→ kein FastAPI
-→ kein Search-Service
-→ kein generic_parser/__init__.py
-
-POST /api/search
-→ ASGI erst jetzt laden
-→ FastAPI-Bootstrap erst jetzt laden
-→ Search-Service erst jetzt laden
+Worker-Einstieg und FastAPI-Bootstrap wie 0.44.6.2
 → unveränderter 0.44.4-Suchkern
+→ höchstens sieben Ergebnisse pro Arbeitspaket
+→ fünf Sekunden Browserpause
+→ echte Weiter-Navigation
+→ Suchstand nach jedem Paket speichern
 ```
 
-Die Recovery-Probe prüft nur noch:
+Recovery entspricht ebenfalls 0.44.6.2:
 
-- Worker-Einstieg erreichbar
-- Version, Build und API-Vertrag konsistent
-- lazy ASGI-Lader verfügbar
-- Referenzkern 0.44.4 deklariert
-- Paket-`__init__` wurde übersprungen
+```text
+503/1101 und retry_exhausted
+→ Suchstand speichern
+→ 90 Sekunden Ruhezeit
+→ /api/version prüfen
+→ genau ein automatischer Resume-Versuch
+→ danach manueller Fallback
+```
 
-Damit ist die Probe bewusst leichter als der Vorgang, den sie freigibt. Scheitert anschließend der echte Suchimport, liefert der Worker nach Möglichkeit eine strukturierte HTTP-503-Antwort mit Phase und Fehlermeldung. Cloudflare-Limits können trotzdem weiterhin einen 1101/1102 erzeugen; dafür bleiben zwei gestaffelte Auto-Resumes erhalten.
+Nicht aktiv sind:
+
+- `/api/recovery-probe` aus 0.44.6.3/0.44.6.4
+- zwei oder mehr automatische Resume-Zyklen
+- Lazy-ASGI-Bootstrap aus 0.44.6.4
+- direkter leichter Search-Worker aus 0.44.5.x
 
 ## Unveränderter Referenzkern
 
@@ -76,21 +61,19 @@ Damit ist die Probe bewusst leichter als der Vorgang, den sie freigibt. Scheiter
 ## Lokale Tests
 
 ```bash
-python -m pytest -q tests/test_recovery_probe_v04464.py
-node --check cloudflare/public/controller-04464.js
-node --check cloudflare/public/auto-resume-04464.js
-node --check cloudflare/public/eventlog-04464.js
+python -m pytest -q tests/test_clean_rollback_v04465.py
+node --check cloudflare/public/controller-04465.js
+node --check cloudflare/public/auto-resume-04465.js
+node --check cloudflare/public/eventlog-04465.js
 ```
 
-## Abnahme von 0.44.6.4
+## Abnahme von 0.44.6.5
 
-1. `/api/version` antwortet mit HTTP 200 und `gp-04464-20260804-1`.
-2. `/api/recovery-probe` antwortet mit HTTP 200 und `probe_mode: bootstrap_lazy`.
-3. Die Probe meldet `probe_imports_search_service: false`.
-4. Normale Suchergebnisse entsprechen 0.44.6.2.
-5. Nach einem Terminalfehler folgen `recovery_probe_ready`, `recovery_resume_start` und `recovery_resume_running`.
-6. Die Suche setzt auf dem gespeicherten Arbeitspaket fort.
-7. Es entstehen keine zusätzlichen Dubletten.
-8. Nach höchstens zwei automatischen Fortsetzungen bleibt die manuelle Fortsetzung verfügbar.
+1. `/api/version` meldet Version, Build und API-Vertrag konsistent.
+2. Eine neue Suche verarbeitet das erste Arbeitspaket wie 0.44.6.2.
+3. Ergebnisse, Pagination, Preise, Bilder und Ampel entsprechen 0.44.6.2.
+4. Der aktive Worker enthält keinen 0.44.6.4-Lazy-Bootstrap.
+5. Der Browser verwendet die einmalige 0.44.6.2-Recovery über `/api/version`.
+6. Nach einem Terminalfehler bleibt der Suchstand erhalten.
 
 Weitere Informationen: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md) und [`VERSION.json`](VERSION.json).
