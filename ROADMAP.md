@@ -34,35 +34,82 @@ Der Live-Test bestätigte die Wiederherstellung der funktionalen Qualität:
 - echte Weiter-Navigation über den Referenzkern
 - Preise, Bilder und Ampelbewertungen vorhanden
 - Suchstand bei temporärem Fehler erhalten
-- automatischer Retry aktiv
+- automatischer HTTP-Retry aktiv
 
-Am Ende lieferte der Abruf für Seite 29 wiederholt eine HTML-Fehlerseite mit HTTP 503. Das war kein Paginationfehler und kein Versionskonflikt. Der Suchstand blieb gespeichert und konnte fortgesetzt werden.
+Am Ende lieferte der Abruf für Seite 29 wiederholt eine HTML-Fehlerseite mit HTTP 503. Das war kein Paginationfehler und kein Versionskonflikt. Der Suchstand blieb gespeichert und konnte manuell fortgesetzt werden.
 
-Das Eventlog zeigte fälschlich `Versionsabweichung`, obwohl UI und Worker bei Version, Build und API-Vertrag übereinstimmten. Ursache war die zusätzliche Erwartung eines experimentellen Diagnoseschemas, das im Referenzmodus bewusst nicht geliefert wird.
+## 0.44.6.1 – Diagnosefix – Live-Test bestanden
 
-## 0.44.6.1 – Diagnosefix – implementiert, Live-Test ausstehend
+Der Test bestätigte:
 
-0.44.6.1 verändert ausschließlich Diagnose und Versionsdarstellung:
+- Eventlog und Worker melden konsistent `0.44.6.1` / `gp-04461-20260804-1`
+- Referenzmodus 0.44.4 wird korrekt erkannt
+- HTML-503 wird verständlich als temporärer Abruffehler dargestellt
+- ältere Ereignisse werden übernommen
+- Suchkern, Trefferkarten, Preise und Ampel funktionieren unverändert
 
-- Versionskonsistenz wird nur anhand von Version, Build und API-Vertrag geprüft
-- fehlendes erweitertes Diagnoseschema wird im Referenzmodus nicht als Fehler bewertet
-- Anzeige: `Referenz 0.44.4 · erweitertes Schema optional`
-- HTML-Antworten mit HTTP 503 werden als temporärer Cloudflare-/Upstream-Abruffehler bezeichnet
-- Hinweis, dass der Suchstand erhalten bleibt und Retry oder Fortsetzen möglich ist
-- Anzahl temporärer HTML-503-Antworten erscheint in der Eventlog-Zusammenfassung
-- Suchfluss, Extraktion, Pagination, Ampel, Arbeitspakete und Retry-Verhalten bleiben unverändert
-- `search_service_v04461` delegiert direkt an den unveränderten 0.44.4-Kern
+Der Lauf verarbeitete neun Arbeitspakete und speicherte 60 Ergebnisse. Danach folgte die bestätigte Fehlerkette:
+
+```text
+HTTP 503 mit HTML
+→ unmittelbarer Retry
+→ Cloudflare 1101 vor ASGI
+→ retry_exhausted
+→ Stand gespeichert, manuelles Fortsetzen möglich
+```
+
+Die bisherige Implementierung nahm eine Suche nach `retry_exhausted` bewusst nicht automatisch wieder auf. Sie bot nur die gespeicherte manuelle Fortsetzung an.
+
+## 0.44.6.2 – Einmalige automatische Fortsetzung – implementiert, Live-Test ausstehend
+
+Ziel: Die bestehende gespeicherte Suche nach der bestätigten 503/1101-Kette einmal automatisch fortsetzen, ohne Parser, Pagination oder Worker-Suchkern zu verändern.
+
+Controller-Ablauf:
+
+```text
+retry_exhausted mit 1101 oder wiederholtem HTML-503
+→ Suchstand bleibt gespeichert
+→ 90 Sekunden Ruhezeit
+→ /api/version mit Cache-Bypass prüfen
+→ Version, Build und API-Vertrag müssen übereinstimmen
+→ vorhandene „Letzte Suche fortsetzen“-Funktion einmal automatisch auslösen
+→ bei erneutem Terminalfehler nur noch manuelles Fortsetzen
+```
+
+Umgesetzt:
+
+- Recovery-Modul `auto-resume-04462.js` beobachtet die bestehenden Eventlog-Ereignisse
+- Trigger nur bei `search_end` mit `retry_exhausted` und belastbarem 1101-/503-Nachweis
+- 90 Sekunden Ruhezeit vor der ersten Bereitschaftsprüfung
+- bis zu vier `/api/version`-Prüfungen im Abstand von 15 Sekunden
+- genau ein automatischer Resume-Versuch je Suchkette
+- kein unbegrenzter Retry- oder Resume-Kreis
+- manueller Resume überschreibt die wartende Automatik
+- Löschen des Suchstands löscht auch den Recovery-Zustand
+- Recovery-Zustand bleibt bei einem Seiten-Reload höchstens 30 Minuten erhalten
+- Eventlog protokolliert Planung, Health-Prüfung, Start, laufende Session, Abschluss und manuellen Fallback
+- `search_service_v04462` delegiert direkt an den unveränderten 0.44.4-Kern
+- Paketgröße bleibt 7 und normale Pause bleibt 5 Sekunden
+
+Wichtige Grenze:
+
+- Cloudflare garantiert nicht, dass die Bereitschaftsprüfung eine neue Worker-Instanz erzeugt
+- 0.44.6.2 testet diese Recovery-Hypothese im Live-Betrieb
+- das zugrunde liegende ASGI-/Import-Risiko wird nicht als behoben bezeichnet
 
 Abnahmetest nach Deployment:
 
-1. `/api/version` meldet 0.44.6.1, Build `gp-04461-20260804-1` und Referenzmodus.
-2. Eventlog zeigt `Versionen konsistent`.
-3. Das fehlende Coverage-Schema wird als optionaler Referenzmodus dargestellt.
-4. Ein vorhandenes HTML-503-Ereignis wird verständlich als temporärer Abruffehler angezeigt.
-5. Eine identische Suche liefert dieselben Treffer und dieselbe Pagination wie 0.44.6.
-6. Manueller Stopp, Retry, Fortsetzen und Datenkonsistenz bleiben unverändert.
+1. `/api/version` meldet 0.44.6.2 und den Recovery-Modus.
+2. Normale Treffer und Pagination entsprechen 0.44.6.1.
+3. Bei einer 1101-/503-Unterbrechung erscheint `auto_resume_scheduled` im Eventlog.
+4. Die UI zählt 90 Sekunden herunter und prüft anschließend den Worker.
+5. Nach erfolgreicher Prüfung erscheint `auto_resume_start`.
+6. Die neue Session setzt auf der gespeicherten Seite fort und beginnt nicht bei Seite 1.
+7. Bereits geladene Anzeigen werden nicht erneut als neue Ergebnisse gezählt.
+8. Bei einem zweiten Terminalfehler erfolgt kein zweiter automatischer Resume; der manuelle Button bleibt verfügbar.
+9. Manueller Stopp, manuelles Fortsetzen und Datenkonsistenz bleiben unverändert.
 
-Nach bestandenem Test wird 0.44.6.1 die neue Arbeitsreferenz. Anschließend beginnt 0.45.
+Bei erfolgreichem Test wird 0.44.6.2 operative Referenzkandidatin. Bei Fehlschlag bleibt 0.44.6.1 die Arbeitsreferenz; die Recovery wird dann als zustandsbehafteter Bestandteil von 0.45 umgesetzt.
 
 ## 0.45 – Integrierbares Parser-Core-Modul
 
@@ -75,6 +122,7 @@ Ziel: Die bewährte Funktionalität als wiederverwendbares Modul für Evercade, 
 - JSON-Serialisierung für andere Projekte
 - Adapter für Cloudflare Worker und lokale Tests
 - unveränderter API-Vertrag für bestehende Clients
+- zustandsbehaftete Recovery-Schnittstelle, falls 0.44.6.2 nicht ausreichend stabil ist
 
 ## 0.46 – Produktklassifizierung
 
