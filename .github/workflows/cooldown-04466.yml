@@ -1,0 +1,48 @@
+name: GenericParser 0.44.6.6 cooldown test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/generic_parser/cloudflare_worker.py'
+      - 'src/generic_parser/cloudflare_v04466.py'
+      - 'src/generic_parser/search_service_v04466.py'
+      - 'src/generic_parser/build_identity_v04466.py'
+      - 'cloudflare/public/controller-04466.js'
+      - 'cloudflare/public/auto-resume-04466.js'
+      - 'cloudflare/public/eventlog-04466.js'
+      - 'cloudflare/public/build-identity-04466.js'
+      - 'cloudflare/public/index.html'
+      - 'cloudflare/public/eventlog.html'
+      - 'tests/test_cooldown_v04466.py'
+      - '.github/workflows/cooldown-04466.yml'
+  workflow_dispatch:
+
+jobs:
+  cooldown-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test dependencies
+        run: python -m pip install -U pip pytest fastapi pydantic httpx beautifulsoup4 PyYAML
+      - name: Compile Python modules
+        run: |
+          python -m py_compile \
+            src/generic_parser/cloudflare_worker.py \
+            src/generic_parser/cloudflare_v04466.py \
+            src/generic_parser/search_service_v04466.py \
+            src/generic_parser/build_identity_v04466.py
+      - name: Check browser scripts
+        run: |
+          node --check cloudflare/public/controller-04466.js
+          node --check cloudflare/public/auto-resume-04466.js
+          node --check cloudflare/public/eventlog-04466.js
+          node --check cloudflare/public/build-identity-04466.js
+      - name: Run cooldown regression tests
+        run: pytest -q tests/test_cooldown_v04466.py
