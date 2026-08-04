@@ -1,4 +1,4 @@
-name: GenericParser 0.44.6.6 Build 2 repeated cooldown test
+name: GenericParser 0.44.6.6 Build 3 reference-safe cooldown test
 
 on:
   push:
@@ -9,7 +9,11 @@ on:
       - 'src/generic_parser/cloudflare_v04466.py'
       - 'src/generic_parser/search_service_v04466.py'
       - 'src/generic_parser/build_identity_v04466.py'
+      - 'cloudflare/public/app.js'
+      - 'cloudflare/public/controller-0411.js'
+      - 'cloudflare/public/controller-04465.js'
       - 'cloudflare/public/controller-04466.js'
+      - 'cloudflare/public/cooldown-04466.js'
       - 'cloudflare/public/auto-resume-04466.js'
       - 'cloudflare/public/eventlog-04466.js'
       - 'cloudflare/public/build-identity-04466.js'
@@ -17,6 +21,7 @@ on:
       - 'cloudflare/public/eventlog.html'
       - 'tests/test_cooldown_v04466.py'
       - 'tests/check_controller_runtime_v04466.js'
+      - 'tests/check_cooldown_runtime_v04466.js'
       - '.github/workflows/cooldown-04466.yml'
   workflow_dispatch:
 
@@ -40,12 +45,14 @@ jobs:
             src/generic_parser/cloudflare_v04466.py \
             src/generic_parser/search_service_v04466.py \
             src/generic_parser/build_identity_v04466.py
-      - name: Check browser scripts and generated runtime
+      - name: Check browser scripts and reference controller
         run: |
           node --check cloudflare/public/controller-04466.js
+          node --check cloudflare/public/cooldown-04466.js
           node --check cloudflare/public/auto-resume-04466.js
           node --check cloudflare/public/eventlog-04466.js
           node --check cloudflare/public/build-identity-04466.js
           node tests/check_controller_runtime_v04466.js
-      - name: Run cooldown regression tests
+          node tests/check_cooldown_runtime_v04466.js
+      - name: Run Build 3 regression tests
         run: pytest -q tests/test_cooldown_v04466.py
