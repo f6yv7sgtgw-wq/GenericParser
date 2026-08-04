@@ -14,36 +14,51 @@
 - Ampelbewertung ausschließlich aktiver Regeln
 - kompakte Ergebniskarten
 
-Der Live-Test vom 04.08.2026 bestätigte Fachlogik und Datenkonsistenz. Ein langer Lauf wurde nach 37 erfolgreichen Anfragen und 248 gespeicherten Ergebnissen durch `Python Worker exceeded CPU time limit` beendet. Der Trace zeigt den Abbruch beim Import vor ASGI und vor dem ausgehenden Kleinanzeigen-Aufruf. Deshalb ist 0.44.4 die funktionale, aber nicht die operative Runtime-Referenz.
+Der Live-Test vom 04.08.2026 bestätigte Fachlogik und Datenkonsistenz. Ein langer Lauf wurde nach 37 erfolgreichen Anfragen und 248 gespeicherten Ergebnissen durch `Python Worker exceeded CPU time limit` beendet. Deshalb bleibt 0.44.4 die funktionale Vergleichsbasis.
 
-## 0.44.5 – Free-Runtime-Hardening – implementiert, Live-Test ausstehend
+## 0.44.5 – Free-Runtime-Hardening – CPU-Ziel erreicht, Extraktionsregression entdeckt
 
-Ziel: Die 0.44.4-Fachlogik erhalten und den Cloudflare-Free-Startpfad unter das CPU-Limit bringen.
+Umgesetzt und im Live-Test bestätigt:
+
+- direkter `WorkerEntrypoint` statt ASGI/FastAPI
+- kein dynamischer Paket-Bootstrap
+- kein Pydantic und kein `httpx` im Live-Pfad
+- externer Abruf über Cloudflares `workers.fetch`
+- drei erfolgreiche HTTP-200-Suchaufrufe ohne `CpuLimitExceeded` oder Cloudflare 1101
+
+Entdeckte Regression:
+
+- Kleinanzeigen meldete bei der Suche `Snes` 6.669 Ergebnisse
+- der direkte Parser erkannte 0 Karten
+- die Suche endete fälschlich mit `empty_page_verified`
+
+0.44.5 ist daher Runtime-Nachweis, aber keine operative Referenz.
+
+## 0.44.5.1 – Extraktionshotfix – implementiert, Live-Test ausstehend
+
+Ziel: Den schlanken direkten Worker aus 0.44.5 behalten und die Kartenextraktion wiederherstellen.
 
 Umgesetzt:
 
-- direkter `WorkerEntrypoint` statt ASGI/FastAPI im Cloudflare-Pfad
-- eigenständiger Standardbibliothek-Parser `worker_runtime_v0445.py`
-- kein Import des umfangreichen `generic_parser/__init__.py` im Live-Pfad
-- keine dynamische `importlib`-Paketinitialisierung
-- kein Pydantic-Modellaufbau
-- kein `httpx`; externer Abruf über Cloudflares `workers.fetch`
-- manueller Router für `/health`, `/api/version` und `/api/search`
-- leichte explizite JSON-Validierung
-- kompatible Seiten-, Diagnose-, Konsistenz- und Ampelantworten
-- unveränderte 7er-Arbeitspakete und 5-Sekunden-Pause im Client
-- isolierte Regressionstests für Importbaum, aktive Regeln, harte Ausschlüsse und Seitenvertrag
+- primäre Kartenfindung weiterhin über `article[data-adid]`
+- zusätzlicher Fallback über eindeutige `/s-anzeige/`-Links
+- Anzeigen-ID wird aus der Kleinanzeigen-URL gewonnen
+- begrenzte Kartenfenster für `article`, `li.ad-listitem`, `div.aditem` und unbekannte Container
+- gemeldete Treffer mit 0 erkannten Karten erzeugen einen strukturierten `ParserLayoutError` statt eines falschen Suchabschlusses
+- `empty_page_verified` ist nur noch bei tatsächlich leerer Seite zulässig
+- neues Diagnoseschema `direct-stdlib-link-fallback-v1`
+- Diagnosewerte für Artikel-Tags, `data-adid`, Anzeigenlinks, eindeutige Links, Kandidatenzahl und Extraktionsstrategie
+- direkter Worker, aktive Ampelregeln, 7er-Arbeitspakete und UI-Vertrag bleiben unverändert
 
 Abnahmetest nach Deployment:
 
-1. `/api/version` mehrfach nach kaltem Start aufrufen.
-2. Mindestens 50 Arbeitspakete und 300 Ergebnisse verarbeiten.
-3. Keine `CpuLimitExceeded`- oder Cloudflare-1101-Ereignisse.
-4. IDs und Ampelbewertungen stichprobenartig gegen 0.44.4 vergleichen.
-5. Manuellen Stopp und Fortsetzen prüfen.
-6. Datenkonsistenz muss durchgehend bestätigt bleiben.
+1. `/api/version` muss 0.44.5.1 und `direct-stdlib-link-fallback-v1` melden.
+2. Eine Suche nach `Snes` muss im ersten Paket echte Karten liefern oder einen strukturierten Extraktionsfehler mit Diagnosewerten ausgeben.
+3. `reportedTotal > 0` darf niemals mehr mit `empty_page_verified` enden.
+4. Mindestens 50 Arbeitspakete und 300 Ergebnisse ohne `CpuLimitExceeded` oder Cloudflare 1101 verarbeiten.
+5. Manuellen Stopp, Fortsetzen und Datenkonsistenz prüfen.
 
-Erst nach bestandenem Live-Test wird 0.44.5 operative Referenz.
+Erst nach bestandenem Live-Test wird 0.44.5.1 operative Referenz.
 
 ## 0.45 – Integrierbares Parser-Core-Modul
 
