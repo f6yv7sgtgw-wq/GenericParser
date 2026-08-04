@@ -1,8 +1,9 @@
-"""GenericParser 0.44.6.6 test wrapper around the unchanged 0.44.4 core.
+"""GenericParser 0.44.6.6 Build 2 wrapper around the unchanged 0.44.4 core.
 
 Search, extraction, pagination, matching and traffic-light evaluation remain
 identical to 0.44.6.5. The only test behavior lives in the browser controller:
-one 90-second request pause after at least 120 unique results.
+a 90-second replacement for the regular page delay at 120, 240, 360 and every
+further multiple of 120 unique results.
 """
 from __future__ import annotations
 
