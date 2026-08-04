@@ -12,8 +12,8 @@
   };
   const RECOVERY_KEY = 'generic-parser-auto-resume-04462';
   const MAX_PERSISTED_AGE_MS = 30 * 60 * 1000;
+  const processedSignatures = new Set();
   let recovery = loadRecovery();
-  let lastEpoch = 0;
   let healthInFlight = false;
   let started = false;
 
@@ -38,6 +38,19 @@
       const value = JSON.parse(localStorage.getItem(I.eventLogKey) || '[]');
       return Array.isArray(value) ? value : [];
     } catch { return []; }
+  }
+
+  function eventSignature(event) {
+    return String(event?.signature || JSON.stringify([
+      event?.time,
+      event?.type,
+      event?.sessionId,
+      event?.requestId,
+      event?.page,
+      event?.status,
+      event?.reason,
+      event?.message,
+    ]));
   }
 
   function appendLog(type, message, data = {}) {
@@ -109,7 +122,7 @@
     const message = messageElement();
     if (message) {
       message.className = 'message';
-      message.textContent = `Der Suchstand bleibt gespeichert. Nach einer Ruhezeit wird der Worker geprüft und die Suche einmal automatisch fortgesetzt.`;
+      message.textContent = 'Der Suchstand bleibt gespeichert. Nach einer Ruhezeit wird der Worker geprüft und die Suche einmal automatisch fortgesetzt.';
     }
   }
 
@@ -256,6 +269,13 @@
       return;
     }
 
+    appendLog('auto_resume_health_ready', 'Worker ist für die automatische Fortsetzung bereit', {
+      sessionId: recovery.failureSessionId,
+      healthCheck: Number(recovery.healthChecks || 0) + 1,
+      workerVersion: probe.worker?.version || null,
+      workerBuild: probe.worker?.build_id || null,
+    });
+
     const button = await waitForResumeButton();
     if (!button) {
       requireManual('resume_control_unavailable', 'Die gespeicherte Suche ist vorhanden, aber die Fortsetzen-Schaltfläche wurde nicht bereit.');
@@ -331,10 +351,10 @@
   function scanEvents() {
     const events = readEvents();
     const fresh = events
-      .filter(event => eventEpoch(event) > lastEpoch)
+      .filter(event => !processedSignatures.has(eventSignature(event)))
       .sort((a, b) => eventEpoch(a) - eventEpoch(b));
     for (const event of fresh) {
-      lastEpoch = Math.max(lastEpoch, eventEpoch(event));
+      processedSignatures.add(eventSignature(event));
       processEvent(event, events);
     }
   }
@@ -351,7 +371,7 @@
     if (started) return;
     started = true;
     const events = readEvents();
-    lastEpoch = events.reduce((maximum, event) => Math.max(maximum, eventEpoch(event)), 0);
+    events.forEach(event => processedSignatures.add(eventSignature(event)));
     if (recovery && Date.now() - Number(recovery.updatedAt || 0) > MAX_PERSISTED_AGE_MS && ['waiting', 'probing'].includes(recovery.status)) {
       requireManual('persisted_recovery_expired', 'Die automatische Fortsetzung ist abgelaufen.');
     }
@@ -369,6 +389,14 @@
       recovery = null;
       saveRecovery();
       appendLog('auto_resume_state_cleared', 'Automatischer Fortsetzungsstand zusammen mit Suchstand gelöscht');
+      return;
+    }
+    if (target.closest('#search-button') && recovery && ['waiting', 'probing'].includes(recovery.status)) {
+      recovery.status = 'manual_override';
+      saveRecovery();
+      appendLog('auto_resume_cancelled', 'Automatische Fortsetzung durch eine neue manuelle Suche ersetzt', {
+        sessionId: recovery.failureSessionId,
+      });
       return;
     }
     if (target.closest('#resume-button') && recovery && ['waiting', 'probing'].includes(recovery.status)) {
