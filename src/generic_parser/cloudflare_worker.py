@@ -1,7 +1,8 @@
-"""Direct Cloudflare Python Worker for GenericParser 0.44.5.
+"""Direct Cloudflare Python Worker for GenericParser 0.44.5.1.
 
 The live request path deliberately avoids importlib, package __init__, ASGI,
-FastAPI, Pydantic and httpx.
+FastAPI, Pydantic and httpx. The extraction hotfix adds link-driven card
+recovery and a false-empty-page guard.
 """
 from __future__ import annotations
 
@@ -10,7 +11,7 @@ from urllib.parse import urlparse
 
 from workers import Response, WorkerEntrypoint, fetch as worker_fetch
 
-import worker_runtime_v0445 as runtime
+import worker_runtime_v04451 as runtime
 
 
 def _headers():
@@ -79,14 +80,16 @@ class Default(WorkerEntrypoint):
                 "pause_ms": 5000,
                 "pagination_strategy": "source_html_weiter_link",
                 "functional_reference": "0.44.4",
-                "operational_candidate": "0.44.5",
+                "operational_candidate": "0.44.5.1",
                 "traffic_light_model": "v2-active-rules",
                 "empty_fields_ignored": True,
                 "direct_worker": True,
                 "robust_title_fallback": True,
                 "diagnostic_alignment": True,
                 "result_information": True,
-                "coverage_schema": "direct-stdlib-active-rules-v1",
+                "coverage_schema": "direct-stdlib-link-fallback-v1",
+                "link_card_fallback": True,
+                "false_empty_page_guard": True,
                 "runtime_imports": {
                     "importlib": False,
                     "asgi": False,
@@ -129,6 +132,16 @@ class Default(WorkerEntrypoint):
                 "ray_id": _header(request, "cf-ray"),
                 "worker": runtime.identity(),
             }, 400)
+        except runtime.ParserLayoutError as exc:
+            return _json_response({
+                "detail": exc.detail,
+                "retryable": False,
+                "error_type": type(exc).__name__,
+                "phase": "html_extraction",
+                "diagnostics": exc.diagnostics,
+                "ray_id": _header(request, "cf-ray"),
+                "worker": runtime.identity(),
+            }, 502)
         except runtime.UpstreamError as exc:
             return _json_response({
                 "detail": exc.detail,
