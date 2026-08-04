@@ -41,8 +41,8 @@
     auto_resume_cancelled: ['Automatik abgebrochen', 'Der Nutzer hat die gespeicherte Suche manuell fortgesetzt.'],
     auto_resume_state_cleared: ['Fortsetzungsstand gelöscht', 'Automatischer und manueller Suchstand wurden zurückgesetzt.'],
     auto_resume_loader_error: ['Recovery-Loader fehlgeschlagen', 'Der unveränderte 0.44.6.2-Recoverycode konnte nicht geladen werden.'],
-    cooldown_threshold_reached: ['120-Treffer-Schwelle erreicht', 'Die Testpause wird vor dem nächsten Arbeitspaket gestartet.'],
-    cooldown_start: ['90-Sekunden-Testpause gestartet', 'Der Browser sendet während der Pause keinen neuen Suchauftrag an den Worker.'],
+    cooldown_threshold_reached: ['Cooldown-Schwelle erreicht', 'Die wiederholte Testpause wird an dieser Ergebnisschwelle gestartet.'],
+    cooldown_start: ['90-Sekunden-Testpause gestartet', 'Die normale Seitenpause wurde für diese Schwelle durch 90 Sekunden ersetzt.'],
     cooldown_resume: ['Suche nach Testpause fortgesetzt', 'Das nächste Arbeitspaket wurde nach 90 Sekunden wieder freigegeben.'],
     cooldown_cancelled: ['Testpause abgebrochen', 'Die geplante Pause wurde durch einen Suchstopp beendet.'],
   };
@@ -89,6 +89,7 @@
       const schemaText = worker.coverage_schema || (referenceMode ? 'erweitertes Schema optional' : 'nicht verfügbar');
       const recovery = worker.controller_recovery || {};
       const cooldown = worker.controller_test_cooldown || {};
+      const step = Number(cooldown.repeat_every_unique_results || cooldown.threshold_unique_results || 120);
       box.className = `diagnostic ${identityOk ? 'done' : 'error'}`;
       box.innerHTML = [
         `<span><strong>${identityOk ? 'Versionen konsistent' : 'Versionsabweichung'}</strong></span>`,
@@ -96,7 +97,7 @@
         `<span>API-Vertrag: ${esc(worker.api_contract || '?')}</span>`,
         `<span>Testbasis: ${esc(worker.operational_reference || '0.44.6.5')} · Laufzeit ${esc(worker.runtime_reference || '0.44.6.2')}</span>`,
         `<span>Diagnosemodus: ${referenceMode ? 'Referenz 0.44.4' : 'Standard'} · ${esc(schemaText)}</span>`,
-        `<span>Testpause: ${cooldown.enabled ? `${Number(cooldown.threshold_unique_results || 120)} Treffer → ${Math.round(Number(cooldown.duration_ms || 90000) / 1000)} s` : 'nicht aktiv'}</span>`,
+        `<span>Testpause: ${cooldown.enabled ? `${step}, ${step * 2}, ${step * 3} … Treffer → ${Math.round(Number(cooldown.duration_ms || 90000) / 1000)} s` : 'nicht aktiv'}</span>`,
         `<span>Fehler-Recovery: ${recovery.enabled ? `ein Versuch nach ${Math.round(Number(recovery.quiet_period_ms || 0) / 1000)} s` : 'nicht aktiv'}</span>`
       ].join('');
     } catch (error) {
@@ -111,15 +112,16 @@
     const html503 = data.filter(isHtml503);
     const auto = data.filter(event => String(event.type || '').startsWith('auto_resume_'));
     const cooldown = data.filter(event => String(event.type || '').startsWith('cooldown_'));
-    const legacyCount = data.filter(event => event.uiVersion && event.uiVersion !== I.version).length;
+    const cooldownStarts = data.filter(event => event.type === 'cooldown_start');
+    const legacyCount = data.filter(event => event.uiVersion && (event.uiVersion !== I.version || event.uiBuild !== I.buildId)).length;
     const summary = document.getElementById('log-summary');
     summary.innerHTML = [
       `<span>${data.length} Ereignisse</span>`,
       `<span>Referenzdiagnose${coverage.length ? ` · ${coverage.length} Zusatzblöcke` : ''}</span>`,
-      `<span>${cooldown.length} Testpause-Ereignisse</span>`,
+      `<span>${cooldownStarts.length} ausgeführte Testpausen · ${cooldown.length} Cooldown-Ereignisse</span>`,
       `<span>${html503.length} temporäre HTML-503-Antworten</span>`,
       `<span>${auto.length} Auto-Fortsetzungsereignisse</span>`,
-      legacyCount ? `<span>${legacyCount} ältere Referenzereignisse übernommen</span>` : '',
+      legacyCount ? `<span>${legacyCount} ältere Build-/Referenzereignisse übernommen</span>` : '',
       `<span>${data[0] ? new Date(data[0].time).toLocaleString('de-DE') : 'Noch leer'}</span>`,
       `<span>Build ${esc(I.buildId)}</span>`
     ].join('');
@@ -140,6 +142,7 @@
     localStorage.removeItem(KEY);
     LEGACY_KEYS.forEach(key => localStorage.removeItem(key));
     localStorage.removeItem('generic-parser-auto-resume-04466');
+    localStorage.removeItem('generic-parser-cooldown-04466-b2');
     render();
   };
   document.getElementById('copy-log').onclick = async () => {
