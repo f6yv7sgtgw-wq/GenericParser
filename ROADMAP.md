@@ -5,77 +5,56 @@
 0.44.4 bleibt die fachliche Vergleichsbasis für:
 
 - stabilen Suchstart und manuellen Stopp
-- Cloudflare-Free-Tarif-kompatible Arbeitspakete
+- 7er-Arbeitspakete mit 5 Sekunden Pause
 - echte Kleinanzeigen-Weiter-Navigation
-- vollständige Trefferabdeckung bis zum Plattformabbruch
-- robuste Titelgewinnung
+- robuste Titel- und Kartenextraktion
 - gespeicherten Fortschritt und Fortsetzen
 - Datenkonsistenz
 - Ampelbewertung ausschließlich aktiver Regeln
 - kompakte Ergebniskarten
 
-Der Live-Test vom 04.08.2026 bestätigte Fachlogik und Datenkonsistenz. Ein langer Lauf wurde nach 37 erfolgreichen Anfragen und 248 gespeicherten Ergebnissen durch `Python Worker exceeded CPU time limit` beendet. Deshalb bleibt 0.44.4 die funktionale Vergleichsbasis.
+Der Live-Test vom 04.08.2026 bestätigte Fachlogik und Datenkonsistenz. Ein langer Lauf wurde nach 37 erfolgreichen Anfragen und 248 gespeicherten Ergebnissen durch `Python Worker exceeded CPU time limit` beendet. Deshalb ist 0.44.4 die funktionale, aber nicht uneingeschränkt operative Referenz.
 
-## 0.44.5 – Free-Runtime-Hardening – CPU-Ziel erreicht
+## 0.44.5 bis 0.44.5.2 – experimentelle Runtime-Linie
 
-Im Live-Test bestätigt:
+Die direkte Standardbibliothek-Runtime beseitigte den beobachteten Import-/ASGI-Fehler in kurzen Testläufen, erreichte aber nicht die funktionale Abdeckung der Referenz:
 
-- direkter `WorkerEntrypoint` statt ASGI/FastAPI
-- kein dynamischer Paket-Bootstrap
-- kein Pydantic und kein `httpx` im Live-Pfad
-- externer Abruf über Cloudflares `workers.fetch`
-- erfolgreiche Suchaufrufe ohne `CpuLimitExceeded` oder Cloudflare 1101
+- 0.44.5: keine Karten erkannt
+- 0.44.5.1: Karten wieder erkannt, aber nur 29 Ergebnisse und keine Preise
+- 0.44.5.2: Preise und Diagnose verbessert, Pagination weiterhin nach 29 Ergebnissen beendet
 
-Die erste direkte Runtime erkannte jedoch keine Karten und wurde deshalb nicht Referenz.
+Diese Linie ist als Experiment dokumentiert und wird nicht als Grundlage der Produkt-Roadmap verwendet.
 
-## 0.44.5.1 – Extraktionshotfix – Karten wiederhergestellt
+## 0.44.6 – Funktionaler Rückbau auf 0.44.4 – implementiert, Live-Test ausstehend
 
-Der Live-Test bestätigte:
-
-- Link-Fallback erkennt wieder Anzeigenkarten
-- 29 eindeutige SNES-Ergebnisse wurden geladen
-- sechs Requests antworteten mit HTTP 200
-- kein CPU-Limit- oder 1101-Fehler
-- Ampel und Titelanzeige funktionieren
-
-Dabei wurden drei Folgeprobleme sichtbar:
-
-- Abbruch durch `pagination_repeated_page`, weil der Client die echte Weiter-URL nicht mitsendete
-- sämtliche Preise blieben offen
-- das Eventlog enthielt trotz Worker-Diagnose 0 Diagnoseblöcke
-
-0.44.5.1 bleibt daher ein erfolgreicher Runtime- und Extraktionszwischenstand.
-
-## 0.44.5.2 – Pagination-, Preis- und Diagnosehotfix – implementiert, Live-Test ausstehend
-
-Ziel: Den direkten Free-Worker und die funktionierende Kartenextraktion behalten und die drei Befunde aus 0.44.5.1 schließen.
+Ziel: Die funktionale Qualität der Referenz vollständig wiederherstellen, bevor das integrationsfähige Modul entsteht.
 
 Umgesetzt:
 
-- die vom Worker gefundene Kleinanzeigen-`Weiter`-URL wird im Browser pro Suchlauf und virtuellem Arbeitsschritt gespeichert
-- Folgeanfragen senden diese URL unverändert als `cursor_url`
-- beim Ende einer physischen Ergebnisseite springt der virtuelle Index auf den Beginn des nächsten Vier-Paket-Blocks
-- der Wiederholungsseiten-Guard bleibt als Sicherheitsnetz erhalten
-- Link-Fallback bevorzugt den vollständigen `li.ad-listitem`- oder `article`-Container statt eines zu kleinen inneren `div`
-- reine Navigationskandidaten werden vor der Paketbildung entfernt
-- Preise werden aus alter Preis-Klasse, explizitem Euro-Text oder strukturiertem `data-price` gewonnen
-- bei nachträglich erkanntem Preis wird die aktive Ampelbewertung erneut berechnet
-- jeder erfolgreiche Arbeitsschritt schreibt ein Ereignis `coverage_diagnostics` in das Eventlog
-- Diagnose enthält Kandidaten, entfernte Navigation, erkannte/fehlende Preise, Quell-URL, Cursor, Cursor-Übergang und zurückgegebene IDs
-- direkter Worker ohne ASGI, FastAPI, Pydantic, `httpx` oder dynamischen Paket-Bootstrap bleibt bestehen
+- `search_service_v0446` delegiert Suchfluss, Extraktion, Pagination, Diagnose und Ampellogik unverändert an 0.44.4
+- keine Nutzung der Parser- und Cursorlogik aus 0.44.5.x
+- Controller wieder als Identitäts-Wrapper um den bewährten `controller-0411`-Ablauf
+- UI, Eventlog und Metadaten konsistent auf 0.44.6
+- ASGI/FastAPI-Pfad der Referenz wiederhergestellt
+- 0.44.5.x-Dateien bleiben nur zur Historie im Repository
+
+Wichtige Einschränkung:
+
+- 0.44.6 priorisiert die vollständige Suche
+- das bekannte mögliche Python-Import-CPU-Limit des Free-Tarifs gilt noch als offenes Betriebsrisiko
+- 0.44.6 behauptet nicht, dieses Laufzeitproblem bereits gelöst zu haben
 
 Abnahmetest nach Deployment:
 
-1. `/api/version` muss 0.44.5.2 und `direct-stdlib-cursor-price-diagnostics-v1` melden.
-2. Eine Suche nach `Snes` muss über den ersten physischen Ergebnissatz hinaus neue IDs laden.
-3. Der Payload nach einem Seitenübergang muss `cursor_url` enthalten.
-4. `pagination_repeated_page` darf nicht bereits nach dem ersten Ergebnisseitenblock auftreten.
-5. Angebotskarten mit Euro-Preis müssen einen numerischen Preis zeigen.
-6. Das Eventlog muss mindestens einen `coverage_diagnostics`-Block pro erfolgreichem Request enthalten.
-7. Mindestens 50 Arbeitspakete und 300 Ergebnisse ohne `CpuLimitExceeded` oder Cloudflare 1101 verarbeiten.
-8. Manuellen Stopp, Fortsetzen und Datenkonsistenz prüfen.
+1. `/api/version` meldet 0.44.6 und Referenz 0.44.4.
+2. Eine identische SNES- oder Evercade-Suche liefert dieselbe erste Ergebnismenge wie 0.44.4.
+3. Nach dem ersten Ergebnissatz werden über den echten Weiter-Link neue IDs geladen.
+4. Mindestens 20 Arbeitspakete und 100 eindeutige Ergebnisse prüfen.
+5. Manuellen Stopp und Fortsetzen testen.
+6. Datenkonsistenz muss durchgehend bestätigt bleiben.
+7. Cloudflare-Logs auf `CpuLimitExceeded` beobachten.
 
-Erst nach bestandenem Live-Test wird 0.44.5.2 operative Referenz. Danach beginnt 0.45.
+Nach erfolgreichem Funktionstest wird 0.44.6 die neue Arbeitsreferenz. Das Runtime-Risiko wird anschließend isoliert behandelt, ohne den Referenzparser erneut zu ersetzen.
 
 ## 0.45 – Integrierbares Parser-Core-Modul
 
@@ -94,7 +73,7 @@ Ziel: Die bewährte Funktionalität als wiederverwendbares Modul für Evercade, 
 - Hauptprodukt, Zubehör, Ersatzteil, Bundle, Gesuch, Vermietung und Service unterscheiden
 - Zubehör-vs.-Hauptprodukt robuster erkennen
 - projektspezifische Klassifikationsregeln zulassen
-- Fehlklassifikationen aus den Thule-, Evercade- und SNES-Testläufen als Regressionstests aufnehmen
+- Fehlklassifikationen aus Thule-, Evercade- und SNES-Testläufen als Regressionstests aufnehmen
 
 ## 0.47 – Cartridge-Normalisierung
 
