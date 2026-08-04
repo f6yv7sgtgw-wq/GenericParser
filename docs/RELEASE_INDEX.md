@@ -4,7 +4,8 @@ Dieser Index ordnet die Versionsstände ihren Build-IDs und technischen Abschlus
 
 | Version | Build-ID | Technischer Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 0.44.6.6 Build 3 Test | `gp-04466-20260804-3` | `61dad4d64b52c33f71927bc3ba2cbeb7ced92b78` | Referenzsicherer Fix: Controllerfluss wieder identisch zu 0.44.6.5; separate fail-open Cooldown-Schicht um `app.js`-`countdown()`; wiederholte Pause bei 120, 240, 360 … |
+| 0.44.6.6.1 Test | `gp-044661-20260805-1` | `5eab770c209ec18ec70e5233ac87e96b72f9780d` | 120-Sekunden-Pause bei 120, 240, 360 … Treffern; Recovery wartet 120 Sekunden, aktiviert die Fortsetzen-Steuerung selbst und löst sie bei fehlendem `search_resume` einmal erneut aus |
+| 0.44.6.6 Build 3 Test | `gp-04466-20260804-3` | `61dad4d64b52c33f71927bc3ba2cbeb7ced92b78` | Referenzsicherer Fix: Controllerfluss wieder identisch zu 0.44.6.5; separate fail-open Cooldown-Schicht um `app.js`-`countdown()`; wiederholte 90-Sekunden-Pause bei 120, 240, 360 … |
 | 0.44.6.6 Build 2 Test | `gp-04466-20260804-2` | `d27d2fc51a5720c9a7f512330f5c5710f8a733b5` | Verworfen: Wrapper suchte `countdown()` im falschen Referenzskript und blockierte den Controllerstart mit `Reference countdown anchor missing` |
 | 0.44.6.6 Build 1 Test | `gp-04466-20260804-1` | `9d31912c125eea6e3b947178fc560211a80b2068` | Metadaten kündigten eine Pause an, aktive Pausenlogik fehlte im Live-Test |
 | 0.44.6.5 | `gp-04465-20260804-1` | `ddba9bf55c999b349d98f1438b31a710bd570155` | Sauberer technischer Rollback auf 0.44.6.2; stabile Referenz mit aktivem 0.44.4-Suchkern |
@@ -24,31 +25,32 @@ Dieser Index ordnet die Versionsstände ihren Build-IDs und technischen Abschlus
 | 0.42.4 | `gp-0424-20260802-1` | `e54d33649371f7c2ca9099fd7d2712c2744b7817` | Gemeinsame Build-Identität einschließlich Eventlog |
 | 0.42.3 | `gp-0423-20260802-1` | `9c8841fecac53ffaa127a7ed83ca94492a260a88` | Pagination-Stopp bei Gesamtzahl und kurzer HTML-Seite |
 | 0.42.2 | `gp-0422-20260802-1` | `05c77b77d31a34c88dd2721f975492a6bac899fb` | App-freier Ein-Seiten-Service und Konsistenzprüfung |
-| 0.42.1 | `gp-0421-20260802-1` | `6cdb40edcc3ef0faf2ba73a62086a68fc6452d85` | Zentraler UI-Zustand |
+| 0.42.1 | `gp-0421-20260802-1` | `6cdb40edcc3ef0faf49264c57af418a958fa8531` | Zentraler UI-Zustand |
 | 0.42.0 | `gp-0420-20260802-1` | `f6fe54a2878a13f357633f603199021890d05c75` | Lazy-Bootstrap |
 | 0.41.1 | `gp-0411-20260802-1` | `4c9eac9e52a34c52a021ff5d74c2d87ad0c5351d` | Deployment-Handshake |
 
 ## Aktueller Stand
 
 ```text
-Version:                    0.44.6.6 Build 3 Test
-Paketversion:               0.44.6.6
-Build-ID:                   gp-04466-20260804-3
-API-Vertrag:                match-v6.11.7-rollback-04465-cooldown-test
+Version:                    0.44.6.6.1 Test
+Paketversion:               0.44.6.6.1
+Build-ID:                   gp-044661-20260805-1
+API-Vertrag:                match-v6.11.8-rollback-04465-cooldown120-recovery-control
 Fachlicher Referenzkern:    0.44.4
 Stabile Referenz:           0.44.6.5
 Laufzeitbasis:              0.44.6.2
 Controllerfluss:            identisch zur 0.44.6.5-Referenz
-Teständerung:               fail-open 90-s-Pause bei 120, 240, 360 … Treffern
-Status:                     Implementiert und lokal geprüft; Cloudflare-Live-Test ausstehend
+Testpause:                  120 s bei 120, 240, 360 … Treffern
+Recovery:                   120 s Ruhezeit; Fortsetzen aktivieren; ein Steuerungs-Retry
+Status:                     Implementiert; Cloudflare-Live-Test ausstehend
 ```
 
 ## Downloadformat
 
-Technischer Abschlussstand 0.44.6.6 Build 3:
+Technischer Abschlussstand 0.44.6.6.1:
 
 ```text
-https://github.com/f6yv7sgtgw-wq/GenericParser/archive/61dad4d64b52c33f71927bc3ba2cbeb7ced92b78.zip
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/5eab770c209ec18ec70e5233ac87e96b72f9780d.zip
 ```
 
 Stabile Referenz 0.44.6.5:
