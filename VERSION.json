@@ -2,7 +2,7 @@
   "product": "GenericParser",
   "version": "0.44.6.3",
   "package_version": "0.44.6.3",
-  "build_id": "gp-04463-20260804-1",
+  "build_id": "gp-04463-20260804-2",
   "api_contract": "match-v6.11.4-reference-recovery-hardening",
   "entrypoint": "src/generic_parser/cloudflare_worker.py:Default.fetch",
   "bootstrap_module": "generic_parser.cloudflare_v04463",
@@ -17,7 +17,7 @@
   "technical_base": "0.43.6.3",
   "release_date": "2026-08-04",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "implementation-complete-live-test-required",
+  "status": "resume-control-hotfix-complete-live-test-required",
   "functional_reference": false,
   "operational_reference": false,
   "candidate_for_operational_reference": true,
@@ -29,6 +29,26 @@
     "saved_results_before_recovery": 219,
     "recovery_scheduled": true,
     "search_core_accepted": true
+  },
+  "live_finding_build_1": {
+    "version": "0.44.6.3",
+    "build_id": "gp-04463-20260804-1",
+    "saved_results": 113,
+    "recovery_probe_ready": true,
+    "automatic_resume_started": false,
+    "manual_resume_worked": false,
+    "root_cause": "resume button remained disabled after retry_exhausted",
+    "event_reason": "resume_control_unavailable"
+  },
+  "resume_control_hotfix": true,
+  "resume_control_hotfix_behavior": {
+    "build_id": "gp-04463-20260804-2",
+    "states_that_unlock_resume": ["waiting", "probing", "starting_auto", "manual_required"],
+    "manual_resume_available_during_recovery": true,
+    "automatic_button_activation_enabled": true,
+    "recovery_state_polled_ms": 500,
+    "works_after_page_reload": true,
+    "search_core_changed": false
   },
   "recovery_probe": {
     "endpoint": "/api/recovery-probe",
@@ -78,6 +98,8 @@
     "second_recovery_delay_approximately_seconds": 180,
     "jitter_tolerance_percent": 10,
     "probe_must_validate_reference_core": true,
+    "resume_button_must_be_enabled_after_terminal_failure": true,
+    "manual_resume_must_start_saved_search": true,
     "maximum_automatic_resume_attempts": 2,
     "third_terminal_failure_must_require_manual_resume": true,
     "automatic_resume_must_continue_from_saved_page": true,
@@ -86,6 +108,6 @@
     "data_consistency_required": true,
     "search_core_diff_allowed": false
   },
-  "next_step_after_acceptance": "set 0.44.6.3 as operational reference and continue the 0.45 integratable parser-core roadmap",
-  "metadata_schema": 11
+  "next_step_after_acceptance": "set 0.44.6.3 build 2 as operational reference candidate and continue the 0.45 integratable parser-core roadmap",
+  "metadata_schema": 12
 }
