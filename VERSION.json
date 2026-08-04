@@ -2,13 +2,15 @@
   "product": "GenericParser",
   "version": "0.44.6.6",
   "package_version": "0.44.6.6",
-  "build_id": "gp-04466-20260804-2",
+  "build_id": "gp-04466-20260804-3",
   "api_contract": "match-v6.11.7-rollback-04465-cooldown-test",
   "entrypoint": "src/generic_parser/cloudflare_worker.py:Default.fetch",
   "bootstrap_module": "generic_parser.cloudflare_v04466",
   "search_module": "generic_parser.search_service_v04466",
   "controller_source": "cloudflare/public/controller-04466.js",
+  "controller_reference": "cloudflare/public/controller-04465.js",
   "controller_base": "cloudflare/public/controller-0411.js",
+  "cooldown_source": "cloudflare/public/cooldown-04466.js",
   "auto_resume_source": "cloudflare/public/auto-resume-04466.js",
   "auto_resume_reference_source": "cloudflare/public/auto-resume-04462.js",
   "eventlog_source": "cloudflare/public/eventlog-04466.js",
@@ -18,13 +20,20 @@
   "technical_base": "0.43.6.3",
   "release_date": "2026-08-04",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "test-release-build2-live-validation-required",
+  "status": "test-release-build3-live-validation-required",
   "test_release": true,
   "functional_reference": false,
   "operational_reference": false,
   "candidate_for_operational_reference": false,
   "live_cloudflare_test": false,
-  "purpose": "test whether repeated 90-second idle periods at every 120 unique results improve long-run stability without changing the accepted search or recovery behavior",
+  "purpose": "repeat the 90-second idle-period experiment without modifying or text-patching the stable 0.44.6.5 controller flow",
+  "build3_fix": {
+    "root_cause": "Build 2 searched for the app.js countdown function inside controller-0411.js and therefore blocked controller startup",
+    "controller_flow": "same source loading and constant replacement as 0.44.6.5",
+    "cooldown_isolation": "separate classic script loaded after app.js and before controller-04466.js",
+    "fail_open": true,
+    "search_must_start_when_cooldown_wrapper_is_unavailable": true
+  },
   "single_behavior_change": {
     "name": "repeated planned client cooldown",
     "threshold_unique_results": 120,
@@ -32,14 +41,15 @@
     "threshold_sequence": [120, 240, 360, 480],
     "threshold_sequence_continues": true,
     "duration_ms": 90000,
-    "trigger": "replace the regular next-page delay after the threshold has been reached",
-    "mode": "replace_regular_delay",
+    "trigger": "wrap the existing app.js countdown and replace only the regular next-page delay",
+    "mode": "repeated-multiples-fail-open",
     "once_per_session": false,
-    "persistent_state_key": "generic-parser-cooldown-04466-b2",
+    "persistent_state_key": "generic-parser-cooldown-04466-b3",
     "worker_receives_requests_during_pause": false,
     "search_state_remains_in_browser": true
   },
   "unchanged_from_04465": [
+    "controller-0411 source and event handlers",
     "worker ASGI entrypoint",
     "FastAPI bootstrap behavior",
     "search_service_v0444 core",
@@ -60,7 +70,11 @@
     "cooldown_cancelled"
   ],
   "acceptance_test": {
-    "version_endpoint_must_match_04466_build2_identity": true,
+    "version_endpoint_must_match_04466_build3_identity": true,
+    "live_search_button_must_enable": true,
+    "controller_must_not_search_for_countdown_anchor": true,
+    "controller_flow_must_match_04465": true,
+    "cooldown_failure_must_not_block_search": true,
     "normal_results_before_threshold_must_match_04465": true,
     "cooldown_thresholds": [120, 240, 360],
     "cooldown_repeats_every_unique_results": 120,
@@ -80,6 +94,6 @@
     "action_if_regression": "restore active 0.44.6.5 identity and assets",
     "test_version_must_not_replace_reference_without_live_evidence": true
   },
-  "next_step_after_test": "verify cooldown_start and cooldown_resume at thresholds 120 and 240, then compare the final failure point against 0.44.6.5",
-  "metadata_schema": 16
+  "next_step_after_test": "first verify that Live-Suche starten is enabled and returns results; then verify cooldown events at thresholds 120 and 240",
+  "metadata_schema": 17
 }
