@@ -10,18 +10,19 @@ def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_identity_marks_test_release_and_stable_reference() -> None:
+def test_identity_marks_build2_and_stable_reference() -> None:
     metadata = json.loads(read("VERSION.json"))
     assert metadata["version"] == "0.44.6.6"
-    assert metadata["build_id"] == "gp-04466-20260804-1"
+    assert metadata["build_id"] == "gp-04466-20260804-2"
     assert metadata["test_release"] is True
     assert metadata["stable_reference_version"] == "0.44.6.5"
     assert metadata["runtime_reference_version"] == "0.44.6.2"
     change = metadata["single_behavior_change"]
     assert change["threshold_unique_results"] == 120
+    assert change["repeat_every_unique_results"] == 120
     assert change["duration_ms"] == 90_000
-    assert change["once_per_session"] is True
-    assert change["mode"] == "client_request_gate"
+    assert change["once_per_session"] is False
+    assert change["mode"] == "replace_regular_delay"
 
 
 def test_worker_uses_rollback_asgi_path_without_lazy_probe() -> None:
@@ -45,28 +46,34 @@ def test_server_packet_and_recovery_behavior_remain_unchanged() -> None:
     bootstrap = read("src/generic_parser/cloudflare_v04466.py")
     assert '"packet_size": 7' in bootstrap
     assert '"pause_ms": 5000' in bootstrap
-    assert '"mode": "single_saved-state-auto-resume"' in bootstrap
+    assert '"mode": "single-saved-state-auto-resume"' in bootstrap
     assert '"quiet_period_ms": 90000' in bootstrap
     assert '"max_auto_resumes": 1' in bootstrap
     assert '"probe_endpoint": "/api/version"' in bootstrap
     assert '@app.get("/api/recovery-probe")' not in bootstrap
+    assert '"repeat_every_unique_results": 120' in bootstrap
+    assert '"once_per_session": False' in bootstrap
 
 
-def test_controller_patches_only_client_request_stream() -> None:
+def test_controller_replaces_regular_delay_at_repeated_thresholds() -> None:
     controller = read("cloudflare/public/controller-04466.js")
     base = read("cloudflare/public/controller-0411.js")
-    assert "./controller-0411.js?v=0.4466-reference-source" in controller
-    assert "TEST_COOLDOWN_THRESHOLD" in controller
-    assert "TEST_COOLDOWN_MS" in controller
+    assert "./controller-0411.js?v=0.4466b2-reference-source" in controller
+    assert "TEST_COOLDOWN_STEP = 120" in controller
+    assert "TEST_COOLDOWN_MS = 90000" in controller
+    assert "generic-parser-cooldown-04466-b2" in controller
+    assert "state.nextThreshold" in controller
+    assert "completedThresholds" in controller
+    assert "while(Number(loaded||0)>=Number(state.nextThreshold" in controller
+    assert "ms=TEST_COOLDOWN_MS" in controller
+    assert "replace_regular_delay" in controller
+    assert "repeated-multiples" in controller
     assert "cooldown_threshold_reached" in controller
     assert "cooldown_start" in controller
     assert "cooldown_resume" in controller
-    assert "client_request_gate" in controller
-    assert "testCooldownDone = true" in controller
-    assert "while (!stopRequested)" in controller
+    assert "testCooldownDone = true" not in controller
     assert "  let requestSequence = 0;" in base
-    assert "    log('before_fetch', 'Vor Netzwerkaufruf', {...common, payload});" in base
-    assert "if (!contentType.includes('application/json')" in base
+    assert "async function countdown(ms,page,loaded,label='Nächste Seite')" in base
 
 
 def test_recovery_is_still_exact_04462_source() -> None:
@@ -78,24 +85,30 @@ def test_recovery_is_still_exact_04462_source() -> None:
     assert "quietPeriodMs:90000" in identity
     assert "healthIntervalMs:15000" in identity
     assert "maxHealthChecks:4" in identity
+    assert "repeatEvery:120" in identity
+    assert "oncePerSession:false" in identity
+    assert "mode:'replace_regular_delay'" in identity
 
 
-def test_ui_loads_only_04466_active_assets() -> None:
+def test_ui_loads_build2_active_assets() -> None:
     index = read("cloudflare/public/index.html")
     eventlog = read("cloudflare/public/eventlog.html")
-    assert "build-identity-04466.js" in index
+    assert "gp-04466-20260804-2" in index
+    assert "v=0.4466b2" in index
     assert "controller-04466.js" in index
     assert "auto-resume-04466.js" in index
-    assert "controller-04465.js" not in index
-    assert "auto-resume-04465.js" not in index
-    assert "build-identity-04466.js" in eventlog
+    assert "120, 240, 360" in index
+    assert "gp-04466-20260804-2" in eventlog
+    assert "v=0.4466b2" in eventlog
     assert "eventlog-04466.js" in eventlog
 
 
-def test_eventlog_exposes_cooldown_evidence() -> None:
+def test_eventlog_exposes_repeated_cooldown_evidence() -> None:
     eventlog = read("cloudflare/public/eventlog-04466.js")
     assert "cooldown_threshold_reached" in eventlog
     assert "cooldown_start" in eventlog
     assert "cooldown_resume" in eventlog
     assert "cooldown_cancelled" in eventlog
-    assert "Testpause-Ereignisse" in eventlog
+    assert "repeat_every_unique_results" in eventlog
+    assert "ausgeführte Testpausen" in eventlog
+    assert "generic-parser-cooldown-04466-b2" in eventlog
