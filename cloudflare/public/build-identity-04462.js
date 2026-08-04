@@ -1,0 +1,1 @@
+window.GP_BUILD_IDENTITY={version:'0.44.6.2',buildId:'gp-04462-20260804-1',apiContract:'match-v6.11.3-reference-auto-resume',eventLogKey:'generic-parser-eventlog-04462',referenceVersion:'0.44.4',diagnosticMode:'reference_optional',autoResume:{enabled:true,quietPeriodMs:90000,healthIntervalMs:15000,maxHealthChecks:4,maxAutoResumes:1}};
