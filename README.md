@@ -4,54 +4,65 @@ Wiederverwendbarer Kleinanzeigen-Parser und mobile PWA für die Einbindung in **
 
 ## Aktueller Stand
 
-- **Testversion:** `0.44.6.6`
-- **Build-ID:** `gp-04466-20260804-3`
-- **API-Vertrag:** `match-v6.11.7-rollback-04465-cooldown-test`
+- **Testversion:** `0.44.6.6.1`
+- **Build-ID:** `gp-044661-20260805-1`
+- **API-Vertrag:** `match-v6.11.8-rollback-04465-cooldown120-recovery-control`
 - **Stabile Referenz:** `0.44.6.5`
 - **Laufzeitbasis:** `0.44.6.2`
 - **Fachlicher Suchkern:** unverändert aus `0.44.4`
 - **Zielplattform:** Cloudflare Workers Free
 
-## 0.44.6.6 Build 3 – referenzsicherer Cooldown-Test
+## 0.44.6.6.1 – 120-Sekunden-Test
 
-Build 2 blockierte den Start, weil der Wrapper die Funktion `countdown()` fälschlich in `controller-0411.js` suchte. Sie liegt jedoch in `app.js`.
-
-Build 3 stellt daher zuerst den funktionierenden Controllerfluss aus 0.44.6.5 wieder her. Die Testpause ist jetzt ein separates, nach `app.js` geladenes Skript:
-
-```text
-app.js aus der Referenz
-→ cooldown-04466.js umschließt nur countdown()
-→ controller-04466.js startet denselben Controller wie 0.44.6.5
-```
-
-Die Cooldown-Schicht ist **fail-open**: Kann sie nicht geladen oder initialisiert werden, bleibt die Suche aus 0.44.6.5 funktionsfähig.
+Die Version übernimmt den funktionierenden Suchfluss aus 0.44.6.5 und verändert nur die browserseitigen Ruhe- und Fortsetzungsmechanismen.
 
 ```text
 120 eindeutige Treffer erreicht
-→ statt der normalen 5 Sekunden 90 Sekunden warten
+→ statt der normalen 5 Sekunden 120 Sekunden warten
 → automatisch weiter
 
 240 eindeutige Treffer erreicht
-→ erneut 90 Sekunden warten
+→ erneut 120 Sekunden warten
 → automatisch weiter
 
 360, 480, 600 …
 → gleicher Ablauf bei jedem weiteren Vielfachen von 120
 ```
 
-Während der Pause erhält der Worker keinen neuen Suchauftrag. Der Suchstand bleibt gespeichert. Eine unterbrochene Pause wird nach einem Reload nur für ihre verbleibende Dauer fortgesetzt.
+Während der Pause erhält der Worker keinen neuen Suchauftrag. Der Suchstand bleibt gespeichert. Die Cooldown-Schicht bleibt fail-open: Kann sie nicht initialisiert werden, bleibt die Referenzsuche nutzbar.
 
-Eventlog-Einträge:
+## Recovery-Test
+
+Nach einer terminalen 503-/1101-Kette:
+
+```text
+Suchstand speichern
+→ 120 Sekunden warten
+→ /api/version prüfen
+→ Fortsetzen-Schaltfläche sichtbar und aktiv setzen
+→ Fortsetzung auslösen
+→ nach 10 Sekunden auf search_resume prüfen
+→ bei Bedarf genau einmal erneut auslösen
+```
+
+Startet auch der zweite Steuerungsversuch keine neue Suchsession, bleibt der Suchstand erhalten und die UI fordert zum manuellen Fortsetzen auf.
+
+Neue bzw. relevante Eventlog-Einträge:
 
 - `cooldown_threshold_reached`
 - `cooldown_start`
 - `cooldown_resume`
-- `cooldown_cancelled`
+- `auto_resume_scheduled`
+- `auto_resume_health_ready`
+- `auto_resume_start`
+- `auto_resume_control_retry`
+- `auto_resume_running`
+- `auto_resume_manual_required`
 
 ## Unverändert gegenüber 0.44.6.5
 
-- Controllerquelle und Start-/Stop-/Fortsetzen-Ereignisse
-- ASGI-Workerpfad und FastAPI-Bootstrap
+- Controllerquelle und Suchereignisse
+- ASGI-Workerpfad und FastAPI-Suchbootstrap
 - unveränderter 0.44.4-Suchkern
 - höchstens sieben Karten pro Arbeitspaket
 - fünf Sekunden normale Pause außerhalb der Cooldown-Schwellen
@@ -60,10 +71,9 @@ Eventlog-Einträge:
 - Deduplizierung und persistenter Suchstand
 - Pflicht- und Ausschlussbegriffe
 - Maximalpreis, Richtwert und Ampel
-- einmalige 0.44.6.2-Fehler-Recovery nach 90 Sekunden
 - Retry-Verhalten und Ergebnisdarstellung
 
-0.44.6.6 bleibt eine **Testversion**. 0.44.6.5 bleibt die stabile Referenz.
+0.44.6.6.1 bleibt eine **Testversion**. 0.44.6.5 bleibt die stabile Referenz.
 
 ## Tests
 
@@ -71,19 +81,20 @@ Eventlog-Einträge:
 python -m pytest -q tests/test_cooldown_v04466.py
 node --check cloudflare/public/controller-04466.js
 node --check cloudflare/public/cooldown-04466.js
+node --check cloudflare/public/auto-resume-04466.js
 node tests/check_controller_runtime_v04466.js
 node tests/check_cooldown_runtime_v04466.js
 ```
 
 ## Live-Abnahme
 
-1. `/api/version` meldet `0.44.6.6` und `gp-04466-20260804-3`.
+1. `/api/version` meldet `0.44.6.6.1` und `gp-044661-20260805-1`.
 2. Die Oberfläche zeigt `Bereit` und aktiviert `Live-Suche starten`.
 3. Eine neue Suche liefert vor 120 Treffern denselben Ablauf wie 0.44.6.5.
-4. Bei 120 erscheinen `cooldown_threshold_reached`, `cooldown_start` und nach 90 Sekunden `cooldown_resume`.
-5. Bei 240 erscheint dieselbe Ereignisfolge erneut.
-6. Außerhalb der Schwellen bleibt die normale 5-Sekunden-Pause aktiv.
-7. Während jeder 90-Sekunden-Pause erfolgt kein `/api/search`-Request.
+4. Bei 120 erscheinen `cooldown_threshold_reached`, `cooldown_start` und nach 120 Sekunden `cooldown_resume`.
+5. Nach einem terminalen Fehler erscheinen `auto_resume_scheduled`, `auto_resume_health_ready` und `auto_resume_start`.
+6. Die Recovery muss danach `search_resume` beziehungsweise `auto_resume_running` erzeugen.
+7. Fehlt `search_resume` nach zehn Sekunden, erscheint `auto_resume_control_retry` und die Steuerung wird einmal erneut ausgelöst.
 8. Es entstehen keine zusätzlichen Dubletten.
 
 Weitere Informationen: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md) und [`VERSION.json`](VERSION.json).
