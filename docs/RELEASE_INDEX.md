@@ -4,7 +4,8 @@ Dieser Index ordnet die Versionsstände ihren Build-IDs und technischen Abschlus
 
 | Version | Build-ID | Technischer Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 0.44.6.5 | `gp-04465-20260804-1` | `ddba9bf55c999b349d98f1438b31a710bd570155` | Sauberer technischer Rollback auf 0.44.6.2; aktiver 0.44.4-Suchkern, 0.44.6.2-ASGI-Pfad und einmalige Recovery |
+| 0.44.6.6 Test | `gp-04466-20260804-1` | `9d31912c125eea6e3b947178fc560211a80b2068` | Ein-Änderungs-Test: einmalige 90-Sekunden-Requestpause nach mindestens 120 eindeutigen Treffern; 0.44.6.5 bleibt Referenz |
+| 0.44.6.5 | `gp-04465-20260804-1` | `ddba9bf55c999b349d98f1438b31a710bd570155` | Sauberer technischer Rollback auf 0.44.6.2; stabile Referenz mit aktivem 0.44.4-Suchkern |
 | 0.44.6.4 | `gp-04464-20260804-1` | `685b8032bca0b18f6f0a7066f4916e83a092e2cf` | Lazy-Bootstrap-Experiment; Live-Test scheiterte bereits auf Seite 0 mit 0 Ergebnissen, verworfen |
 | 0.44.6.3 Build 2 | `gp-04463-20260804-2` | `6393800e37f300abb6a0af30bd8e4e11233a8e09` | Recovery-Probe und Resume-Control-Hotfix; Probe blieb im Live-Betrieb wiederholt auf HTTP 500, verworfen |
 | 0.44.6.3 Build 1 | `gp-04463-20260804-1` | `681f4365937360419d4eb22042180bff981a46ff` | Erste Recovery-Hardening-Fassung; Fortsetzen-Schaltfläche blieb deaktiviert |
@@ -22,25 +23,32 @@ Dieser Index ordnet die Versionsstände ihren Build-IDs und technischen Abschlus
 | 0.42.3 | `gp-0423-20260802-1` | `9c8841fecac53ffaa127a7ed83ca94492a260a88` | Pagination-Stopp bei Gesamtzahl und kurzer HTML-Seite |
 | 0.42.2 | `gp-0422-20260802-1` | `05c77b77d31a34c88dd2721f975492a6bac899fb` | App-freier Ein-Seiten-Service und Konsistenzprüfung |
 | 0.42.1 | `gp-0421-20260802-1` | `6cdb40edcc3ef0faf2ba73a62086a68fc6452d85` | Zentraler UI-Zustand |
-| 0.42.0 | `gp-0420-20260802-1` | `f6fe54a2878a13f357633f603199021890d05c75` | Lazy-Bootstrap |
+| 0.42.0 | `gp-0420-20260802-1` | `f6fe54a28752e571d322cada01c66c20c5f1035f` | Lazy-Bootstrap |
 | 0.41.1 | `gp-0411-20260802-1` | `4c9eac9e52a34c52a021ff5d74c2d87ad0c5351d` | Deployment-Handshake |
 
 ## Aktueller Stand
 
 ```text
-Version:                    0.44.6.5
-Paketversion:               0.44.6.5
-Build-ID:                   gp-04465-20260804-1
-API-Vertrag:                match-v6.11.6-clean-rollback-04462
+Version:                    0.44.6.6 Test
+Paketversion:               0.44.6.6
+Build-ID:                   gp-04466-20260804-1
+API-Vertrag:                match-v6.11.7-rollback-04465-cooldown-test
 Fachlicher Referenzkern:    0.44.4
-Operative Referenzbasis:    0.44.6.2
-Rollback-Referenzcommit:    f55f31bcd878ec1edb0b8fc0ee9b5330c8ef0a0a
+Stabile Referenz:           0.44.6.5
+Laufzeitbasis:              0.44.6.2
+Teständerung:               einmal 90 s Pause nach mindestens 120 Treffern
 Status:                     Implementiert, Cloudflare-Live-Test ausstehend
 ```
 
 ## Downloadformat
 
-Technischer Abschlussstand 0.44.6.5:
+Technischer Abschlussstand 0.44.6.6:
+
+```text
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/9d31912c125eea6e3b947178fc560211a80b2068.zip
+```
+
+Stabile Referenz 0.44.6.5:
 
 ```text
 https://github.com/f6yv7sgtgw-wq/GenericParser/archive/ddba9bf55c999b349d98f1438b31a710bd570155.zip
