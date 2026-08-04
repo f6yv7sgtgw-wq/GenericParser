@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generic-kleinanzeigen-parser"
-version = "0.44.6.4"
-description = "Kleinanzeigen-Parser mit Referenzkern 0.44.4 und leichtem Recovery-Bootstrap ohne vorzeitigen Search-Service-Import"
+version = "0.44.6.5"
+description = "Kleinanzeigen-Parser mit Referenzkern 0.44.4 und sauberem technischem Rollback auf die bestätigte Runtime 0.44.6.2"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [{ name = "Jan Leduc" }]
-keywords = ["kleinanzeigen", "parser", "cloudflare-workers", "pwa", "matching", "scoring", "traffic-light", "active-rules", "reference", "diagnostics", "pagination", "auto-resume", "recovery", "lazy-bootstrap"]
+keywords = ["kleinanzeigen", "parser", "cloudflare-workers", "pwa", "matching", "scoring", "traffic-light", "active-rules", "reference", "diagnostics", "pagination", "auto-resume", "recovery", "rollback"]
 dependencies = [
   "PyYAML>=6.0",
   "beautifulsoup4>=4.12",
