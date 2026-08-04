@@ -83,6 +83,10 @@ class Default(WorkerEntrypoint):
                 "traffic_light_model": "v2-active-rules",
                 "empty_fields_ignored": True,
                 "direct_worker": True,
+                "robust_title_fallback": True,
+                "diagnostic_alignment": True,
+                "result_information": True,
+                "coverage_schema": "direct-stdlib-active-rules-v1",
                 "runtime_imports": {
                     "importlib": False,
                     "asgi": False,
