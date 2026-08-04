@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generic-kleinanzeigen-parser"
-version = "0.44.5.1"
-description = "Kleinanzeigen-Parser mit direktem Cloudflare-Free-Worker, Link-Fallback und Schutz gegen falsch erkannte Leerseiten"
+version = "0.44.5.2"
+description = "Kleinanzeigen-Parser mit direktem Cloudflare-Free-Worker, persistierter Weiter-URL, Preis-Fallback und Arbeitspaket-Diagnose"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [{ name = "Jan Leduc" }]
-keywords = ["kleinanzeigen", "parser", "cloudflare-workers", "pwa", "matching", "scoring", "traffic-light", "active-rules", "direct-worker", "free-plan", "link-fallback", "diagnostics"]
+keywords = ["kleinanzeigen", "parser", "cloudflare-workers", "pwa", "matching", "scoring", "traffic-light", "active-rules", "direct-worker", "free-plan", "cursor-pagination", "price-fallback", "diagnostics"]
 dependencies = [
   "PyYAML>=6.0",
   "beautifulsoup4>=4.12",
