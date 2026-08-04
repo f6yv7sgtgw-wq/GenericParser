@@ -25,36 +25,44 @@ Die direkte Standardbibliothek-Runtime beseitigte den beobachteten Import-/ASGI-
 
 Diese Linie ist als Experiment dokumentiert und wird nicht als Grundlage der Produkt-Roadmap verwendet.
 
-## 0.44.6 – Funktionaler Rückbau auf 0.44.4 – implementiert, Live-Test ausstehend
+## 0.44.6 – Funktionaler Rückbau auf 0.44.4 – Live-Test bestanden
 
-Ziel: Die funktionale Qualität der Referenz vollständig wiederherstellen, bevor das integrationsfähige Modul entsteht.
+Der Live-Test bestätigte die Wiederherstellung der funktionalen Qualität:
 
-Umgesetzt:
+- 184 eindeutige Ergebnisse gespeichert
+- mindestens 29 Arbeitspakete erfolgreich verarbeitet
+- echte Weiter-Navigation über den Referenzkern
+- Preise, Bilder und Ampelbewertungen vorhanden
+- Suchstand bei temporärem Fehler erhalten
+- automatischer Retry aktiv
 
-- `search_service_v0446` delegiert Suchfluss, Extraktion, Pagination, Diagnose und Ampellogik unverändert an 0.44.4
-- keine Nutzung der Parser- und Cursorlogik aus 0.44.5.x
-- Controller wieder als Identitäts-Wrapper um den bewährten `controller-0411`-Ablauf
-- UI, Eventlog und Metadaten konsistent auf 0.44.6
-- ASGI/FastAPI-Pfad der Referenz wiederhergestellt
-- 0.44.5.x-Dateien bleiben nur zur Historie im Repository
+Am Ende lieferte der Abruf für Seite 29 wiederholt eine HTML-Fehlerseite mit HTTP 503. Das war kein Paginationfehler und kein Versionskonflikt. Der Suchstand blieb gespeichert und konnte fortgesetzt werden.
 
-Wichtige Einschränkung:
+Das Eventlog zeigte fälschlich `Versionsabweichung`, obwohl UI und Worker bei Version, Build und API-Vertrag übereinstimmten. Ursache war die zusätzliche Erwartung eines experimentellen Diagnoseschemas, das im Referenzmodus bewusst nicht geliefert wird.
 
-- 0.44.6 priorisiert die vollständige Suche
-- das bekannte mögliche Python-Import-CPU-Limit des Free-Tarifs gilt noch als offenes Betriebsrisiko
-- 0.44.6 behauptet nicht, dieses Laufzeitproblem bereits gelöst zu haben
+## 0.44.6.1 – Diagnosefix – implementiert, Live-Test ausstehend
+
+0.44.6.1 verändert ausschließlich Diagnose und Versionsdarstellung:
+
+- Versionskonsistenz wird nur anhand von Version, Build und API-Vertrag geprüft
+- fehlendes erweitertes Diagnoseschema wird im Referenzmodus nicht als Fehler bewertet
+- Anzeige: `Referenz 0.44.4 · erweitertes Schema optional`
+- HTML-Antworten mit HTTP 503 werden als temporärer Cloudflare-/Upstream-Abruffehler bezeichnet
+- Hinweis, dass der Suchstand erhalten bleibt und Retry oder Fortsetzen möglich ist
+- Anzahl temporärer HTML-503-Antworten erscheint in der Eventlog-Zusammenfassung
+- Suchfluss, Extraktion, Pagination, Ampel, Arbeitspakete und Retry-Verhalten bleiben unverändert
+- `search_service_v04461` delegiert direkt an den unveränderten 0.44.4-Kern
 
 Abnahmetest nach Deployment:
 
-1. `/api/version` meldet 0.44.6 und Referenz 0.44.4.
-2. Eine identische SNES- oder Evercade-Suche liefert dieselbe erste Ergebnismenge wie 0.44.4.
-3. Nach dem ersten Ergebnissatz werden über den echten Weiter-Link neue IDs geladen.
-4. Mindestens 20 Arbeitspakete und 100 eindeutige Ergebnisse prüfen.
-5. Manuellen Stopp und Fortsetzen testen.
-6. Datenkonsistenz muss durchgehend bestätigt bleiben.
-7. Cloudflare-Logs auf `CpuLimitExceeded` beobachten.
+1. `/api/version` meldet 0.44.6.1, Build `gp-04461-20260804-1` und Referenzmodus.
+2. Eventlog zeigt `Versionen konsistent`.
+3. Das fehlende Coverage-Schema wird als optionaler Referenzmodus dargestellt.
+4. Ein vorhandenes HTML-503-Ereignis wird verständlich als temporärer Abruffehler angezeigt.
+5. Eine identische Suche liefert dieselben Treffer und dieselbe Pagination wie 0.44.6.
+6. Manueller Stopp, Retry, Fortsetzen und Datenkonsistenz bleiben unverändert.
 
-Nach erfolgreichem Funktionstest wird 0.44.6 die neue Arbeitsreferenz. Das Runtime-Risiko wird anschließend isoliert behandelt, ohne den Referenzparser erneut zu ersetzen.
+Nach bestandenem Test wird 0.44.6.1 die neue Arbeitsreferenz. Anschließend beginnt 0.45.
 
 ## 0.45 – Integrierbares Parser-Core-Modul
 
