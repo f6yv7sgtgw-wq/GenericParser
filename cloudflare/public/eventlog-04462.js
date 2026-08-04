@@ -4,7 +4,7 @@
   if (!I) throw new Error('Shared build identity missing');
   const KEY = I.eventLogKey;
   const LEGACY_KEYS = ['generic-parser-eventlog-04461', 'generic-parser-eventlog-0446'];
-  const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[char]));
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
   function readKey(key) {
     try {
