@@ -4,7 +4,7 @@ Dieser Index ordnet die Versionsstände ihren Build-IDs und technischen Abschlus
 
 | Version | Build-ID | Technischer Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 0.45.0 | `gp-0450-20260805-1` | `7d09d781d6d25b0a23b1600f75101540f6ad540b` | Versionierter Modulvertrag v1, Legacy-Suche auf Referenz 0.44.6.5, Evercade-/SNES-Adapter, Debug-Logs und netzwerkfreie Selbsttests jeweils standardmäßig deaktiviert |
+| 0.45.0 | `gp-0450-20260805-1` | `f3697768cfed4828b5e4470d6ad0780451718252` | Versionierter Modulvertrag v1, Legacy-Suche auf Referenz 0.44.6.5, Evercade-/SNES-Adapter, Debug-Logs und Selbsttests ohne Kleinanzeigen-Abruf jeweils standardmäßig deaktiviert |
 | 0.44.6.6.1 Test | `gp-044661-20260805-1` | `5eab770c209ec18ec70e5233ac87e96b72f9780d` | Recovery-/Cooldown-Experiment; Fortsetzungen starteten, scheiterten jedoch erneut direkt vor ASGI; verworfen |
 | 0.44.6.6 Build 3 Test | `gp-04466-20260804-3` | `61dad4d64b52c33f71927bc3ba2cbeb7ced92b78` | Referenzsicherer Cooldown-Test; Suche funktionierte, Langlauf blieb jedoch begrenzt |
 | 0.44.6.6 Build 2 Test | `gp-04466-20260804-2` | `d27d2fc51a5720c9a7f512330f5c5710f8a733b5` | Verworfen: `Reference countdown anchor missing` blockierte den Controllerstart |
@@ -41,7 +41,7 @@ Fachlicher Referenzkern:    0.44.4
 Stabile Rückfallreferenz:   0.44.6.5
 Laufzeitbasis:              0.44.6.2
 Debug-Logs:                 standardmäßig aus, fail-open
-Modultests:                 standardmäßig aus, netzwerkfrei
+Modultests:                 standardmäßig aus, ohne Kleinanzeigen-Abruf
 Status:                     Implementiert; CI- und Cloudflare-Live-Abnahme ausstehend
 ```
 
@@ -50,7 +50,7 @@ Status:                     Implementiert; CI- und Cloudflare-Live-Abnahme ausst
 Technischer Abschlussstand 0.45.0:
 
 ```text
-https://github.com/f6yv7sgtgw-wq/GenericParser/archive/7d09d781d6d25b0a23b1600f75101540f6ad540b.zip
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/f3697768cfed4828b5e4470d6ad0780451718252.zip
 ```
 
 Stabile Referenz 0.44.6.5:
