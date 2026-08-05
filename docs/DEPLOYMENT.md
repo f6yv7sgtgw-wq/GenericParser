@@ -38,6 +38,12 @@ Der Workflow:
 
 Kann keine Deployment-URL bestimmt werden, schlägt der Workflow fehl. Der Live-Schritt wird nicht mehr stillschweigend übersprungen.
 
+## Aktueller Blocker 0.45.0
+
+Der Main-Lauf für Commit `210573e50db7da4fbf496464bf47d0b080a0d175` hat Metadaten, 84 Release-Tests und alle Browserprüfungen bestanden. Wrangler erreichte anschließend die Cloudflare-API, die den konfigurierten Token jedoch mit `Authentication error` (`10000`) und `Invalid access token` (`9109`) ablehnte. Upload, Live-Vertragstest, netzwerkfreier Live-Selbsttest und echtes Suchpaket wurden deshalb nicht ausgeführt.
+
+Zur Fortsetzung muss im GitHub-Environment `production` das Secret `CLOUDFLARE_API_TOKEN` durch einen gültigen Token für das richtige Konto und den Worker-Deploy ersetzt werden. Danach ist der Workflow `Deploy GenericParser 0.45.0` manuell erneut zu starten. Der fehlgeschlagene Lauf ist unter <https://github.com/f6yv7sgtgw-wq/GenericParser/actions/runs/30994943869> dokumentiert.
+
 ## Lokale Vorbereitung
 
 ```bash

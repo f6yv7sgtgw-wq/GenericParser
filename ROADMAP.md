@@ -20,7 +20,7 @@ Die Recovery- und Cooldown-Experimente aus 0.44.6.3 bis 0.44.6.6.1 sind abgeschl
 
 ## 0.45.0 – Integrierbares Parsermodul
 
-Status: **implementiert, Live-Abnahme ausstehend**.
+Status: **implementiert und GitHub-CI-bestätigt; Cloudflare-Live-Abnahme durch ungültigen Deployment-Token blockiert**.
 
 Enthalten:
 

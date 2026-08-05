@@ -29,6 +29,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Cloudflare-Deployment-Workflow ermittelt die Live-URL und darf die Liveprüfung nicht mehr stillschweigend überspringen.
 - Cloudflare-Zugangswerte werden vor Wrangler ohne Ausgabe normalisiert, damit versehentliche Zeilenumbrüche keinen ungültigen HTTP-Header erzeugen.
 - Historischen 0.44.6.5-Aktivversionscheck auf manuellen Start begrenzt; er läuft bei späteren aktiven Releases nicht mehr fälschlich als Main-Check.
+- GitHub-Release-Integrität für Commit `210573e` erfolgreich bestätigt; Cloudflare-Liveabnahme mit Fehlercodes `10000`/`9109` als durch einen ungültigen Deployment-Token blockiert dokumentiert.
 - 0.44.6.5 bleibt die stabile Rückfallreferenz; Cloudflare-Live-Abnahme steht aus.
 
 ## 0.44.6.6.1 – 2026-08-05 – verworfenes Testexperiment
