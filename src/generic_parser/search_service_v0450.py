@@ -45,6 +45,10 @@ def identity() -> dict[str, Any]:
     }
 
 
+def header_enabled(request: Request, name: str) -> bool:
+    return request.headers.get(name, "").strip().casefold() in {"1", "true", "yes", "on"}
+
+
 async def search_page(payload: SearchRequest, request: Request) -> dict[str, Any]:
     """Kompatibilitätsroute für die unveränderte 0.44.6.5-Oberfläche."""
 
@@ -60,8 +64,12 @@ async def search_module_page(
 ) -> ModulePageResponse:
     """Öffentliche module-v1-Seitensuche."""
 
+    debug_options = payload.debug
+    if header_enabled(request, "x-genericparser-debug") and not debug_options.enabled:
+        debug_options = debug_options.model_copy(update={"enabled": True})
+
     trace_id = request.headers.get("cf-ray") or request.headers.get("x-request-id") or "local"
-    trace = DebugTrace(payload.debug, trace_id)
+    trace = DebugTrace(debug_options, trace_id)
     trace.mark("module_request_validated", page=payload.page, source=payload.source)
     legacy_dict = payload.profile.to_legacy_payload(page=payload.page, source=payload.source)
     legacy_payload = SearchRequest.model_validate(legacy_dict)
