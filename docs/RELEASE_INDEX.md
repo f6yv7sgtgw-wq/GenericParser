@@ -42,7 +42,7 @@ Stabile Rückfallreferenz:   0.44.6.5
 Laufzeitbasis:              0.44.6.2
 Debug-Logs:                 standardmäßig aus, fail-open
 Modultests:                 standardmäßig aus, ohne Kleinanzeigen-Abruf
-Status:                     Stable Candidate; allgemeine CI und Live-Abnahme ausstehend
+Status:                     Stable Candidate; allgemeine CI bestanden, Live-Abnahme durch ungültiges Cloudflare-Secret blockiert
 ```
 
 ## Downloadformat
