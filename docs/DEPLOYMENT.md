@@ -16,7 +16,10 @@ GitHub Environment `production`:
 - optional Variable `CLOUDFLARE_WORKER_URL` als explizite Produktions-URL,
 - optional Variable `CLOUDFLARE_LIVE_QUERY`; Standard ist `Evercade`.
 
-Der API-Token benötigt nur die für das Deployment dieses Workers erforderlichen Cloudflare-Rechte. Secrets werden weder in `VERSION.json` noch in Release Notes abgelegt.
+Für GitHub Actions empfiehlt Cloudflare die Tokenvorlage **Edit Cloudflare
+Workers**; der Token wird auf das verwendete Konto begrenzt. In GitHub wird
+nur der erzeugte Tokenwert als `CLOUDFLARE_API_TOKEN` gespeichert. Secrets
+werden weder in `VERSION.json` noch in Release Notes abgelegt.
 
 Der Workflow entfernt vor Wrangler ausschließlich unsichtbare Leerraumzeichen aus Account-ID und API-Token, ohne die Werte auszugeben. Dadurch führen versehentlich mitkopierte Zeilenumbrüche nicht zu einem ungültigen Authorization-Header. Ist der normalisierte Wert leer oder der Token fachlich ungültig, schlägt das Deployment weiterhin sichtbar fehl.
 
@@ -48,7 +51,7 @@ Zur Fortsetzung muss im GitHub-Environment `production` das Secret `CLOUDFLARE_A
 
 ```bash
 python scripts/check_release_metadata.py
-python -m pytest -q
+python scripts/run_release_tests.py
 node tests/check_module_debug_v0450.js
 ```
 
