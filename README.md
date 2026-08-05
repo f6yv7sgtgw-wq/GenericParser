@@ -1,100 +1,147 @@
 # GenericParser
 
-Wiederverwendbarer Kleinanzeigen-Parser und mobile PWA für die Einbindung in **Evercade** und **SNES-PAL-Sammlung**.
+Wiederverwendbarer Kleinanzeigen-Parser und mobile PWA für die Einbindung in **Evercade**, **SNES-PAL-Sammlung** und weitere Projekte.
 
 ## Aktueller Stand
 
-- **Testversion:** `0.44.6.6.1`
-- **Build-ID:** `gp-044661-20260805-1`
-- **API-Vertrag:** `match-v6.11.8-rollback-04465-cooldown120-recovery-control`
-- **Stabile Referenz:** `0.44.6.5`
-- **Laufzeitbasis:** `0.44.6.2`
+- **Version:** `0.45.0`
+- **Build-ID:** `gp-0450-20260805-1`
+- **Modulvertrag:** `generic-parser-module-v1`
+- **Stabile Rückfallreferenz:** `0.44.6.5`
 - **Fachlicher Suchkern:** unverändert aus `0.44.4`
 - **Zielplattform:** Cloudflare Workers Free
 
-## 0.44.6.6.1 – 120-Sekunden-Test
+## Ziel von 0.45
 
-Die Version übernimmt den funktionierenden Suchfluss aus 0.44.6.5 und verändert nur die browserseitigen Ruhe- und Fortsetzungsmechanismen.
-
-```text
-120 eindeutige Treffer erreicht
-→ statt der normalen 5 Sekunden 120 Sekunden warten
-→ automatisch weiter
-
-240 eindeutige Treffer erreicht
-→ erneut 120 Sekunden warten
-→ automatisch weiter
-
-360, 480, 600 …
-→ gleicher Ablauf bei jedem weiteren Vielfachen von 120
-```
-
-Während der Pause erhält der Worker keinen neuen Suchauftrag. Der Suchstand bleibt gespeichert. Die Cooldown-Schicht bleibt fail-open: Kann sie nicht initialisiert werden, bleibt die Referenzsuche nutzbar.
-
-## Recovery-Test
-
-Nach einer terminalen 503-/1101-Kette:
+0.45 verändert nicht, wie gesucht wird. Der bestätigte Suchfluss aus 0.44.6.5 bleibt erhalten. Neu ist eine stabile Integrationsgrenze für andere Projekte:
 
 ```text
-Suchstand speichern
-→ 120 Sekunden warten
-→ /api/version prüfen
-→ Fortsetzen-Schaltfläche sichtbar und aktiv setzen
-→ Fortsetzung auslösen
-→ nach 10 Sekunden auf search_resume prüfen
-→ bei Bedarf genau einmal erneut auslösen
+Evercade / SNES / weiteres Projekt
+→ ModuleSearchProfile
+→ /api/module/v1/search
+→ einheitliche Listings, Pagination, Summary und Ampel
 ```
 
-Startet auch der zweite Steuerungsversuch keine neue Suchsession, bleibt der Suchstand erhalten und die UI fordert zum manuellen Fortsetzen auf.
+## Modul-Endpunkte
 
-Neue bzw. relevante Eventlog-Einträge:
+- `GET /api/module/v1/capabilities`
+- `POST /api/module/v1/profile/validate`
+- `POST /api/module/v1/search`
+- `GET /api/module/v1/self-test?enabled=true`
+- `POST /api/search` bleibt als kompatibler UI- und Referenzpfad erhalten
 
-- `cooldown_threshold_reached`
-- `cooldown_start`
-- `cooldown_resume`
-- `auto_resume_scheduled`
-- `auto_resume_health_ready`
-- `auto_resume_start`
-- `auto_resume_control_retry`
-- `auto_resume_running`
-- `auto_resume_manual_required`
+## Beispielprofil
+
+```json
+{
+  "profile": {
+    "profile_id": "evercade:interplay-1",
+    "display_name": "Evercade · Interplay Collection 1",
+    "query": "Evercade Interplay Collection 1",
+    "required_terms": [],
+    "excluded_terms": [],
+    "model_patterns": [],
+    "brands": ["Evercade", "Blaze"],
+    "max_price": 35,
+    "market_value": 30,
+    "accept_bundles": false,
+    "accept_incomplete": false
+  },
+  "page": 0,
+  "source": "auto",
+  "debug": {
+    "enabled": false
+  }
+}
+```
+
+Leere optionale Felder werden nicht an den Referenzkern weitergegeben und daher nicht ausgewertet.
+
+## Einheitliches Ergebnisformat
+
+Die Modulantwort enthält:
+
+- `listings`: ID, Titel, URL, Bild, Preis, Ort, Match und Ampel
+- `pagination`: aktuelle Seite, nächste Seite, Abschluss und Quelle
+- `summary`: abgerufen, sichtbar, ausgeblendet, eindeutig und Ampelzählung
+- `deployment`: Version, Build und Referenzstand
+- `debug`: nur bei ausdrücklich aktiviertem Debugmodus
+
+## Projektadapter
+
+```python
+from generic_parser import evercade_profile, snes_pal_profile
+
+profile = evercade_profile(
+    "Interplay Collection 1",
+    market_value=30,
+    max_price=35,
+)
+
+snes = snes_pal_profile(
+    "Super Metroid",
+    market_value=70,
+)
+```
+
+Die Adapter übersetzen projektspezifische Titel, Varianten und Preise in den gemeinsamen Modulvertrag. Sammlungs- und Kaufentscheidungen bleiben in den aufrufenden Projekten.
+
+## Deaktivierbare Debug-Logs
+
+Debug-Logs sind standardmäßig aus.
+
+Aktivierungsmöglichkeiten:
+
+- Schalter **Debug-Logs aktivieren** in der mobilen Oberfläche
+- Header `X-GenericParser-Debug: 1`
+- Feld `debug.enabled: true` beim Modulrequest
+
+Ohne Aktivierung werden keine zusätzlichen Debugereignisse und keine Payloaddaten erzeugt. Payloadlogging bleibt auch im Debugmodus standardmäßig aus.
+
+## Deaktivierbare Modultests
+
+Die Selbsttests sind ebenfalls standardmäßig aus und verwenden kein Kleinanzeigen-Netzwerk.
+
+Aktivierung:
+
+- Schalter **Netzwerkfreie Modultests aktivieren**
+- Schaltfläche **Modultest ausführen**
+- `GET /api/module/v1/self-test?enabled=true`
+- Header `X-GenericParser-Tests: 1`
+
+Geprüft werden Profilnormalisierung, Ignorieren leerer Felder, Ergebnisvertrag, Ampelzusammenfassung sowie Evercade- und SNES-Adapter.
 
 ## Unverändert gegenüber 0.44.6.5
 
-- Controllerquelle und Suchereignisse
-- ASGI-Workerpfad und FastAPI-Suchbootstrap
-- unveränderter 0.44.4-Suchkern
+- Controller- und UI-Suchfluss
+- ASGI-Workerpfad
+- 0.44.4-Suchkern
 - höchstens sieben Karten pro Arbeitspaket
-- fünf Sekunden normale Pause außerhalb der Cooldown-Schwellen
+- fünf Sekunden normale Pause
 - echte Kleinanzeigen-Weiter-Navigation
-- Titel-, Preis-, Bild- und Kartenextraktion
+- Titel-, Preis- und Bildextraktion
 - Deduplizierung und persistenter Suchstand
 - Pflicht- und Ausschlussbegriffe
 - Maximalpreis, Richtwert und Ampel
-- Retry-Verhalten und Ergebnisdarstellung
-
-0.44.6.6.1 bleibt eine **Testversion**. 0.44.6.5 bleibt die stabile Referenz.
+- bestehendes Retry- und Recovery-Verhalten
 
 ## Tests
 
 ```bash
-python -m pytest -q tests/test_cooldown_v04466.py
-node --check cloudflare/public/controller-04466.js
-node --check cloudflare/public/cooldown-04466.js
-node --check cloudflare/public/auto-resume-04466.js
-node tests/check_controller_runtime_v04466.js
-node tests/check_cooldown_runtime_v04466.js
+python -m pytest -q tests/test_module_v0450.py
+node --check cloudflare/public/module-debug-0450.js
+node tests/check_module_debug_v0450.js
 ```
+
+Der reguläre CI-Lauf liegt in `.github/workflows/module-0450.yml`. Die alte 0.44.6.6-Experiment-Suite ist nur noch manuell ausführbar.
 
 ## Live-Abnahme
 
-1. `/api/version` meldet `0.44.6.6.1` und `gp-044661-20260805-1`.
-2. Die Oberfläche zeigt `Bereit` und aktiviert `Live-Suche starten`.
-3. Eine neue Suche liefert vor 120 Treffern denselben Ablauf wie 0.44.6.5.
-4. Bei 120 erscheinen `cooldown_threshold_reached`, `cooldown_start` und nach 120 Sekunden `cooldown_resume`.
-5. Nach einem terminalen Fehler erscheinen `auto_resume_scheduled`, `auto_resume_health_ready` und `auto_resume_start`.
-6. Die Recovery muss danach `search_resume` beziehungsweise `auto_resume_running` erzeugen.
-7. Fehlt `search_resume` nach zehn Sekunden, erscheint `auto_resume_control_retry` und die Steuerung wird einmal erneut ausgelöst.
-8. Es entstehen keine zusätzlichen Dubletten.
+1. `/api/version` meldet `0.45.0`, `gp-0450-20260805-1` und `generic-parser-module-v1`.
+2. Die bestehende Suche liefert denselben Ablauf wie 0.44.6.5.
+3. `/api/module/v1/capabilities` meldet Kleinanzeigen, Evercade und SNES-PAL.
+4. Profilvalidierung ignoriert leere Regeln.
+5. Der Selbsttest ist ohne Aktivierung gesperrt und mit Aktivierung netzwerkfrei ausführbar.
+6. Debug-Logs erscheinen nur bei eingeschaltetem Schalter.
 
 Weitere Informationen: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md) und [`VERSION.json`](VERSION.json).
