@@ -2,70 +2,76 @@
 
 ## Fachlicher Referenzkern 0.44.4
 
-0.44.4 bleibt die fachliche Vergleichsbasis für Suchfluss, echte Kleinanzeigen-Weiter-Navigation, robuste Extraktion, Datenkonsistenz und die Ampelbewertung ausschließlich aktiver Regeln. Der Kern wird weiterhin unverändert über `search_service_v0444` verwendet.
+0.44.4 bleibt die fachliche Vergleichsbasis für Suchfluss, echte Kleinanzeigen-Weiter-Navigation, robuste Extraktion, Datenkonsistenz und die Ampelbewertung ausschließlich aktiver Regeln. Der Kern wird unverändert über `search_service_v0444` verwendet.
 
-## Stabile Referenz 0.44.6.5
+## Stabile Rückfallreferenz 0.44.6.5
 
-0.44.6.5 ist die stabile operative Rollback-Referenz. Sie verwendet:
+0.44.6.5 bleibt der bekannte operative Rückfallstand:
 
-- den bestätigten ASGI- und FastAPI-Pfad aus 0.44.6.2
-- den unveränderten 0.44.4-Suchkern
+- bestätigter ASGI- und FastAPI-Pfad
+- unveränderter 0.44.4-Suchkern
 - 7er-Arbeitspakete
-- fünf Sekunden normale Browserpause
+- fünf Sekunden Browserpause
 - echte Weiter-Navigation
 - persistente Fortschrittssicherung
-- genau einen automatischen Fehler-Resume nach 90 Sekunden
+- bestehendes einmaliges Auto-Resume-Verhalten
 
-Die Recovery- und Lazy-Bootstrap-Experimente aus 0.44.6.3 und 0.44.6.4 bleiben deaktiviert.
+Die Recovery- und Cooldown-Experimente aus 0.44.6.3 bis 0.44.6.6.1 sind abgeschlossen und werden nicht in den aktiven 0.45-Suchpfad übernommen.
 
-## 0.44.6.6 – 120/90-Cooldown-Test
+## 0.45.0 – Integrierbares Parsermodul
 
-0.44.6.6 ist ausdrücklich eine Testversion und ersetzt 0.44.6.5 nicht als Referenz.
+Status: **implementiert, Live-Abnahme ausstehend**.
 
-Einzige Verhaltensänderung:
+Enthalten:
 
-```text
-mindestens 120 eindeutige Treffer
-→ aktuelles Paket vollständig speichern
-→ vor dem nächsten Suchauftrag 90 Sekunden warten
-→ automatisch weiterlaufen
-```
+- versionierter Vertrag `generic-parser-module-v1`
+- `ModuleSearchProfile` als projektneutrales Suchprofil
+- einheitliche Listings, Pagination und Summary
+- unveränderte Delegation an den 0.44.4-Suchkern
+- kompatibler `/api/search`-Pfad für die bestehende Oberfläche
+- neue Endpunkte unter `/api/module/v1/*`
+- Evercade-Profiladapter
+- SNES-PAL-Profiladapter
+- Debug-Logs als expliziter, standardmäßig deaktivierter Schalter
+- netzwerkfreie Modultests als expliziter, standardmäßig deaktivierter Schalter
+- eigener CI-Workflow für Modulvertrag und Referenzschutz
 
-Die Pause läuft im Browser als `client_request_gate`. Der Worker erhält währenddessen keinen Request. Die Pause wird pro Session nur einmal ausgelöst.
+### Abnahmekriterien 0.45.0
 
-Unverändert:
+1. `/api/version` meldet `0.45.0`, Build `gp-0450-20260805-1` und Modulvertrag v1.
+2. Die bestehende UI-Suche entspricht funktional 0.44.6.5.
+3. Leere optionale Profilfelder werden nicht an den Suchkern übertragen.
+4. `/api/module/v1/profile/validate` liefert ein serialisierbares Profil und Legacy-Payload.
+5. `/api/module/v1/search` liefert das gemeinsame Ergebnisformat.
+6. Debug-Logs bleiben ohne Schalter vollständig aus.
+7. Modultests bleiben ohne Schalter gesperrt.
+8. Aktivierte Modultests verwenden kein Kleinanzeigen-Netzwerk.
+9. Evercade- und SNES-PAL-Adapter erfüllen denselben Profilvertrag.
+10. Bei einer Regression bleibt 0.44.6.5 sofort wiederherstellbar.
 
-- Worker-Einstieg
-- Parser und Extraktion
-- Pagination
-- 7er-Paketgröße
-- 5-Sekunden-Normalpause
-- Ampel und Filter
-- Retry-Verhalten
-- 0.44.6.2-Fehler-Recovery
-- Karten und UI
+## 0.45.1 – Evercade-Integration
 
-### Live-Abnahme
+- GenericParser-Modul im Evercade-Projekt anbinden
+- Cartridge-Daten in `ModuleSearchProfile` übersetzen
+- Richtwert und Maximalpreis übergeben
+- Ergebnisse, Ampel, URL, Preis und Zustand zurückführen
+- projektspezifische Tests standardmäßig deaktivierbar halten
+- bestehende Evercade-Suche erst nach Vergleichslauf ersetzen
 
-1. Bis mindestens 120 eindeutige Treffer muss der Lauf exakt der Referenz 0.44.6.5 entsprechen.
-2. Nach der Schwelle müssen `cooldown_threshold_reached` und vor dem nächsten Request `cooldown_start` erscheinen.
-3. Zwischen `cooldown_start` und `cooldown_resume` dürfen mindestens 90 Sekunden lang keine neuen `/api/search`-Ereignisse erscheinen.
-4. Nach `cooldown_resume` muss die gleiche Session automatisch mit dem nächsten Arbeitspaket weiterlaufen.
-5. Die Pause darf in derselben Session nicht erneut erscheinen.
-6. Ergebnisse, Dubletten, Preise, Bilder, Ampeln und Datenkonsistenz müssen unverändert bleiben.
-7. Der entscheidende Vergleichswert ist der Fehlerpunkt beziehungsweise die maximal erreichte Trefferzahl gegenüber 0.44.6.5.
+## 0.45.2 – SNES-PAL-Integration
 
-Bei einer Regression wird direkt auf 0.44.6.5 zurückgeschaltet. Nur ein reproduzierbarer Vorteil rechtfertigt eine spätere Übernahme.
+- GenericParser-Modul im SNES-Sammlungsmanager anbinden
+- PAL-Titel, Varianten und Ausschlussbegriffe übertragen
+- NTSC/Repro-Prüfung projektspezifisch ergänzen
+- Ergebnisvertrag gegen reale SNES-Suchprofile testen
 
-## 0.45 – Integrierbares Parser-Core-Modul
+## 0.45.3 – Gemeinsame Integrationsabnahme
 
-- UI-unabhängiger Parser-Core
-- stabile Ein- und Ergebnisdatentypen
-- projektneutrale Suchprofile
-- Ampelbewertung als eigenständige Funktion
-- JSON-Schnittstelle für andere Projekte
-- Adapter für Cloudflare, Evercade und SNES
-- Recovery-Schnittstelle für gespeicherte Suchaufträge
+- identische Modulversion in Evercade und SNES
+- Referenzprofile und Fixture-Ergebnisse
+- Vertragskompatibilität und Fehlerdarstellung
+- gemeinsame Debug- und Testschalter
+- dokumentierter Rückfall je Projekt
 
 ## 0.46 – Produktklassifizierung
 
@@ -79,11 +85,11 @@ Bei einer Regression wird direkt auf 0.44.6.5 zurückgeschaltet. Nur ein reprodu
 - Schreibvarianten, Nummern und Editionen normalisieren
 - Einzelmodule aus Bundles erkennen
 
-## 0.48 – Projektintegration
+## 0.48 – Projektintegration ausbauen
 
 - Suchprofile pro fehlender Cartridge
 - strukturierte Übergabe von Treffer, Ampel und Angebotsdaten
-- Integration in Evercade- und SNES-Sammlungsmanager
+- mehrere Quellen hinter dem gemeinsamen Modulvertrag vorbereiten
 
 ## 0.49 – Deal Engine
 
@@ -91,9 +97,10 @@ Bei einer Regression wird direkt auf 0.44.6.5 zurückgeschaltet. Nur ein reprodu
 - Zustand, Vollständigkeit und Versand
 - Deal-Klassen und Gesamtpreis
 
-## 0.50 – Automatische Deal-Suche
+## 0.50 – Serverseitige Suchaufträge
 
-- zeitgesteuerte Suche
+- Queue, Workflow oder Durable Object separat bewerten
+- persistente Arbeitspakete statt Browser-Recovery
 - nur neue oder geänderte Angebote melden
 - Ergebnis- und Preisverlauf
 - Benachrichtigungen für Evercade und SNES
