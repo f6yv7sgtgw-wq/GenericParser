@@ -10,6 +10,14 @@ Wiederverwendbarer Kleinanzeigen-Parser und mobile PWA für die Einbindung in **
 - **Stabile Rückfallreferenz:** `0.44.6.5`
 - **Fachlicher Suchkern:** unverändert aus `0.44.4`
 - **Zielplattform:** Cloudflare Workers Free
+- **Release-Status:** Stable Candidate bis GitHub-CI und Cloudflare-Liveprüfung bestätigt sind
+
+Vollständige Release-Unterlagen:
+
+- [API-, Funktions- und Limitierungsdokumentation 0.45.0](docs/API_0.45.0.md)
+- [Release Notes 0.45.0](docs/releases/0.45.0.md)
+- [Deployment und Live-Abnahme](docs/DEPLOYMENT.md)
+- [Verbindlicher Prozess für alle folgenden Releases](docs/RELEASE_PROCESS.md)
 
 ## Ziel von 0.45
 
@@ -125,15 +133,22 @@ Geprüft werden Profilnormalisierung, Ignorieren leerer Felder, Ergebnisvertrag,
 - Maximalpreis, Richtwert und Ampel
 - bestehendes Retry- und Recovery-Verhalten
 
+## Cloudflare-Free-Grenzen
+
+Mit Stand 2026-08-05 gelten unter anderem 100.000 dynamische Requests pro Tag, 10 ms CPU-Zeit je HTTP-Aufruf, 128 MB Speicher je Isolat und 50 Subrequests je Aufruf. GenericParser begrenzt deshalb jeden Request auf höchstens sieben Karten und koordiniert lange Suchen über mehrere Browseranfragen mit fünf Sekunden Pause.
+
+Das ist keine Vollständigkeits- oder Recovery-Garantie: Lange Läufe können weiterhin mit Cloudflare-/Upstream-Fehlern abbrechen, die Browser-Recovery kann erneut scheitern und es gibt keine serverseitige Queue oder dauerhafte Worker-Persistenz. Zahlen, Auswirkungen, Fehlervertrag und die Integrationspflichten für Evercade und SNES stehen vollständig in [`docs/API_0.45.0.md`](docs/API_0.45.0.md).
+
 ## Tests
 
 ```bash
-python -m pytest -q tests/test_module_v0450.py
+python scripts/check_release_metadata.py
+python scripts/run_release_tests.py
 node --check cloudflare/public/module-debug-0450.js
 node tests/check_module_debug_v0450.js
 ```
 
-Der reguläre CI-Lauf liegt in `.github/workflows/module-0450.yml`. Die alte 0.44.6.6-Experiment-Suite ist nur noch manuell ausführbar.
+Der versionsbezogene Modultest liegt in `.github/workflows/module-0450.yml`. Der allgemeine Check `.github/workflows/release-integrity.yml` läuft ohne Pfadfilter auf jedem Commit nach `main`, sodass auch Dokumentations- und Metadatenänderungen einen GitHub-Status erhalten. Die alte 0.44.6.6-Experiment-Suite ist nur noch manuell ausführbar.
 
 ## Live-Abnahme
 
@@ -143,5 +158,6 @@ Der reguläre CI-Lauf liegt in `.github/workflows/module-0450.yml`. Die alte 0.4
 4. Profilvalidierung ignoriert leere Regeln.
 5. Der Selbsttest ist ohne Aktivierung gesperrt und mit Aktivierung netzwerkfrei ausführbar.
 6. Debug-Logs erscheinen nur bei eingeschaltetem Schalter.
+7. Der Deployment-Workflow prüft anschließend genau ein echtes, auf sieben Karten begrenztes Modul-Arbeitspaket.
 
-Weitere Informationen: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md) und [`VERSION.json`](VERSION.json).
+Weitere Informationen: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json) und [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md).

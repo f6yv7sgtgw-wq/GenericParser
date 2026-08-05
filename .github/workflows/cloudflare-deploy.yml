@@ -1,4 +1,4 @@
-name: Deploy GenericParser Mobile
+name: Deploy GenericParser 0.45.0
 
 on:
   workflow_dispatch:
@@ -6,11 +6,11 @@ on:
     branches: [main]
     paths:
       - "cloudflare/**"
-      - "cloudflare_worker.py"
-      - "src/generic_parser/cloudflare_app.py"
-      - "src/generic_parser/models.py"
-      - "src/generic_parser/normalization.py"
-      - "src/generic_parser/sources/kleinanzeigen.py"
+      - "src/generic_parser/**"
+      - "scripts/check_deployment.py"
+      - "scripts/check_release_metadata.py"
+      - "scripts/run_release_tests.py"
+      - "tests/**"
       - "pyproject.toml"
       - "wrangler.jsonc"
       - ".github/workflows/cloudflare-deploy.yml"
@@ -41,18 +41,44 @@ jobs:
           node-version: "22"
       - name: Install dependencies
         run: uv sync --group cloudflare --extra dev
-      - name: Run deployment tests
-        run: uv run pytest -q tests/test_cloudflare_app.py tests/test_pwa_assets.py tests/test_deployment_02d.py
+      - name: Validate release metadata
+        run: uv run python scripts/check_release_metadata.py
+      - name: Run current release regression suite
+        run: uv run python scripts/run_release_tests.py
+      - name: Check active browser assets
+        run: |
+          node --check cloudflare/public/build-identity-0450.js
+          node --check cloudflare/public/controller-0450.js
+          node --check cloudflare/public/module-debug-0450.js
+          node --check cloudflare/public/auto-resume-0450.js
+          node --check cloudflare/public/eventlog-0450.js
+          node --check cloudflare/public/service-worker.js
+          node tests/check_module_debug_v0450.js
       - name: Validate secrets
         shell: bash
         run: |
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID fehlt"; exit 1; }
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN fehlt"; exit 1; }
-      - name: Deploy Python Worker
-        run: uv run --group cloudflare pywrangler deploy
-      - name: Smoke-test deployed URL
-        if: ${{ vars.CLOUDFLARE_WORKER_URL != '' }}
+      - name: Deploy exact tested commit
+        id: deploy
         env:
-          DEPLOYMENT_URL: ${{ vars.CLOUDFLARE_WORKER_URL }}
+          CONFIGURED_URL: ${{ vars.CLOUDFLARE_WORKER_URL }}
+        shell: bash
+        run: |
+          set -o pipefail
+          deploy_log="${RUNNER_TEMP}/genericparser-deploy.log"
+          uv run --group cloudflare pywrangler deploy 2>&1 | tee "$deploy_log"
+          discovered_url="$(grep -Eo 'https://[A-Za-z0-9.-]+\.workers\.dev' "$deploy_log" | tail -n 1 || true)"
+          deployment_url="${CONFIGURED_URL:-$discovered_url}"
+          test -n "$deployment_url" || { echo "Keine Cloudflare-Deployment-URL ermittelt"; exit 1; }
+          case "$deployment_url" in
+            https://*) ;;
+            *) echo "Deployment-URL ist nicht HTTPS: $deployment_url"; exit 1 ;;
+          esac
+          echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
+      - name: Smoke-test deployed contract and one live packet
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment_url }}
           APP_TOKEN: ${{ secrets.APP_TOKEN }}
-        run: uv run python scripts/check_deployment.py "$DEPLOYMENT_URL"
+          CLOUDFLARE_LIVE_QUERY: ${{ vars.CLOUDFLARE_LIVE_QUERY }}
+        run: uv run python scripts/check_deployment.py "$DEPLOYMENT_URL" --live-search

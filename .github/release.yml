@@ -1,0 +1,24 @@
+changelog:
+  exclude:
+    labels:
+      - skip-changelog
+  categories:
+    - title: API und Integration
+      labels:
+        - api
+        - integration
+    - title: Fehlerbehebungen
+      labels:
+        - bug
+        - fix
+    - title: Dokumentation
+      labels:
+        - documentation
+    - title: Tests, CI und Betrieb
+      labels:
+        - testing
+        - ci
+        - operations
+    - title: Weitere Änderungen
+      labels:
+        - "*"

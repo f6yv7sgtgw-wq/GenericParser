@@ -1,5 +1,7 @@
 # GenericParser 0.2d – Cloudflare-Deployment
 
+> Historische Anleitung für 0.2d. Der aktuelle Release- und Live-Abnahmeprozess steht in [`DEPLOYMENT.md`](DEPLOYMENT.md).
+
 0.2d ergänzt den reproduzierbaren Produktionsprozess. Der fachliche Umfang bleibt unverändert: manuelle Testsuchen, keine automatischen Hintergrundläufe.
 
 ## Ziel

@@ -16,6 +16,17 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Mobile Oberfläche um getrennte Schalter für Debug-Logs und Modultests erweitert.
 - Modulbezogenes Eventlog und CI-Regressionssuite ergänzt.
 - Alte 0.44.6.6-Experiment-Suite auf ausschließlich manuelle Ausführung umgestellt.
+- Modulprofilgrenzen für Query, Preis und Radius an den effektiven Referenzvertrag angeglichen.
+- Profilvalidierung liefert jetzt das tatsächlich übergebene Legacy-Payload ohne wieder aufgefüllte leere Standardfelder.
+- Optionales `APP_TOKEN` schützt beide Suchendpunkte wieder konsistent und liefert bei Fehlauthentifizierung den versionierten JSON-Fehlervertrag.
+- Vollständigen versionsgebundenen API-, Funktions- und Limitierungssnapshot für Evercade und SNES ergänzt.
+- Aktuelle Cloudflare-Free-Grenzen und ihre konkrete Auswirkung auf Arbeitspakete, Vollständigkeit und Recovery dokumentiert.
+- Verbindlichen Release-Prozess, strukturierte GitHub-Metadaten und maschinenlesbare Release-Prüfung eingeführt.
+- Allgemeinen GitHub-Release-Integritätscheck ohne Pfadfilter ergänzt, damit auch Dokumentationscommits einen Status erhalten.
+- Aktuelle Release-Suite explizit von gegenseitig ausschließenden historischen Aktivversions-Assertions getrennt; 84 aktuelle Regressionstests bestanden.
+- Veralteten PWA-Cache von 0.42.7 auf den vollständigen 0.45.0-Assetstand aktualisiert.
+- Veralteten Deployment-Smoke-Test von 0.2.0rc2 auf Version, Vertrag, Modulendpunkte, Selbsttest und ein begrenztes echtes Suchpaket aktualisiert.
+- Cloudflare-Deployment-Workflow ermittelt die Live-URL und darf die Liveprüfung nicht mehr stillschweigend überspringen.
 - 0.44.6.5 bleibt die stabile Rückfallreferenz; Cloudflare-Live-Abnahme steht aus.
 
 ## 0.44.6.6.1 – 2026-08-05 – verworfenes Testexperiment
