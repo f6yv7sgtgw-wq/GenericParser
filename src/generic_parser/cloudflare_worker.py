@@ -1,8 +1,8 @@
-"""Cloudflare-Python-Worker entrypoint for GenericParser 0.44.6.6.1.
+"""Cloudflare-Python-Worker entrypoint for GenericParser 0.45.0.
 
-Test release on the clean 0.44.6.5 rollback. Search, extraction, pagination,
-traffic-light behavior and the 0.44.4 search core remain unchanged. The only
-experiments are browser-side 120-second cooldowns and recovery-control retry.
+The runtime keeps the proven 0.44.6.5 ASGI entry path and 0.44.4 search core.
+Version 0.45 adds only the reusable module-v1 API plus opt-in diagnostics and
+network-free contract tests.
 """
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ def _load_generic_parser_package():
 
 
 _load_generic_parser_package()
-from generic_parser.cloudflare_v04466 import app  # noqa: E402
+from generic_parser.cloudflare_v0450 import app  # noqa: E402
 
 
 class Default(WorkerEntrypoint):
