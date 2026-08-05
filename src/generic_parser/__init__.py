@@ -1,20 +1,101 @@
 """Öffentliche API des GenericParser-Pakets."""
 
-from .config import ConfigurationError, load_profile, load_profiles, profile_from_dict, profile_to_dict, save_profile, save_profiles
-from .models import Listing, Location, MatchDecision, MatchResult, NormalizedPrice, PriceFlag, SearchProfile
+from .config import (
+    ConfigurationError,
+    load_profile,
+    load_profiles,
+    profile_from_dict,
+    profile_to_dict,
+    save_profile,
+    save_profiles,
+)
+from .integrations import evercade_profile, snes_pal_profile
+from .models import (
+    Listing,
+    Location,
+    MatchDecision,
+    MatchResult,
+    NormalizedPrice,
+    PriceFlag,
+    SearchProfile,
+)
+from .module_api import (
+    MODULE_CONTRACT,
+    DebugTrace,
+    ModuleDebugOptions,
+    ModuleListing,
+    ModulePageRequest,
+    ModulePageResponse,
+    ModulePagination,
+    ModuleSearchProfile,
+    ModuleSummary,
+    module_response_from_legacy,
+    run_contract_self_tests,
+)
 from .normalization import compact_text, normalize_text, parse_location, parse_posted_at, parse_price
 from .service import GenericParser, ListingSource
-from .sources.kleinanzeigen import FetchedPage, KleinanzeigenAdapter, KleinanzeigenBlockedError, KleinanzeigenHttpClient, KleinanzeigenLayoutError, LocationVerification, KleinanzeigenPageParser, KleinanzeigenUrlBuilder, PageDiagnostics, PageState, extract_location_id, slugify_keyword
+from .sources.kleinanzeigen import (
+    FetchedPage,
+    KleinanzeigenAdapter,
+    KleinanzeigenBlockedError,
+    KleinanzeigenHttpClient,
+    KleinanzeigenLayoutError,
+    KleinanzeigenPageParser,
+    KleinanzeigenUrlBuilder,
+    LocationVerification,
+    PageDiagnostics,
+    PageState,
+    extract_location_id,
+    slugify_keyword,
+)
 
-__version__ = "0.44.6.6.1"
+__version__ = "0.45.0"
 
 __all__ = [
-    "ConfigurationError", "GenericParser", "FetchedPage", "KleinanzeigenAdapter",
-    "KleinanzeigenBlockedError", "KleinanzeigenHttpClient", "KleinanzeigenLayoutError",
-    "LocationVerification", "KleinanzeigenPageParser", "KleinanzeigenUrlBuilder",
-    "PageDiagnostics", "PageState", "Listing", "ListingSource", "Location",
-    "MatchDecision", "MatchResult", "NormalizedPrice", "PriceFlag", "SearchProfile",
-    "compact_text", "load_profile", "load_profiles", "normalize_text", "parse_location",
-    "parse_posted_at", "parse_price", "profile_from_dict", "profile_to_dict",
-    "save_profile", "save_profiles", "extract_location_id", "slugify_keyword",
+    "MODULE_CONTRACT",
+    "ConfigurationError",
+    "DebugTrace",
+    "FetchedPage",
+    "GenericParser",
+    "KleinanzeigenAdapter",
+    "KleinanzeigenBlockedError",
+    "KleinanzeigenHttpClient",
+    "KleinanzeigenLayoutError",
+    "KleinanzeigenPageParser",
+    "KleinanzeigenUrlBuilder",
+    "Listing",
+    "ListingSource",
+    "Location",
+    "LocationVerification",
+    "MatchDecision",
+    "MatchResult",
+    "ModuleDebugOptions",
+    "ModuleListing",
+    "ModulePageRequest",
+    "ModulePageResponse",
+    "ModulePagination",
+    "ModuleSearchProfile",
+    "ModuleSummary",
+    "NormalizedPrice",
+    "PageDiagnostics",
+    "PageState",
+    "PriceFlag",
+    "SearchProfile",
+    "compact_text",
+    "evercade_profile",
+    "extract_location_id",
+    "load_profile",
+    "load_profiles",
+    "module_response_from_legacy",
+    "normalize_text",
+    "parse_location",
+    "parse_posted_at",
+    "parse_price",
+    "profile_from_dict",
+    "profile_to_dict",
+    "run_contract_self_tests",
+    "save_profile",
+    "save_profiles",
+    "slugify_keyword",
+    "snes_pal_profile",
 ]
