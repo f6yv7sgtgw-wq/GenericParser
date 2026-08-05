@@ -84,30 +84,32 @@
       "result": "84 passed"
     },
     "github_release_integrity": {
-      "status": "pending",
-      "verified_at": null,
-      "commit": null,
-      "run_url": null
+      "status": "passed",
+      "verified_at": "2026-08-05T09:51:03Z",
+      "commit": "210573e50db7da4fbf496464bf47d0b080a0d175",
+      "run_url": "https://github.com/f6yv7sgtgw-wq/GenericParser/actions/runs/30994943847"
     },
     "cloudflare_deployment": {
-      "status": "pending",
-      "verified_at": null,
-      "commit": null,
-      "run_url": null
+      "status": "blocked",
+      "verified_at": "2026-08-05T09:51:11Z",
+      "commit": "210573e50db7da4fbf496464bf47d0b080a0d175",
+      "run_url": "https://github.com/f6yv7sgtgw-wq/GenericParser/actions/runs/30994943869",
+      "detail": "Cloudflare rejected the configured API token before upload (authentication error 10000; invalid access token 9109)."
     },
     "live_contract": {
-      "status": "pending",
-      "verified_at": null,
+      "status": "blocked",
+      "verified_at": "2026-08-05T09:51:11Z",
       "worker_url": null,
       "version": null,
-      "build_id": null
+      "build_id": null,
+      "detail": "Not executed because Cloudflare authentication failed before deployment."
     },
     "live_search_packet": {
-      "status": "pending",
-      "verified_at": null,
+      "status": "blocked",
+      "verified_at": "2026-08-05T09:51:11Z",
       "query": "Evercade",
       "result_count": null,
-      "detail": null
+      "detail": "Not executed because Cloudflare authentication failed before deployment."
     }
   },
   "release_test_suite": {

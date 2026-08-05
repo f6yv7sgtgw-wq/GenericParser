@@ -10,7 +10,7 @@ Wiederverwendbarer Kleinanzeigen-Parser und mobile PWA für die Einbindung in **
 - **Stabile Rückfallreferenz:** `0.44.6.5`
 - **Fachlicher Suchkern:** unverändert aus `0.44.4`
 - **Zielplattform:** Cloudflare Workers Free
-- **Release-Status:** Stable Candidate bis GitHub-CI und Cloudflare-Liveprüfung bestätigt sind
+- **Release-Status:** Stable Candidate; GitHub-CI bestanden, Cloudflare-Liveprüfung durch ungültigen Deployment-Token blockiert
 
 Vollständige Release-Unterlagen:
 
@@ -151,6 +151,8 @@ node tests/check_module_debug_v0450.js
 Der versionsbezogene Modultest liegt in `.github/workflows/module-0450.yml`. Der allgemeine Check `.github/workflows/release-integrity.yml` läuft ohne Pfadfilter auf jedem Commit nach `main`, sodass auch Dokumentations- und Metadatenänderungen einen GitHub-Status erhalten. Die alte 0.44.6.6-Experiment-Suite ist nur noch manuell ausführbar.
 
 ## Live-Abnahme
+
+Aktueller externer Blocker: Der Lauf vom 5. August 2026 hat alle Build- und Releaseprüfungen bestanden, Cloudflare hat den hinterlegten `CLOUDFLARE_API_TOKEN` jedoch mit den Fehlercodes `10000` und `9109` abgelehnt. Nach Ersetzen des Secrets muss der Workflow `Deploy GenericParser 0.45.0` erneut gestartet werden.
 
 1. `/api/version` meldet `0.45.0`, `gp-0450-20260805-1` und `generic-parser-module-v1`.
 2. Die bestehende Suche liefert denselben Ablauf wie 0.44.6.5.
