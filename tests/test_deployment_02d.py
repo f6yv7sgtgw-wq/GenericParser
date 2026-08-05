@@ -18,6 +18,15 @@ def test_deployment_workflow_is_safe_and_reproducible() -> None:
     assert "steps.deploy.outputs.deployment_url" in text
     assert "Keine Cloudflare-Deployment-URL ermittelt" in text
     assert "cancel-in-progress: false" in text
+    assert "Normalize and validate Cloudflare credentials" in text
+    assert "tr -d '[:space:]'" in text
+    assert 'echo "::add-mask::$normalized"' in text
+    assert '>> "$GITHUB_ENV"' in text
+
+    rollback_text = (ROOT / ".github/workflows/rollback-04465.yml").read_text(encoding="utf-8")
+    rollback = yaml.safe_load(rollback_text)
+    assert rollback[True] == {"workflow_dispatch": None}
+    assert "push:" not in rollback_text
 
 
 def test_deployment_files_exist() -> None:

@@ -18,9 +18,13 @@ GitHub Environment `production`:
 
 Der API-Token benötigt nur die für das Deployment dieses Workers erforderlichen Cloudflare-Rechte. Secrets werden weder in `VERSION.json` noch in Release Notes abgelegt.
 
+Der Workflow entfernt vor Wrangler ausschließlich unsichtbare Leerraumzeichen aus Account-ID und API-Token, ohne die Werte auszugeben. Dadurch führen versehentlich mitkopierte Zeilenumbrüche nicht zu einem ungültigen Authorization-Header. Ist der normalisierte Wert leer oder der Token fachlich ungültig, schlägt das Deployment weiterhin sichtbar fehl.
+
 ## GitHub Actions
 
 `.github/workflows/cloudflare-deploy.yml` läuft bei runtime-relevanten Änderungen auf `main` sowie manuell über `workflow_dispatch`.
+
+Historische Aktivversions- und Rollbackworkflows laufen nach Ablösung ihrer Version ausschließlich manuell. Sie dürfen nicht gegen den aktuellen Main-Stand prüfen, als wäre ihre archivierte Version weiterhin aktiv.
 
 Der Workflow:
 

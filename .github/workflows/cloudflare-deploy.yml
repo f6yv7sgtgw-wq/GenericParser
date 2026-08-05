@@ -54,11 +54,20 @@ jobs:
           node --check cloudflare/public/eventlog-0450.js
           node --check cloudflare/public/service-worker.js
           node tests/check_module_debug_v0450.js
-      - name: Validate secrets
+      - name: Normalize and validate Cloudflare credentials
         shell: bash
         run: |
-          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID fehlt"; exit 1; }
-          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN fehlt"; exit 1; }
+          normalize_credential() {
+            local name="$1"
+            local raw="${!name-}"
+            local normalized
+            normalized="$(printf '%s' "$raw" | tr -d '[:space:]')"
+            test -n "$normalized" || { echo "$name fehlt"; exit 1; }
+            echo "::add-mask::$normalized"
+            printf '%s=%s\n' "$name" "$normalized" >> "$GITHUB_ENV"
+          }
+          normalize_credential CLOUDFLARE_ACCOUNT_ID
+          normalize_credential CLOUDFLARE_API_TOKEN
       - name: Deploy exact tested commit
         id: deploy
         env:
