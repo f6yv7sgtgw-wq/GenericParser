@@ -27,6 +27,8 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Veralteten PWA-Cache von 0.42.7 auf den vollständigen 0.45.0-Assetstand aktualisiert.
 - Veralteten Deployment-Smoke-Test von 0.2.0rc2 auf Version, Vertrag, Modulendpunkte, Selbsttest und ein begrenztes echtes Suchpaket aktualisiert.
 - Cloudflare-Deployment-Workflow ermittelt die Live-URL und darf die Liveprüfung nicht mehr stillschweigend überspringen.
+- Cloudflare-Zugangswerte werden vor Wrangler ohne Ausgabe normalisiert, damit versehentliche Zeilenumbrüche keinen ungültigen HTTP-Header erzeugen.
+- Historischen 0.44.6.5-Aktivversionscheck auf manuellen Start begrenzt; er läuft bei späteren aktiven Releases nicht mehr fälschlich als Main-Check.
 - 0.44.6.5 bleibt die stabile Rückfallreferenz; Cloudflare-Live-Abnahme steht aus.
 
 ## 0.44.6.6.1 – 2026-08-05 – verworfenes Testexperiment

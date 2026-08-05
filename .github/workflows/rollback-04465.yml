@@ -1,22 +1,6 @@
 name: GenericParser 0.44.6.5 clean rollback
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'src/generic_parser/cloudflare_worker.py'
-      - 'src/generic_parser/cloudflare_v04465.py'
-      - 'src/generic_parser/search_service_v04465.py'
-      - 'src/generic_parser/build_identity_v04465.py'
-      - 'cloudflare/public/controller-04465.js'
-      - 'cloudflare/public/auto-resume-04465.js'
-      - 'cloudflare/public/eventlog-04465.js'
-      - 'cloudflare/public/build-identity-04465.js'
-      - 'cloudflare/public/index.html'
-      - 'cloudflare/public/eventlog.html'
-      - 'tests/test_clean_rollback_v04465.py'
-      - 'VERSION.json'
-      - '.github/workflows/rollback-04465.yml'
   workflow_dispatch:
 
 jobs:
