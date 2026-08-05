@@ -9,25 +9,128 @@
   "bootstrap_module": "generic_parser.cloudflare_v0450",
   "search_module": "generic_parser.search_service_v0450",
   "module_api_source": "src/generic_parser/module_api.py",
+  "build_identity_source": "src/generic_parser/build_identity_v0450.py",
   "controller_source": "cloudflare/public/controller-0450.js",
   "controller_base": "cloudflare/public/controller-0411.js",
   "module_debug_source": "cloudflare/public/module-debug-0450.js",
   "auto_resume_source": "cloudflare/public/auto-resume-0450.js",
   "auto_resume_reference_source": "cloudflare/public/auto-resume-04462.js",
   "eventlog_source": "cloudflare/public/eventlog-0450.js",
+  "browser_identity_source": "cloudflare/public/build-identity-0450.js",
+  "service_worker_source": "cloudflare/public/service-worker.js",
   "functional_reference_version": "0.44.4",
   "stable_reference_version": "0.44.6.5",
   "runtime_reference_version": "0.44.6.2",
   "technical_base": "0.43.6.3",
   "release_date": "2026-08-05",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "module-release-live-validation-required",
+  "status": "stable-candidate-release-validation-required",
   "test_release": false,
   "functional_reference": false,
   "operational_reference": false,
   "candidate_for_operational_reference": true,
   "live_cloudflare_test": false,
   "purpose": "provide a stable reusable Kleinanzeigen module API for Evercade, SNES-PAL and future projects without changing the accepted search behavior",
+  "release": {
+    "name": "GenericParser 0.45.0 – Module API v1",
+    "tag": "v0.45.0",
+    "channel": "stable-candidate",
+    "prerelease": false,
+    "technical_reference_commit": "f3697768cfed4828b5e4470d6ad0780451718252",
+    "metadata_base_commit": "a418c7cd87d06a46453e56ca2e76fba48569222d",
+    "final_commit": null,
+    "release_notes": "docs/releases/0.45.0.md",
+    "api_documentation": "docs/API_0.45.0.md",
+    "deployment_documentation": "docs/DEPLOYMENT.md",
+    "release_process": "docs/RELEASE_PROCESS.md",
+    "source_archive": "https://github.com/f6yv7sgtgw-wq/GenericParser/archive/refs/tags/v0.45.0.zip",
+    "rollback_archive": "https://github.com/f6yv7sgtgw-wq/GenericParser/archive/ddba9bf55c999b349d98f1438b31a710bd570155.zip"
+  },
+  "documentation_policy": {
+    "applies_from": "0.45.0",
+    "applies_to_all_following_releases": true,
+    "versioned_api_snapshot_required": true,
+    "complete_function_description_required": true,
+    "known_limitations_required": true,
+    "current_free_worker_limits_required": true,
+    "release_notes_required": true,
+    "github_metadata_required": true,
+    "ci_and_live_evidence_required": true,
+    "validation_script": "scripts/check_release_metadata.py"
+  },
+  "cloudflare_free_limits": {
+    "verified_on": "2026-08-05",
+    "requests_per_day": 100000,
+    "reset_timezone": "UTC",
+    "cpu_ms_per_http_request": 10,
+    "memory_mb_per_isolate": 128,
+    "subrequests_per_invocation": 50,
+    "simultaneous_outgoing_connections": 6,
+    "compressed_worker_size_mb": 3,
+    "startup_time_seconds": 1,
+    "log_kb_per_request": 256,
+    "environment_variables_per_worker": 64,
+    "environment_variable_size_kb": 5,
+    "official_limits": "https://developers.cloudflare.com/workers/platform/limits/",
+    "official_pricing": "https://developers.cloudflare.com/workers/platform/pricing/",
+    "python_runtime": "https://developers.cloudflare.com/workers/languages/python/how-python-workers-work/"
+  },
+  "verification": {
+    "required_for_confirmed_release": true,
+    "local_tests": {
+      "status": "passed",
+      "verified_at": "2026-08-05T09:37:45Z",
+      "command": "python scripts/run_release_tests.py",
+      "result": "84 passed"
+    },
+    "github_release_integrity": {
+      "status": "pending",
+      "verified_at": null,
+      "commit": null,
+      "run_url": null
+    },
+    "cloudflare_deployment": {
+      "status": "pending",
+      "verified_at": null,
+      "commit": null,
+      "run_url": null
+    },
+    "live_contract": {
+      "status": "pending",
+      "verified_at": null,
+      "worker_url": null,
+      "version": null,
+      "build_id": null
+    },
+    "live_search_packet": {
+      "status": "pending",
+      "verified_at": null,
+      "query": "Evercade",
+      "result_count": null,
+      "detail": null
+    }
+  },
+  "release_test_suite": {
+    "runner": "scripts/run_release_tests.py",
+    "network_live_tests_enabled": false,
+    "historical_release_assertions_excluded": true,
+    "paths": [
+      "tests/test_module_v0450.py",
+      "tests/test_search_service_v0444.py",
+      "tests/test_pwa_assets.py",
+      "tests/test_deployment_02d.py",
+      "tests/test_config.py",
+      "tests/test_models.py",
+      "tests/test_normalization.py",
+      "tests/test_kleinanzeigen_adapter.py",
+      "tests/test_kleinanzeigen_http.py",
+      "tests/test_kleinanzeigen_parser.py",
+      "tests/test_kleinanzeigen_urls.py",
+      "tests/test_service.py",
+      "tests/test_cli.py",
+      "tests/test_web.py"
+    ]
+  },
   "module_endpoints": {
     "capabilities": "/api/module/v1/capabilities",
     "profile_validate": "/api/module/v1/profile/validate",
@@ -59,7 +162,9 @@
     "activation": "enabled=true or X-GenericParser-Tests: 1",
     "network_used": false,
     "search_blocking": false,
-    "ci_workflow": ".github/workflows/module-0450.yml"
+    "ci_workflow": ".github/workflows/module-0450.yml",
+    "release_integrity_workflow": ".github/workflows/release-integrity.yml",
+    "deployment_workflow": ".github/workflows/cloudflare-deploy.yml"
   },
   "unchanged_from_04465": [
     "controller-0411 source and search event handlers",
@@ -95,5 +200,5 @@
     "reference_must_remain_available": true
   },
   "next_step_after_test": "validate module endpoints and then integrate the module contract into the Evercade project as 0.45.1",
-  "metadata_schema": 19
+  "metadata_schema": 20
 }

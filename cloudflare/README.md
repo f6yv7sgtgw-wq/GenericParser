@@ -1,17 +1,22 @@
-# Cloudflare Mobile Worker – 0.2c
+# Cloudflare Mobile Worker – 0.45.0
 
-Diese Variante stellt GenericParser als mobile PWA auf Cloudflare Workers bereit. Das Smartphone öffnet nur die Web-App; der Cloudflare Worker ruft genau eine Kleinanzeigen-Ergebnisliste ab und parst maximal 20 Treffer.
+Diese Variante stellt GenericParser als mobile PWA und als versioniertes Modul `generic-parser-module-v1` auf Cloudflare Python Workers bereit.
 
-## Voraussetzungen
+## Laufzeit
 
-- Cloudflare-Konto
-- Node.js und Wrangler 4.64 oder neuer
-- `uv` 0.29.8 oder neuer
-- `workers-py` 1.72 oder neuer
+```text
+PWA oder Projekt
+→ FastAPI/ASGI im Python Worker
+→ ein Kleinanzeigen-Arbeitspaket
+→ höchstens sieben normalisierte Karten
+```
+
+Die PWA koordiniert weitere Pakete mit mindestens fünf Sekunden Pause, speichert den Fortschritt lokal und dedupliziert Anzeigen-IDs. Der Worker selbst enthält keine dauerhafte Suchdatenbank und keinen Hintergrundscheduler.
 
 ## Lokal testen
 
 ```bash
+uv sync --group cloudflare --extra dev
 uv run --group cloudflare pywrangler dev
 ```
 
@@ -22,24 +27,27 @@ uv run --group cloudflare pywrangler login
 uv run --group cloudflare pywrangler deploy
 ```
 
-Nach dem Deployment zeigt Pywrangler die `workers.dev`-URL an. Diese URL kann auf iPhone oder Android zum Home-Bildschirm hinzugefügt werden.
+Der verbindliche GitHub-, Deployment- und Live-Prüfprozess steht in [`../docs/DEPLOYMENT.md`](../docs/DEPLOYMENT.md).
 
 ## Zugriff schützen
 
-Optional wird ein gemeinsames Token als Worker-Secret gesetzt:
+Optionales Worker-Secret:
 
 ```bash
 uv run --group cloudflare pywrangler secret put APP_TOKEN
 ```
 
-Das gleiche Token wird im mobilen Interface unter „Ort, Radius und Zugriff“ eingetragen und nur lokal im Browser gespeichert. Für einen produktiven Betrieb ist Cloudflare Access gegenüber einem gemeinsamen Token vorzuziehen.
+Suchclients senden es als `X-GenericParser-Token`. Für breitere Nutzung ist Cloudflare Access gegenüber einem gemeinsam verteilten Token vorzuziehen.
 
-## Worker-Grenzen
+## Aktive Grenzen
 
-- eine Kleinanzeigen-Seite je Suche
-- maximal 20 zurückgegebene Anzeigen
-- keine Persistenz und kein Hintergrundlauf
-- keine Detailseiten
-- Blockierungen werden als HTTP 429 gemeldet
+- eine Kleinanzeigen-Quellseite wird pro Request geladen,
+- höchstens sieben Karten werden pro virtuellem Arbeitspaket verarbeitet,
+- bis zu vier Pakete bilden eine typische Quellseite ab,
+- keine Detailseiten,
+- keine Worker-Persistenz, Queue oder Benachrichtigung,
+- Debug und Selbsttests standardmäßig aus,
+- Selbsttests ohne Kleinanzeigen-Abruf,
+- echte Langläufe bleiben durch den Free-Tarif begrenzt.
 
-Die Begrenzungen sind absichtlich gewählt, um CPU-Zeit, Subrequests und das Risiko unnötiger Plattformzugriffe gering zu halten.
+Die vollständigen Plattformzahlen, Funktionsgrenzen und Projektbeispiele stehen in [`../docs/API_0.45.0.md`](../docs/API_0.45.0.md).

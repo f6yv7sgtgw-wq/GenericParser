@@ -85,12 +85,12 @@ def validate_module_profile(profile: ModuleSearchProfile) -> dict[str, Any]:
     """Validiert auch gegen den unveränderten 0.44.4-Requestvertrag."""
 
     legacy_payload = profile.to_legacy_payload()
-    validated = SearchRequest.model_validate(legacy_payload)
+    SearchRequest.model_validate(legacy_payload)
     return {
         "contract": MODULE_CONTRACT,
         "valid": True,
         "profile": profile.model_dump(mode="json"),
-        "legacy_payload": validated.model_dump(mode="json", exclude_none=True),
+        "legacy_payload": legacy_payload,
         "empty_fields_ignored": True,
         "reference_request_validated": True,
     }

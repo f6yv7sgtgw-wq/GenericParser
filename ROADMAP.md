@@ -35,6 +35,10 @@ Enthalten:
 - Debug-Logs als expliziter, standardmäßig deaktivierter Schalter
 - netzwerkfreie Modultests als expliziter, standardmäßig deaktivierter Schalter
 - eigener CI-Workflow für Modulvertrag und Referenzschutz
+- vollständiger API-, Funktions- und Free-Worker-Limitierungssnapshot
+- verbindlicher Release-Prozess und strukturierte Metadaten für alle folgenden Releases
+- allgemeiner Release-Integritätscheck ohne Pfadfilter
+- livefähiger Deployment-Smoke-Test für Vertrag, Selbsttest und ein echtes 7er-Arbeitspaket
 
 ### Abnahmekriterien 0.45.0
 
@@ -48,6 +52,8 @@ Enthalten:
 8. Aktivierte Modultests verwenden kein Kleinanzeigen-Netzwerk.
 9. Evercade- und SNES-PAL-Adapter erfüllen denselben Profilvertrag.
 10. Bei einer Regression bleibt 0.44.6.5 sofort wiederherstellbar.
+11. GitHub liefert für den finalen Commit einen erfolgreichen Release-Integritätsstatus.
+12. Cloudflare deployt exakt diesen Stand und besteht den aktualisierten Live-Smoke-Test.
 
 ## 0.45.1 – Evercade-Integration
 

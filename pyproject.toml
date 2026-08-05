@@ -20,6 +20,13 @@ dependencies = [
   "jinja2>=3.1",
 ]
 
+[project.urls]
+Homepage = "https://github.com/f6yv7sgtgw-wq/GenericParser"
+Documentation = "https://github.com/f6yv7sgtgw-wq/GenericParser/blob/main/docs/API_0.45.0.md"
+Changelog = "https://github.com/f6yv7sgtgw-wq/GenericParser/blob/main/CHANGELOG.md"
+Source = "https://github.com/f6yv7sgtgw-wq/GenericParser"
+Issues = "https://github.com/f6yv7sgtgw-wq/GenericParser/issues"
+
 [project.scripts]
 generic-parser = "generic_parser.cli:main"
 generic-parser-web = "generic_parser.web.app:main"

@@ -42,7 +42,7 @@ Stabile Rückfallreferenz:   0.44.6.5
 Laufzeitbasis:              0.44.6.2
 Debug-Logs:                 standardmäßig aus, fail-open
 Modultests:                 standardmäßig aus, ohne Kleinanzeigen-Abruf
-Status:                     Implementiert; CI- und Cloudflare-Live-Abnahme ausstehend
+Status:                     Stable Candidate; allgemeine CI und Live-Abnahme ausstehend
 ```
 
 ## Downloadformat
@@ -67,4 +67,6 @@ https://github.com/f6yv7sgtgw-wq/GenericParser/archive/refs/heads/main.zip
 
 ## Pflegevorgabe
 
-Bei neuen Releases gemeinsam aktualisieren: README, Changelog, Paketversion, Release-Index, `VERSION.json`, UI, Controller, Worker, Eventlog, Cache-Busting und Regressionstests.
+Bei jedem folgenden Release sind gemeinsam zu aktualisieren: README, Changelog, Roadmap, Paketversion, Release-Index, `VERSION.json`, versionsgebundene API-Dokumentation, vollständige Funktions- und Limitierungsbeschreibung, Release Notes, UI, Controller, Worker, Eventlog, Service-Worker-Cache, Regressionstests, GitHub-Metadaten sowie CI- und Cloudflare-Livenachweis.
+
+Verbindlicher Ablauf: [`docs/RELEASE_PROCESS.md`](RELEASE_PROCESS.md). Vollständiger Snapshot für 0.45.0: [`docs/API_0.45.0.md`](API_0.45.0.md) und [`docs/releases/0.45.0.md`](releases/0.45.0.md).

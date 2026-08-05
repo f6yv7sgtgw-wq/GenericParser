@@ -98,3 +98,22 @@ Smartphone → PWA / Workers Static Assets → FastAPI Python Worker → Kleinan
 ```
 
 Der Worker führt pro Anfrage nur eine Keyword-Suche aus. Netzwerkzugriff erfolgt asynchron; der HTML-Parser baut nur die relevanten Anzeigenkarten auf. Die PWA enthält keine Parserlogik und speichert lediglich ein optionales Zugriffstoken im lokalen Browser. Hintergrundläufe, Persistenz und Benachrichtigungen bleiben der späteren Worker-Phase vorbehalten.
+
+## 10. Stand 0.45.0 – versionierter Modulvertrag
+
+Evercade, SNES-PAL und weitere Projekte verwenden `generic-parser-module-v1`:
+
+```text
+Projektprofil
+→ POST /api/module/v1/search
+→ Validierung und Übersetzung in den Referenzrequest
+→ unveränderter Suchkern 0.44.4
+→ ein Free-Worker-Arbeitspaket mit höchstens sieben Karten
+→ einheitliche Listings, Pagination, Summary, Ampel und Deployment-Identität
+```
+
+Der Modulvertrag trennt Projektlogik und Suche. GenericParser kennt weder Sammlung noch Kaufstatus. Die Projekte persistieren den Suchfortschritt, deduplizieren Anzeigen-IDs über alle Pakete und entscheiden über Darstellung oder Benachrichtigung.
+
+Der aktive Worker bleibt absichtlich zustandslos. Eine typische Kleinanzeigen-Quellseite wird in bis zu vier virtuelle Pakete zerlegt; der Client wartet zwischen den Requests mindestens fünf Sekunden. Dieses Muster reduziert CPU-Arbeit je Aufruf, garantiert im Cloudflare-Free-Tarif aber keine vollständige lange Suche oder erfolgreiche Recovery.
+
+Debugberichte und Selbsttests sind getrennte opt-in Funktionen. Selbsttests verwenden keine Kleinanzeigen-Verbindung. Der vollständige öffentliche Vertrag, die Bewertungslogik und Plattformgrenzen stehen in [`API_0.45.0.md`](API_0.45.0.md).

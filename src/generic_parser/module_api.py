@@ -33,16 +33,16 @@ class ModuleSearchProfile(BaseModel):
 
     profile_id: str = "manual"
     display_name: str = "Manuelle Suche"
-    query: str = Field(min_length=1)
+    query: str = Field(min_length=2, max_length=120)
     required_terms: list[str] = Field(default_factory=list)
     excluded_terms: list[str] = Field(default_factory=list)
     model_patterns: list[str] = Field(default_factory=list)
     brands: list[str] = Field(default_factory=list)
-    max_price: float | None = Field(default=None, ge=0)
-    market_value: float | None = Field(default=None, ge=0)
+    max_price: float | None = Field(default=None, gt=0)
+    market_value: float | None = Field(default=None, gt=0)
     postal_code: str | None = None
     location_id: int | None = Field(default=None, gt=0)
-    radius_km: int | None = Field(default=None, ge=0)
+    radius_km: int | None = Field(default=None, ge=0, le=200)
     accept_bundles: bool = False
     accept_incomplete: bool = False
     include_review: bool = True

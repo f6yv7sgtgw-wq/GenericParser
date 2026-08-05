@@ -7,6 +7,7 @@ netzwerkfreie Selbsttests sind standardmäßig deaktiviert.
 from __future__ import annotations
 
 import importlib
+from hmac import compare_digest
 from time import perf_counter
 from typing import Any
 
@@ -82,6 +83,34 @@ def failure(request: Request, detail: str, phase: str, exc: Exception | None = N
 
 def enabled_header(request: Request, name: str) -> bool:
     return request.headers.get(name, "").strip().casefold() in {"1", "true", "yes", "on"}
+
+
+def _env_value(request: Request, name: str) -> str | None:
+    env = request.scope.get("env")
+    value = getattr(env, name, None) if env is not None else None
+    if value is None and isinstance(env, dict):
+        value = env.get(name)
+    return str(value) if value not in (None, "") else None
+
+
+def _authenticate_search(request: Request) -> JSONResponse | None:
+    """Protect only search traffic when APP_TOKEN is configured."""
+
+    expected = _env_value(request, "APP_TOKEN")
+    supplied = request.headers.get("x-genericparser-token", "")
+    if expected is None or compare_digest(supplied, expected):
+        return None
+    return respond(
+        401,
+        {
+            "contract": MODULE_CONTRACT,
+            "detail": "Zugriffstoken fehlt oder ist ungültig.",
+            "retryable": False,
+            "error_type": "AuthenticationError",
+            "phase": "authentication",
+            "worker": identity(),
+        },
+    )
 
 
 def load_service() -> Any:
@@ -175,6 +204,9 @@ async def capabilities() -> JSONResponse:
 async def legacy_search(request: Request) -> JSONResponse:
     """Unveränderter Suchvertrag der 0.44.6.5-Oberfläche."""
 
+    auth_failure = _authenticate_search(request)
+    if auth_failure is not None:
+        return auth_failure
     started = perf_counter()
     debug_enabled = enabled_header(request, "x-genericparser-debug")
     try:
@@ -214,6 +246,9 @@ async def validate_profile(profile: ModuleSearchProfile, request: Request) -> JS
 
 @app.post("/api/module/v1/search")
 async def module_search(payload: ModulePageRequest, request: Request) -> JSONResponse:
+    auth_failure = _authenticate_search(request)
+    if auth_failure is not None:
+        return auth_failure
     try:
         service = load_service()
         result = await service.search_module_page(payload, request)
