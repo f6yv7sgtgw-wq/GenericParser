@@ -2,76 +2,76 @@
 
 ## Fachlicher Referenzkern 0.44.4
 
-0.44.4 bleibt die fachliche Vergleichsbasis für Suchfluss, echte Kleinanzeigen-Weiter-Navigation, robuste Extraktion, Datenkonsistenz und die Ampelbewertung ausschließlich aktiver Regeln. Der Kern wird unverändert über `search_service_v0444` verwendet.
+0.44.4 bleibt die fachliche Vergleichsbasis für Suchfluss, echte Kleinanzeigen-Weiter-Navigation, Extraktion, Datenkonsistenz und Ampelbewertung ausschließlich aktiver Regeln.
 
 ## Stabile Rückfallreferenz 0.44.6.5
 
-0.44.6.5 bleibt der bekannte operative Rückfallstand:
-
-- bestätigter ASGI- und FastAPI-Pfad
-- unveränderter 0.44.4-Suchkern
-- 7er-Arbeitspakete
-- fünf Sekunden Browserpause
-- echte Weiter-Navigation
-- persistente Fortschrittssicherung
-- bestehendes einmaliges Auto-Resume-Verhalten
-
-Die Recovery- und Cooldown-Experimente aus 0.44.6.3 bis 0.44.6.6.1 sind abgeschlossen und werden nicht in den aktiven 0.45-Suchpfad übernommen.
+0.44.6.5 bleibt der operative Rückfallstand mit 7er-Arbeitspaketen, fünf Sekunden Browserpause, echter Weiter-Navigation, persistentem Fortschritt und bestehendem einmaligem Auto-Resume-Verhalten.
 
 ## 0.45.0 – Integrierbares Parsermodul
 
-Status: **implementiert und GitHub-CI-bestätigt; Cloudflare-Live-Abnahme durch ungültigen Deployment-Token blockiert**.
+Abgeschlossen:
+
+- `generic-parser-module-v1`
+- projektneutrale Profile, Listings, Pagination und Summary
+- Evercade- und SNES-PAL-Adapter
+- unveränderte Delegation an den 0.44.4-Suchkern
+- Debug und netzwerkfreie Modultests standardmäßig deaktiviert
+
+## 0.45.1 – Infrastrukturstabilisierung
+
+Status: **Release Candidate / Deployment-Abnahme**.
+
+Ziel: dauerhaft zuverlässige Kommunikation zwischen Cloudflare Worker und Browserclients ohne Änderung der Suchlogik.
 
 Enthalten:
 
-- versionierter Vertrag `generic-parser-module-v1`
-- `ModuleSearchProfile` als projektneutrales Suchprofil
-- einheitliche Listings, Pagination und Summary
-- unveränderte Delegation an den 0.44.4-Suchkern
-- kompatibler `/api/search`-Pfad für die bestehende Oberfläche
-- neue Endpunkte unter `/api/module/v1/*`
-- Evercade-Profiladapter
-- SNES-PAL-Profiladapter
-- Debug-Logs als expliziter, standardmäßig deaktivierter Schalter
-- netzwerkfreie Modultests als expliziter, standardmäßig deaktivierter Schalter
-- eigener CI-Workflow für Modulvertrag und Referenzschutz
-- vollständiger API-, Funktions- und Free-Worker-Limitierungssnapshot
-- verbindlicher Release-Prozess und strukturierte Metadaten für alle folgenden Releases
-- allgemeiner Release-Integritätscheck ohne Pfadfilter
-- livefähiger Deployment-Smoke-Test für Vertrag, Selbsttest und ein echtes 7er-Arbeitspaket
+- `GET /health`
+- `GET /version` und kompatibles `GET /api/version`
+- `GET /diagnostics`
+- `POST /search`
+- `POST /api/search`
+- `POST /api/module/search`
+- kanonisches `POST /api/module/v1/search`
+- globale CORS-Middleware
+- browserkompatible `OPTIONS`-Preflights
+- einheitliche `Access-Control-Allow-*`-Header
+- Request-ID, Timestamp, Route, Methode, Origin, User-Agent, Laufzeit, HTTP-Status und Trefferzahl im Workerlog
+- Fehler und Stacktrace im Workerlog
+- Syntax-, Metadaten-, Routing-, CORS- und Smoke-Tests vor dem Deploy
+- Health-, Versions-, Diagnostics-, CORS- und Live-Paket-Test nach dem Deploy
+- vollständige Kompatibilität zu `generic-parser-module-v1`
 
-### Abnahmekriterien 0.45.0
+Nicht Bestandteil: neue Quellen, Multi-Quellen-Suche, Rankingänderungen oder Preisbewertung.
 
-1. `/api/version` meldet `0.45.0`, Build `gp-0450-20260805-1` und Modulvertrag v1.
-2. Die bestehende UI-Suche entspricht funktional 0.44.6.5.
-3. Leere optionale Profilfelder werden nicht an den Suchkern übertragen.
-4. `/api/module/v1/profile/validate` liefert ein serialisierbares Profil und Legacy-Payload.
-5. `/api/module/v1/search` liefert das gemeinsame Ergebnisformat.
-6. Debug-Logs bleiben ohne Schalter vollständig aus.
-7. Modultests bleiben ohne Schalter gesperrt.
-8. Aktivierte Modultests verwenden kein Kleinanzeigen-Netzwerk.
-9. Evercade- und SNES-PAL-Adapter erfüllen denselben Profilvertrag.
-10. Bei einer Regression bleibt 0.44.6.5 sofort wiederherstellbar.
-11. GitHub liefert für den finalen Commit einen erfolgreichen Release-Integritätsstatus.
-12. Cloudflare deployt exakt diesen Stand und besteht den aktualisierten Live-Smoke-Test.
+### Abnahmekriterien 0.45.1
 
-## 0.45.1 – Evercade-Integration
+1. `/health` meldet `0.45.1` und `gp-0451-20260807-1`.
+2. `/version` meldet denselben Build und Vertrag.
+3. `/diagnostics` bestätigt Routing, API, Modulvertrag und CORS.
+4. `OPTIONS /api/module/search` liefert browserkompatible Preflight-Header.
+5. `/api/search` bleibt zur 0.45.0-Suchbasis kompatibel.
+6. `/api/module/search` und `/api/module/v1/search` liefern denselben Modulvertrag.
+7. Live-Arbeitspakete bleiben auf höchstens sieben Listings begrenzt.
+8. Evercade Next kann die Endpunkte aus dem Browser erreichen.
+9. Bei Regression bleibt die stabile Rückfallreferenz `0.44.6.5` verfügbar.
 
-- GenericParser-Modul im Evercade-Projekt anbinden
+## 0.45.2 – Evercade-Integration
+
+- GenericParser 0.45.1 im Evercade-Projekt produktiv anbinden
 - Cartridge-Daten in `ModuleSearchProfile` übersetzen
 - Richtwert und Maximalpreis übergeben
 - Ergebnisse, Ampel, URL, Preis und Zustand zurückführen
-- projektspezifische Tests standardmäßig deaktivierbar halten
-- bestehende Evercade-Suche erst nach Vergleichslauf ersetzen
+- End-to-End-Vergleichsläufe dokumentieren
 
-## 0.45.2 – SNES-PAL-Integration
+## 0.45.3 – SNES-PAL-Integration
 
-- GenericParser-Modul im SNES-Sammlungsmanager anbinden
+- GenericParser im SNES-Sammlungsmanager anbinden
 - PAL-Titel, Varianten und Ausschlussbegriffe übertragen
 - NTSC/Repro-Prüfung projektspezifisch ergänzen
 - Ergebnisvertrag gegen reale SNES-Suchprofile testen
 
-## 0.45.3 – Gemeinsame Integrationsabnahme
+## 0.45.4 – Gemeinsame Integrationsabnahme
 
 - identische Modulversion in Evercade und SNES
 - Referenzprofile und Fixture-Ergebnisse
@@ -83,7 +83,7 @@ Enthalten:
 
 - Hauptprodukt, Zubehör, Ersatzteil, Bundle, Gesuch, Vermietung und Service unterscheiden
 - projektspezifische Klassifikationsregeln
-- Regressionstests aus Thule-, Evercade- und SNES-Suchen
+- Regressionstests aus Evercade- und SNES-Suchen
 
 ## 0.47 – Cartridge-Normalisierung
 
