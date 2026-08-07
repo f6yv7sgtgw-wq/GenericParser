@@ -38,7 +38,7 @@ jobs:
             src/generic_parser/integrations/__init__.py \
             src/generic_parser/integrations/evercade.py \
             src/generic_parser/integrations/snes.py \
-            src/generic_parser/build_identity_v0451.py \
+            src/generic_parser/build_identity_v0452.py \
             src/generic_parser/search_service_v0450.py \
             src/generic_parser/cloudflare_v0451.py \
             src/generic_parser/cloudflare_worker.py \
@@ -47,7 +47,7 @@ jobs:
             scripts/run_release_tests.py
       - name: Validate active browser assets
         run: |
-          node --check cloudflare/public/build-identity-0451.js
+          node --check cloudflare/public/build-identity-0452.js
           node --check cloudflare/public/controller-0450.js
           node --check cloudflare/public/module-debug-0450.js
           node --check cloudflare/public/auto-resume-0450.js
