@@ -46,7 +46,7 @@ jobs:
       - name: Install dependencies
         run: uv sync --group cloudflare --extra dev
       - name: Run stable regression tests
-        run: uv run pytest -q tests/test_search_service_v0444.py tests/test_build3_v0452.py
+        run: uv run pytest -q tests/test_release_100.py tests/test_search_service_v0444.py
       - name: Compile active runtime
         run: |
           uv run python -m py_compile \
