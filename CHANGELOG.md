@@ -2,6 +2,20 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.0.0 – 2026-08-08 – Stable
+
+- Den funktionierenden GenericParser 0.45.2 Build 7 Paid Worker als erste stabile Produktionsversion freigegeben.
+- Versionsschema ab jetzt auf Semantic Versioning umgestellt.
+- API-/Modulvertrag `generic-parser-module-v1` unverändert übernommen.
+- Evercade- und SNES-PAL-Adapter unverändert übernommen.
+- Suchruntime bleibt `0.45.0`, fachlicher Suchkern `0.44.4`, operative Referenz `0.44.6.5`.
+- 7er-Arbeitspakete, Pagination, Extraktion, Matching, Scoring und Ampel nicht verändert.
+- Free-Worker-Schutzzeiten bleiben im Paid-Worker-Profil deaktiviert: kein Such-Cooldown, keine normale Paketpause, keine Retry-Wartezeiten.
+- Health, Version, Diagnostics, CORS/OPTIONS und alle Suchalias-Routen bleiben Bestandteil der Produktionsabnahme.
+- Browser-/Worker-Identität, Paketmetadaten, README, Roadmap, Release-Dokumentation und Deploy-Workflow auf 1.0.0 vereinheitlicht.
+- Eigene 1.0.0-Regressionssuite und Live-Deployment-Gate ergänzt.
+- Letzter Rollback-Stand vor 1.0: 0.45.2 Build 7 Paid Worker, Commit `70c22ee4cda2f029490fb6825668db57358e4aa5`.
+
 ## 0.45.0 – 2026-08-05 – Modulversion
 
 - Stabilen Vertrag `generic-parser-module-v1` für eingebettete Projekte eingeführt.
