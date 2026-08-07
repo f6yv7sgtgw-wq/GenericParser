@@ -31,10 +31,12 @@ def test_build4_does_not_edit_search_service_runtime() -> None:
 def test_build4_browser_accepts_compatible_045_worker_builds() -> None:
     controller = read("cloudflare/public/controller-0450.js")
     identity = read("cloudflare/public/build-identity-0450.js")
+    old_guard = "if (workerVersion && (workerVersion !== VERSION || workerBuild !== BUILD_ID || workerContract !== API_CONTRACT)) {"
+    compatible_guard = "if (workerVersion && (workerContract !== API_CONTRACT || workerVersion.split('.').slice(0,2).join('.') !== VERSION.split('.').slice(0,2).join('.'))) {"
     assert "compatibleReleaseLine:'0.45'" in identity
-    assert "workerVersion.split('.').slice(0,2).join('.') !== VERSION.split('.').slice(0,2).join('.')" in controller
-    assert "workerBuild !== BUILD_ID" not in controller
-    assert "workerContract !== API_CONTRACT" in controller
+    assert old_guard in controller
+    assert compatible_guard in controller
+    assert f'["{old_guard}", "{compatible_guard}"]' in controller
 
 
 def test_health_version_diagnostics_and_capabilities() -> None:
