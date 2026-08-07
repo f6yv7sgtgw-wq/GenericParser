@@ -2,7 +2,7 @@
   "product": "GenericParser",
   "version": "0.45.2",
   "package_version": "0.45.2",
-  "build_id": "gp-0452-20260807-3",
+  "build_id": "gp-0452-20260807-4",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
   "entrypoint": "src/generic_parser/cloudflare_worker.py:Default.fetch",
@@ -16,7 +16,7 @@
   "release_date": "2026-08-07",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "release-candidate-live-validation-required",
-  "purpose": "restore the live-proven 0.45.0 search runtime while adding browser CORS, diagnostics, aliases and deployment verification without lazy ASGI imports",
+  "purpose": "fix browser UI/worker build compatibility after Build 3 while keeping the live-proven 0.45.0 search runtime unchanged",
   "module_endpoints": {
     "health": "/health",
     "version": "/version",
@@ -38,6 +38,13 @@
     "startup_model": "eager-asgi-0450",
     "lazy_asgi_import": false
   },
+  "browser_compatibility": {
+    "release_line": "0.45",
+    "exact_build_match_required": false,
+    "api_contract_match_required": true,
+    "incompatible_release_line_rejected": true,
+    "deployment_mismatch_regression_fixed": true
+  },
   "unchanged_search_behavior": [
     "search_service_v0450",
     "0.44.4 search core",
@@ -57,20 +64,22 @@
     "capabilities_200": true,
     "browser_preflight": true,
     "module_search_live": true,
+    "legacy_ui_search_live": true,
     "startup_model": "eager-asgi-0450",
     "search_core_diff_allowed": false
   },
   "rollback_plan": {
-    "last_live_search_reference": "a418c7cd87d06a46453e56ca2e76fba48569222d",
-    "version": "0.45.0",
-    "build_id": "gp-0450-20260805-1",
-    "action_if_regression": "restore main to the 0.45.0 live-search reference immediately"
+    "last_live_search_reference": "73e5879b21cf038ad3494168da3bab6b483d00b5",
+    "version": "0.45.2",
+    "build_id": "gp-0452-20260807-3",
+    "action_if_regression": "restore main to Build 3 immediately"
   },
   "verification": {
     "pre_deploy_ci": "required",
     "cloudflare_deployment": "required",
     "live_browser_contract": "required",
-    "live_evercade_search_packet": "required"
+    "live_evercade_search_packet": "required",
+    "legacy_ui_api_search": "required"
   },
-  "metadata_schema": 23
+  "metadata_schema": 24
 }

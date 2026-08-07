@@ -1,0 +1,1 @@
+GenericParser 0.45.2 Build 4 browser compatibility hotfix
