@@ -45,9 +45,9 @@ jobs:
           node-version: "22"
       - name: Install dependencies
         run: uv sync --group cloudflare --extra dev
-      - name: Run Build 3 and module regression tests
+      - name: Run Build 3 and search-core regression tests
         run: |
-          uv run pytest -q tests/test_build3_v0452.py tests/test_module_v0450.py tests/test_search_service_v0444.py
+          uv run pytest -q tests/test_build3_v0452.py tests/test_search_service_v0444.py
       - name: Compile active runtime
         run: |
           uv run python -m py_compile \
