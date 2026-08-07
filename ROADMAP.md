@@ -1,113 +1,75 @@
 # GenericParser Roadmap
 
-## Fachlicher Referenzkern 0.44.4
+## 1.0.0 – Stable baseline
 
-0.44.4 bleibt die fachliche Vergleichsbasis für Suchfluss, echte Kleinanzeigen-Weiter-Navigation, robuste Extraktion, Datenkonsistenz und die Ampelbewertung ausschließlich aktiver Regeln. Der Kern wird unverändert über `search_service_v0444` verwendet.
+Status: **Stable**.
 
-## Stabile Rückfallreferenz 0.44.6.5
+GenericParser 1.0.0 is the production baseline. It promotes the proven Paid Worker state without changing the functional search core.
 
-0.44.6.5 bleibt der bekannte operative Rückfallstand:
+Stable guarantees:
 
-- bestätigter ASGI- und FastAPI-Pfad
-- unveränderter 0.44.4-Suchkern
-- 7er-Arbeitspakete
-- fünf Sekunden Browserpause
-- echte Weiter-Navigation
-- persistente Fortschrittssicherung
-- bestehendes einmaliges Auto-Resume-Verhalten
+- `generic-parser-module-v1` remains the integration contract;
+- Evercade and SNES PAL adapters remain supported;
+- search runtime remains based on the proven 0.45.0 implementation;
+- functional search core remains 0.44.4;
+- operational reference remains 0.44.6.5;
+- seven-result work packets remain;
+- artificial Free Worker waiting times are disabled on the paid profile;
+- CORS, diagnostics, deployment identity and live verification are release requirements.
 
-Die Recovery- und Cooldown-Experimente aus 0.44.6.3 bis 0.44.6.6.1 sind abgeschlossen und werden nicht in den aktiven 0.45-Suchpfad übernommen.
+## 1.1 – Client integration hardening
 
-## 0.45.0 – Integrierbares Parsermodul
+- complete Evercade Next validation against 1.0.0;
+- complete SNES PAL validation against 1.0.0;
+- remove exact build pinning from clients in favor of module-contract compatibility;
+- common client error schema and diagnostics;
+- regression fixtures for both projects.
 
-Status: **implementiert, Live-Abnahme ausstehend**.
+## 1.2 – Product classification
 
-Enthalten:
+- distinguish main product, accessory, replacement part, bundle, wanted ad, rental and service;
+- project-specific classification rules;
+- regression tests based on real Evercade, SNES and generic searches.
 
-- versionierter Vertrag `generic-parser-module-v1`
-- `ModuleSearchProfile` als projektneutrales Suchprofil
-- einheitliche Listings, Pagination und Summary
-- unveränderte Delegation an den 0.44.4-Suchkern
-- kompatibler `/api/search`-Pfad für die bestehende Oberfläche
-- neue Endpunkte unter `/api/module/v1/*`
-- Evercade-Profiladapter
-- SNES-PAL-Profiladapter
-- Debug-Logs als expliziter, standardmäßig deaktivierter Schalter
-- netzwerkfreie Modultests als expliziter, standardmäßig deaktivierter Schalter
-- eigener CI-Workflow für Modulvertrag und Referenzschutz
+## 1.3 – Title and cartridge normalization
 
-### Abnahmekriterien 0.45.0
+- normalize Evercade and SNES PAL titles;
+- spelling variants, numbers and editions;
+- identify individual modules contained in bundles.
 
-1. `/api/version` meldet `0.45.0`, Build `gp-0450-20260805-1` und Modulvertrag v1.
-2. Die bestehende UI-Suche entspricht funktional 0.44.6.5.
-3. Leere optionale Profilfelder werden nicht an den Suchkern übertragen.
-4. `/api/module/v1/profile/validate` liefert ein serialisierbares Profil und Legacy-Payload.
-5. `/api/module/v1/search` liefert das gemeinsame Ergebnisformat.
-6. Debug-Logs bleiben ohne Schalter vollständig aus.
-7. Modultests bleiben ohne Schalter gesperrt.
-8. Aktivierte Modultests verwenden kein Kleinanzeigen-Netzwerk.
-9. Evercade- und SNES-PAL-Adapter erfüllen denselben Profilvertrag.
-10. Bei einer Regression bleibt 0.44.6.5 sofort wiederherstellbar.
+## 1.4 – Search profile expansion
 
-## 0.45.1 – Evercade-Integration
+- structured profiles for missing cartridges;
+- consistent transfer of result, traffic-light and offer data;
+- prepare multiple providers behind the same module contract without changing client APIs.
 
-- GenericParser-Modul im Evercade-Projekt anbinden
-- Cartridge-Daten in `ModuleSearchProfile` übersetzen
-- Richtwert und Maximalpreis übergeben
-- Ergebnisse, Ampel, URL, Preis und Zustand zurückführen
-- projektspezifische Tests standardmäßig deaktivierbar halten
-- bestehende Evercade-Suche erst nach Vergleichslauf ersetzen
+## 1.5 – Deal engine
 
-## 0.45.2 – SNES-PAL-Integration
+- compare price with market value and maximum price;
+- condition, completeness and shipping;
+- deal classes and total price.
 
-- GenericParser-Modul im SNES-Sammlungsmanager anbinden
-- PAL-Titel, Varianten und Ausschlussbegriffe übertragen
-- NTSC/Repro-Prüfung projektspezifisch ergänzen
-- Ergebnisvertrag gegen reale SNES-Suchprofile testen
+## 1.6 – Server-side search jobs
 
-## 0.45.3 – Gemeinsame Integrationsabnahme
+- evaluate queue/workflow/Durable Object architecture;
+- persistent work packets independent from browser lifetime;
+- only new or changed offers;
+- result and price history;
+- notifications for Evercade and SNES.
 
-- identische Modulversion in Evercade und SNES
-- Referenzprofile und Fixture-Ergebnisse
-- Vertragskompatibilität und Fehlerdarstellung
-- gemeinsame Debug- und Testschalter
-- dokumentierter Rückfall je Projekt
+## 1.7 – Operations and quality
 
-## 0.46 – Produktklassifizierung
+- permanent regression suite;
+- reference searches for Evercade and SNES;
+- operational dashboards and diagnostics;
+- release/deployment checklist automation;
+- explicit rollback artifacts for every stable release.
 
-- Hauptprodukt, Zubehör, Ersatzteil, Bundle, Gesuch, Vermietung und Service unterscheiden
-- projektspezifische Klassifikationsregeln
-- Regressionstests aus Thule-, Evercade- und SNES-Suchen
+## Historical references
 
-## 0.47 – Cartridge-Normalisierung
+The pre-1.0 development line remains preserved in Git history and the changelog. Important references are:
 
-- Evercade- und SNES-PAL-Titel vereinheitlichen
-- Schreibvarianten, Nummern und Editionen normalisieren
-- Einzelmodule aus Bundles erkennen
-
-## 0.48 – Projektintegration ausbauen
-
-- Suchprofile pro fehlender Cartridge
-- strukturierte Übergabe von Treffer, Ampel und Angebotsdaten
-- mehrere Quellen hinter dem gemeinsamen Modulvertrag vorbereiten
-
-## 0.49 – Deal Engine
-
-- Preis gegen Richtwert und Maximalpreis
-- Zustand, Vollständigkeit und Versand
-- Deal-Klassen und Gesamtpreis
-
-## 0.50 – Serverseitige Suchaufträge
-
-- Queue, Workflow oder Durable Object separat bewerten
-- persistente Arbeitspakete statt Browser-Recovery
-- nur neue oder geänderte Angebote melden
-- Ergebnis- und Preisverlauf
-- Benachrichtigungen für Evercade und SNES
-
-## 0.51 – Betrieb und Qualität
-
-- feste Regressionstests
-- Referenzsuchen für Evercade und SNES
-- Betriebsdiagnose
-- Release- und Deployment-Checkliste
+- 0.44.4: functional search core;
+- 0.44.6.5: operational reference;
+- 0.45.0: module-v1 introduction;
+- 0.45.2 Build 7 Paid Worker: final proven pre-1.0 production baseline.
