@@ -29,19 +29,27 @@ jobs:
           url="https://genericparser.f6yv7sgtgw.workers.dev/health"
           for i in $(seq 1 24); do
             body="$(curl -fsS --max-time 15 "$url" 2>/dev/null || true)"
-            if printf '%s' "$body" | grep -q 'gp-0452-20260807-2'; then
-              printf '%s\n' "$body"
-              exit 0
-            fi
-            echo "Warte auf 0.45.2 Build 2 ($i/24)"
-            sleep 10
+            if printf '%s' "$body" | grep -q 'gp-0452-20260807-2'; then printf '%s\n' "$body"; exit 0; fi
+            echo "Warte auf 0.45.2 Build 2 ($i/24)"; sleep 10
           done
-          echo "0.45.2 Build 2 wurde nicht live erkannt"
           exit 1
-      - name: Verify browser contract and live Evercade packet
-        env:
-          APP_TOKEN: ${{ secrets.APP_TOKEN }}
-        run: python scripts/check_deployment.py https://genericparser.f6yv7sgtgw.workers.dev --live-search --browser-origin https://f6yv7sgtgw-wq.github.io
+      - name: Probe every public endpoint separately
+        shell: bash
+        run: |
+          base=https://genericparser.f6yv7sgtgw.workers.dev
+          origin=https://f6yv7sgtgw-wq.github.io
+          probe_get() { echo "=== GET $1 ==="; curl -sS --max-time 30 -o /tmp/body -D /tmp/headers -w 'HTTP=%{http_code}\n' -H "Origin: $origin" "$base$1" || true; head -c 700 /tmp/body; echo; grep -iE 'access-control|x-genericparser|x-request-id|cf-ray' /tmp/headers || true; }
+          probe_options() { echo "=== OPTIONS $1 ==="; curl -sS --max-time 30 -o /tmp/body -D /tmp/headers -w 'HTTP=%{http_code}\n' -X OPTIONS -H "Origin: $origin" -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: content-type,x-genericparser-contract,x-request-id' "$base$1" || true; head -c 500 /tmp/body; echo; grep -iE 'access-control|x-genericparser|x-request-id|cf-ray' /tmp/headers || true; }
+          probe_post() { echo "=== POST $1 ==="; curl -sS --max-time 60 -o /tmp/body -D /tmp/headers -w 'HTTP=%{http_code}\n' -X POST -H "Origin: $origin" -H 'Content-Type: application/json' --data '{"profile":{"profile_id":"probe","display_name":"Probe","query":"Evercade","include_review":true,"include_rejected":true},"page":0,"source":"auto","debug":{"enabled":false}}' "$base$1" || true; head -c 1000 /tmp/body; echo; grep -iE 'access-control|x-genericparser|x-request-id|cf-ray' /tmp/headers || true; }
+          probe_get /health
+          probe_get /version
+          probe_get /diagnostics
+          probe_options /api/module/search
+          probe_options /api/search
+          probe_options /search
+          probe_get /api/module/v1/capabilities
+          probe_post /api/module/search
+          probe_post /api/module/v1/search
       - name: Build exact release ZIP
         run: git archive --format=zip --output=GenericParser-0.45.2-Build2.zip 96b8b176237a42f9908dc0cb726f3a3471ec09b2
       - uses: actions/upload-artifact@v4
@@ -50,3 +58,7 @@ jobs:
           path: GenericParser-0.45.2-Build2.zip
           if-no-files-found: error
           retention-days: 30
+      - name: Verify browser contract and live Evercade packet
+        env:
+          APP_TOKEN: ${{ secrets.APP_TOKEN }}
+        run: python scripts/check_deployment.py https://genericparser.f6yv7sgtgw.workers.dev --live-search --browser-origin https://f6yv7sgtgw-wq.github.io
