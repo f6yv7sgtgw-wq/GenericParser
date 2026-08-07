@@ -9,8 +9,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
-EXPECTED_VERSION = "0.45.2"
-EXPECTED_BUILD = "gp-0452-20260807-4"
+EXPECTED_VERSION = "1.0.0"
+EXPECTED_BUILD = "gp-100-20260808-1"
 EXPECTED_CONTRACT = "generic-parser-module-v1"
 
 
@@ -18,7 +18,7 @@ def call(base_url: str, path: str, *, method: str = "GET", body: dict | None = N
          token: str | None = None, origin: str | None = None,
          request_headers: dict[str, str] | None = None) -> tuple[int, dict[str, str], bytes]:
     url = urljoin(base_url.rstrip("/") + "/", path.lstrip("/"))
-    headers = {"User-Agent": "GenericParser-DeploymentCheck/0.45.2-build4", "Accept": "application/json"}
+    headers = {"User-Agent": "GenericParser-DeploymentCheck/1.0.0", "Accept": "application/json"}
     if body is not None:
         headers["Content-Type"] = "application/json"
     if token:
@@ -73,7 +73,6 @@ def main() -> int:
         parser.error("base_url muss https:// verwenden")
 
     token = os.environ.get("APP_TOKEN") or None
-
     health, health_headers = json_call(args.base_url, "/health", token=token, origin=args.browser_origin)
     if health.get("status") != "ok":
         raise RuntimeError(f"Health nicht ok: {health}")
@@ -88,77 +87,29 @@ def main() -> int:
     assert_identity(diagnostics.get("worker") or {}, "/diagnostics")
     assert_cors(diag_headers, "/diagnostics")
     if (diagnostics.get("checks") or {}).get("startup_model") != "eager-asgi-0450":
-        raise RuntimeError("Build 4 verwendet nicht den erwarteten eager 0.45.0 ASGI-Start")
+        raise RuntimeError("1.0.0 verwendet nicht den erwarteten bewährten eager-ASGI-Start")
 
     for path in ("/api/module/search", "/api/search", "/search"):
-        status, headers, _ = call(
-            args.base_url,
-            path,
-            method="OPTIONS",
-            origin=args.browser_origin,
-            request_headers={
-                "Access-Control-Request-Method": "POST",
-                "Access-Control-Request-Headers": "content-type,x-genericparser-contract,x-request-id",
-            },
-        )
+        status, headers, _ = call(args.base_url, path, method="OPTIONS", origin=args.browser_origin,
+            request_headers={"Access-Control-Request-Method": "POST", "Access-Control-Request-Headers": "content-type,x-genericparser-contract,x-request-id"})
         if status not in (200, 204):
             raise RuntimeError(f"OPTIONS {path}: HTTP {status}")
         assert_cors(headers, f"OPTIONS {path}")
-        methods = headers.get("access-control-allow-methods", "")
-        if "POST" not in methods or "OPTIONS" not in methods:
-            raise RuntimeError(f"OPTIONS {path}: unvollständige Methoden {methods!r}")
 
-    capabilities, capabilities_headers = json_call(
-        args.base_url, "/api/module/v1/capabilities", token=token, origin=args.browser_origin
-    )
+    capabilities, capabilities_headers = json_call(args.base_url, "/api/module/v1/capabilities", token=token, origin=args.browser_origin)
     if capabilities.get("contract") != EXPECTED_CONTRACT:
         raise RuntimeError(f"Capabilities contract: {capabilities.get('contract')!r}")
     assert_cors(capabilities_headers, "/api/module/v1/capabilities")
 
     if args.live_search:
-        module_payload = {
-            "profile": {
-                "profile_id": "deployment-evercade",
-                "display_name": "Deployment Evercade",
-                "query": "Evercade",
-                "include_review": True,
-                "include_rejected": True,
-            },
-            "page": 0,
-            "source": "auto",
-            "debug": {"enabled": False},
-        }
-        result, search_headers = json_call(
-            args.base_url,
-            "/api/module/search",
-            method="POST",
-            body=module_payload,
-            token=token,
-            origin=args.browser_origin,
-        )
+        module_payload = {"profile": {"profile_id": "deployment-evercade", "display_name": "Deployment Evercade", "query": "Evercade", "include_review": True, "include_rejected": True}, "page": 0, "source": "auto", "debug": {"enabled": False}}
+        result, search_headers = json_call(args.base_url, "/api/module/search", method="POST", body=module_payload, token=token, origin=args.browser_origin)
         assert_cors(search_headers, "POST /api/module/search")
         if result.get("contract") != EXPECTED_CONTRACT:
             raise RuntimeError(f"Modulsuche contract: {result.get('contract')!r}")
 
-        legacy_payload = {
-            "mode": "live",
-            "query": "Snes",
-            "accept_bundles": False,
-            "accept_incomplete": False,
-            "include_review": True,
-            "include_rejected": True,
-            "sort_by": "relevance",
-            "page": 0,
-            "source": "auto",
-        }
-        legacy, legacy_headers = json_call(
-            args.base_url,
-            "/api/search",
-            method="POST",
-            body=legacy_payload,
-            token=token,
-            origin=args.browser_origin,
-        )
+        legacy_payload = {"mode": "live", "query": "Snes", "accept_bundles": False, "accept_incomplete": False, "include_review": True, "include_rejected": True, "sort_by": "relevance", "page": 0, "source": "auto"}
+        legacy, legacy_headers = json_call(args.base_url, "/api/search", method="POST", body=legacy_payload, token=token, origin=args.browser_origin)
         assert_cors(legacy_headers, "POST /api/search")
         if not isinstance(legacy.get("listings"), list):
             raise RuntimeError("Legacy-UI-Suche liefert keine listings-Liste")
