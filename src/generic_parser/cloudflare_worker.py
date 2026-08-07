@@ -1,8 +1,8 @@
-"""Cloudflare-Python-Worker entrypoint for GenericParser 0.45.2 Build 5.
+"""Cloudflare-Python-Worker entrypoint for GenericParser 0.45.2 Build 6.
 
-Build 5 keeps the proven 0.45.2 Build 4 FastAPI/search runtime unchanged and
-adds a Worker-edge CORS preflight handler. This avoids routing browser OPTIONS
-requests through ASGI and explicitly accepts the headers used by Evercade Next.
+Build 6 keeps the proven Build 5 Worker-edge CORS preflight handler and the
+0.45.0 search runtime unchanged. Evercade payload compatibility is implemented
+inside the ASGI alias /api/module/search only.
 """
 from __future__ import annotations
 
@@ -62,14 +62,11 @@ def _preflight_response(request) -> Response:
     headers = {
         "Access-Control-Allow-Origin": CORS_ALLOW_ORIGIN,
         "Access-Control-Allow-Methods": CORS_ALLOW_METHODS,
-        # Echo the browser's requested header list when present, as recommended
-        # by Cloudflare's Worker CORS example. Fall back to the complete known
-        # Evercade/GenericParser allow-list for manual OPTIONS checks.
         "Access-Control-Allow-Headers": requested_headers or CORS_ALLOW_HEADERS,
         "Access-Control-Max-Age": CORS_MAX_AGE,
         "Vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
         "Cache-Control": "no-store",
-        "X-GenericParser-CORS-Layer": "worker-edge-build5",
+        "X-GenericParser-CORS-Layer": "worker-edge-build6",
     }
     return Response(None, status=204, headers=headers)
 
@@ -80,10 +77,6 @@ from generic_parser.cloudflare_v0452 import app  # noqa: E402
 
 class Default(WorkerEntrypoint):
     async def fetch(self, request):
-        # A browser request containing x-generic-parser-contract/x-request-id or
-        # application/json triggers an automatic OPTIONS request. Handle it here
-        # so Safari receives the required Access-Control-Allow-* headers without
-        # entering FastAPI/ASGI. Normal requests remain completely unchanged.
         if str(request.method).upper() == "OPTIONS":
             return _preflight_response(request)
         return await asgi.fetch(app, request, self.env)
