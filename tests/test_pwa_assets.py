@@ -10,7 +10,8 @@ def test_cloudflare_configuration_is_mobile_worker_ready() -> None:
     assert config["main"] == "src/generic_parser/cloudflare_worker.py"
     assert "python_workers" in config["compatibility_flags"]
     assert config["assets"]["directory"] == "./cloudflare/public"
-    assert "/api/*" in config["assets"]["run_worker_first"]
+    worker_first = set(config["assets"]["run_worker_first"])
+    assert {"/api/*", "/health", "/version", "/diagnostics", "/search"}.issubset(worker_first)
 
 
 def test_pwa_manifest_and_required_assets_exist() -> None:
