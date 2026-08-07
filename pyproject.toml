@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generic-kleinanzeigen-parser"
-version = "0.45.2"
-description = "Reusable Kleinanzeigen parser module with stable module-v1 API and browser transport diagnostics"
+version = "1.0.0"
+description = "Stable reusable Kleinanzeigen parser module with module-v1 API, Evercade/SNES adapters and Cloudflare Worker transport diagnostics"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }

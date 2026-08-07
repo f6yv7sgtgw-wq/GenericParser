@@ -1,36 +1,62 @@
 # GenericParser
 
-Wiederverwendbarer Kleinanzeigen-Parser und mobile PWA für die Einbindung in **Evercade**, **SNES-PAL-Sammlung** und weitere Projekte.
+Stable reusable Kleinanzeigen parser module and browser UI for **Evercade**, **SNES PAL Sammlung** and future projects.
 
-## Aktueller Stand
+## Stable release
 
-- **Version:** `0.45.0`
-- **Build-ID:** `gp-0450-20260805-1`
-- **Modulvertrag:** `generic-parser-module-v1`
-- **Stabile Rückfallreferenz:** `0.44.6.5`
-- **Fachlicher Suchkern:** unverändert aus `0.44.4`
-- **Zielplattform:** Cloudflare Workers Free
+- **Version:** `1.0.0`
+- **Build:** `gp-100-20260808-1`
+- **Status:** Stable
+- **Worker profile:** Cloudflare Workers Paid
+- **Module contract:** `generic-parser-module-v1`
+- **Search runtime:** `0.45.0`
+- **Functional search core:** `0.44.4`
+- **Operational reference:** `0.44.6.5`
 
-## Ziel von 0.45
+GenericParser 1.0.0 promotes the proven 0.45.2 Build 7 Paid Worker baseline. The search core, matching, extraction, pagination and traffic-light evaluation are not rewritten for 1.0.
 
-0.45 verändert nicht, wie gesucht wird. Der bestätigte Suchfluss aus 0.44.6.5 bleibt erhalten. Neu ist eine stabile Integrationsgrenze für andere Projekte:
+## Architecture
 
 ```text
-Evercade / SNES / weiteres Projekt
-→ ModuleSearchProfile
-→ /api/module/v1/search
-→ einheitliche Listings, Pagination, Summary und Ampel
+Evercade / SNES / other client
+        ↓
+generic-parser-module-v1
+        ↓
+GenericParser Worker
+        ↓
+Kleinanzeigen search runtime
 ```
 
-## Modul-Endpunkte
+## Public endpoints
 
+- `GET /health`
+- `GET /version`
+- `GET /diagnostics`
 - `GET /api/module/v1/capabilities`
 - `POST /api/module/v1/profile/validate`
 - `POST /api/module/v1/search`
+- `POST /api/module/search`
+- `POST /api/search`
+- `POST /search`
 - `GET /api/module/v1/self-test?enabled=true`
-- `POST /api/search` bleibt als kompatibler UI- und Referenzpfad erhalten
 
-## Beispielprofil
+## Paid Worker profile
+
+Free-Worker protection waits are disabled:
+
+- new-search cooldown: `0 ms`
+- normal packet delay: `0 ms`
+- retry waits: `0 ms`
+- auto-resume quiet period: effectively immediate
+- recovery health interval: effectively immediate
+
+The proven seven-result work-packet structure remains unchanged; only artificial waiting between requests was removed.
+
+## Module contract
+
+`generic-parser-module-v1` remains the stable integration boundary. Clients should rely on the contract instead of pinning an exact implementation build.
+
+Example module request:
 
 ```json
 {
@@ -38,9 +64,6 @@ Evercade / SNES / weiteres Projekt
     "profile_id": "evercade:interplay-1",
     "display_name": "Evercade · Interplay Collection 1",
     "query": "Evercade Interplay Collection 1",
-    "required_terms": [],
-    "excluded_terms": [],
-    "model_patterns": [],
     "brands": ["Evercade", "Blaze"],
     "max_price": 35,
     "market_value": 30,
@@ -49,99 +72,41 @@ Evercade / SNES / weiteres Projekt
   },
   "page": 0,
   "source": "auto",
-  "debug": {
-    "enabled": false
-  }
+  "debug": {"enabled": false}
 }
 ```
 
-Leere optionale Felder werden nicht an den Referenzkern weitergegeben und daher nicht ausgewertet.
+Empty optional profile fields are ignored before the reference search core is called.
 
-## Einheitliches Ergebnisformat
-
-Die Modulantwort enthält:
-
-- `listings`: ID, Titel, URL, Bild, Preis, Ort, Match und Ampel
-- `pagination`: aktuelle Seite, nächste Seite, Abschluss und Quelle
-- `summary`: abgerufen, sichtbar, ausgeblendet, eindeutig und Ampelzählung
-- `deployment`: Version, Build und Referenzstand
-- `debug`: nur bei ausdrücklich aktiviertem Debugmodus
-
-## Projektadapter
+## Project adapters
 
 ```python
 from generic_parser import evercade_profile, snes_pal_profile
 
-profile = evercade_profile(
-    "Interplay Collection 1",
-    market_value=30,
-    max_price=35,
-)
-
-snes = snes_pal_profile(
-    "Super Metroid",
-    market_value=70,
-)
+profile = evercade_profile("Interplay Collection 1", market_value=30, max_price=35)
+snes = snes_pal_profile("Super Metroid", market_value=70)
 ```
 
-Die Adapter übersetzen projektspezifische Titel, Varianten und Preise in den gemeinsamen Modulvertrag. Sammlungs- und Kaufentscheidungen bleiben in den aufrufenden Projekten.
+## Diagnostics
 
-## Deaktivierbare Debug-Logs
+Debug logging and network-free module self-tests remain opt-in and are disabled by default. Production diagnostics cover version/build identity, API contract, routing, CORS/preflight and endpoint availability.
 
-Debug-Logs sind standardmäßig aus.
+## Release quality gate
 
-Aktivierungsmöglichkeiten:
+A stable release requires:
 
-- Schalter **Debug-Logs aktivieren** in der mobilen Oberfläche
-- Header `X-GenericParser-Debug: 1`
-- Feld `debug.enabled: true` beim Modulrequest
+1. syntax and compile checks;
+2. search-core regression tests;
+3. module-contract checks;
+4. Cloudflare deployment;
+5. live `/health`, `/version`, `/diagnostics` validation;
+6. browser CORS/preflight validation;
+7. live Evercade module packet;
+8. live legacy `/api/search` packet;
+9. exact-source ZIP artifact.
 
-Ohne Aktivierung werden keine zusätzlichen Debugereignisse und keine Payloaddaten erzeugt. Payloadlogging bleibt auch im Debugmodus standardmäßig aus.
+## Versioning
 
-## Deaktivierbare Modultests
+From 1.0 onward GenericParser uses semantic versioning. Search-core changes are explicit functional changes; infrastructure changes must not silently change matching, ranking, extraction or pagination.
 
-Die Selbsttests sind ebenfalls standardmäßig aus und verwenden kein Kleinanzeigen-Netzwerk.
-
-Aktivierung:
-
-- Schalter **Netzwerkfreie Modultests aktivieren**
-- Schaltfläche **Modultest ausführen**
-- `GET /api/module/v1/self-test?enabled=true`
-- Header `X-GenericParser-Tests: 1`
-
-Geprüft werden Profilnormalisierung, Ignorieren leerer Felder, Ergebnisvertrag, Ampelzusammenfassung sowie Evercade- und SNES-Adapter.
-
-## Unverändert gegenüber 0.44.6.5
-
-- Controller- und UI-Suchfluss
-- ASGI-Workerpfad
-- 0.44.4-Suchkern
-- höchstens sieben Karten pro Arbeitspaket
-- fünf Sekunden normale Pause
-- echte Kleinanzeigen-Weiter-Navigation
-- Titel-, Preis- und Bildextraktion
-- Deduplizierung und persistenter Suchstand
-- Pflicht- und Ausschlussbegriffe
-- Maximalpreis, Richtwert und Ampel
-- bestehendes Retry- und Recovery-Verhalten
-
-## Tests
-
-```bash
-python -m pytest -q tests/test_module_v0450.py
-node --check cloudflare/public/module-debug-0450.js
-node tests/check_module_debug_v0450.js
-```
-
-Der reguläre CI-Lauf liegt in `.github/workflows/module-0450.yml`. Die alte 0.44.6.6-Experiment-Suite ist nur noch manuell ausführbar.
-
-## Live-Abnahme
-
-1. `/api/version` meldet `0.45.0`, `gp-0450-20260805-1` und `generic-parser-module-v1`.
-2. Die bestehende Suche liefert denselben Ablauf wie 0.44.6.5.
-3. `/api/module/v1/capabilities` meldet Kleinanzeigen, Evercade und SNES-PAL.
-4. Profilvalidierung ignoriert leere Regeln.
-5. Der Selbsttest ist ohne Aktivierung gesperrt und mit Aktivierung netzwerkfrei ausführbar.
-6. Debug-Logs erscheinen nur bei eingeschaltetem Schalter.
-
-Weitere Informationen: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md) und [`VERSION.json`](VERSION.json).
+Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.0.0.md`](docs/releases/1.0.0.md).

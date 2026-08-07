@@ -1,4 +1,4 @@
-name: Deploy GenericParser 0.45.2 Build 4
+name: Deploy GenericParser 1.0.0
 
 on:
   workflow_dispatch:
@@ -13,14 +13,14 @@ on:
       - "src/generic_parser/search_service_v0450.py"
       - "src/generic_parser/module_api.py"
       - "scripts/check_deployment.py"
-      - "tests/test_build3_v0452.py"
+      - "tests/**"
       - "pyproject.toml"
       - "VERSION.json"
       - "wrangler.jsonc"
       - ".github/workflows/cloudflare-deploy.yml"
 
 concurrency:
-  group: generic-parser-mobile-production
+  group: generic-parser-production
   cancel-in-progress: false
 
 permissions:
@@ -45,9 +45,8 @@ jobs:
           node-version: "22"
       - name: Install dependencies
         run: uv sync --group cloudflare --extra dev
-      - name: Run Build 4 and search-core regression tests
-        run: |
-          uv run pytest -q tests/test_build3_v0452.py tests/test_search_service_v0444.py
+      - name: Run stable regression tests
+        run: uv run pytest -q tests/test_release_100.py tests/test_search_service_v0444.py
       - name: Compile active runtime
         run: |
           uv run python -m py_compile \
@@ -59,14 +58,22 @@ jobs:
             scripts/check_deployment.py
       - name: Validate browser controller syntax
         run: node --check cloudflare/public/controller-0450.js
-      - name: Validate secrets
+      - name: Validate 1.0 release identity
+        shell: bash
+        run: |
+          grep -q '"version": "1.0.0"' VERSION.json
+          grep -q '"build_id": "gp-100-20260808-1"' VERSION.json
+          grep -q 'version = "1.0.0"' pyproject.toml
+          grep -q 'VERSION = "1.0.0"' src/generic_parser/build_identity_v0452.py
+          grep -q "version:'1.0.0'" cloudflare/public/build-identity-0450.js
+      - name: Validate production secrets
         shell: bash
         run: |
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID fehlt"; exit 1; }
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN fehlt"; exit 1; }
       - name: Deploy Python Worker
         run: uv run --group cloudflare pywrangler deploy
-      - name: Wait for Build 4 and verify live browser contract
+      - name: Wait for 1.0.0 and verify live contract
         if: ${{ vars.CLOUDFLARE_WORKER_URL != '' }}
         env:
           DEPLOYMENT_URL: ${{ vars.CLOUDFLARE_WORKER_URL }}
@@ -76,11 +83,11 @@ jobs:
           set -e
           for i in $(seq 1 24); do
             body="$(curl -fsS --max-time 15 "$DEPLOYMENT_URL/health" 2>/dev/null || true)"
-            if printf '%s' "$body" | grep -q 'gp-0452-20260807-4'; then
+            if printf '%s' "$body" | grep -q 'gp-100-20260808-1'; then
               printf '%s\n' "$body"
               break
             fi
-            if [ "$i" -eq 24 ]; then echo "Build 4 wurde nicht live erkannt"; exit 1; fi
+            if [ "$i" -eq 24 ]; then echo "GenericParser 1.0.0 wurde nicht live erkannt"; exit 1; fi
             sleep 10
           done
           uv run python scripts/check_deployment.py "$DEPLOYMENT_URL" --live-search --browser-origin https://f6yv7sgtgw-wq.github.io
