@@ -1,0 +1,52 @@
+name: Verify GenericParser 0.45.2 Build 2 live
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: 96b8b176237a42f9908dc0cb726f3a3471ec09b2
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install project
+        run: python -m pip install --disable-pip-version-check -e '.[dev]'
+      - name: Wait for deployed Build 2 identity
+        shell: bash
+        run: |
+          set -e
+          url="https://genericparser.f6yv7sgtgw.workers.dev/health"
+          for i in $(seq 1 24); do
+            body="$(curl -fsS --max-time 15 "$url" 2>/dev/null || true)"
+            if printf '%s' "$body" | grep -q 'gp-0452-20260807-2'; then
+              printf '%s\n' "$body"
+              exit 0
+            fi
+            echo "Warte auf 0.45.2 Build 2 ($i/24)"
+            sleep 10
+          done
+          echo "0.45.2 Build 2 wurde nicht live erkannt"
+          exit 1
+      - name: Verify browser contract and live Evercade packet
+        env:
+          APP_TOKEN: ${{ secrets.APP_TOKEN }}
+        run: python scripts/check_deployment.py https://genericparser.f6yv7sgtgw.workers.dev --live-search --browser-origin https://f6yv7sgtgw-wq.github.io
+      - name: Build exact release ZIP
+        run: git archive --format=zip --output=GenericParser-0.45.2-Build2.zip 96b8b176237a42f9908dc0cb726f3a3471ec09b2
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GenericParser-0.45.2-Build2
+          path: GenericParser-0.45.2-Build2.zip
+          if-no-files-found: error
+          retention-days: 30
