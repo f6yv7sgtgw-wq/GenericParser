@@ -4,7 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 1.0.0 | `gp-100-20260808-1` | wird beim Merge von PR gesetzt | Erster Stable Release; Paid Worker; keine künstlichen Free-Worker-Wartezeiten; Modulvertrag v1; Evercade/SNES kompatibel |
+| 1.0.0 | `gp-100-20260808-1` | `e475638d4a9f2544ab4cd9efe7581471e8fec07f` | Erster Stable Release; Paid Worker; keine künstlichen Free-Worker-Wartezeiten; Modulvertrag v1; Evercade/SNES kompatibel |
 | 0.45.2 Build 7 Paid | `gp-0452-20260808-7` | `70c22ee4cda2f029490fb6825668db57358e4aa5` | Letzter bestätigter Pre-1.0-Produktionsstand; Schutz- und Wartezeiten deaktiviert |
 | 0.45.0 | `gp-0450-20260805-1` | `f3697768cfed4828b5e4470d6ad0780451718252` | `generic-parser-module-v1`, Evercade-/SNES-Adapter, modulare API |
 | 0.44.6.5 | `gp-04465-20260804-1` | `ddba9bf55c999b349d98f1438b31a710bd570155` | Operative Rückfallreferenz |
@@ -28,14 +28,18 @@ Normale Paketpause:         0 ms
 Retry-Wartezeiten:          0 ms
 Debug-Logs:                 standardmäßig aus
 Modultests:                 standardmäßig aus, ohne Kleinanzeigen-Abruf
-Status:                     Stable nach grüner CI- und Live-Abnahme
+Status:                     Stable
 ```
 
 ## Release-Download
 
-Nach dem Stable-Merge ist der exakte Release-Stand über den Merge-Commit als ZIP reproduzierbar. Zusätzlich erzeugt der 1.0.0-Live-Verifikationslauf ein exaktes Source-ZIP-Artefakt.
+Exakter 1.0.0-Code-Release:
 
-Aktueller Hauptbranch:
+```text
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/e475638d4a9f2544ab4cd9efe7581471e8fec07f.zip
+```
+
+Aktueller Hauptbranch einschließlich nachgelagerter Dokumentationspflege:
 
 ```text
 https://github.com/f6yv7sgtgw-wq/GenericParser/archive/refs/heads/main.zip
