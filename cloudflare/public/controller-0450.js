@@ -10,7 +10,7 @@
   if (workerChip) workerChip.textContent = I.version;
   const footerBuild = document.querySelector('footer span');
   if (footerBuild) footerBuild.textContent = `GenericParser Mobile · Build ${I.buildId}`;
-  const sourceUrl = new URL('./controller-0411.js?v=0.452-build7-paid-reference-source', location.href);
+  const sourceUrl = new URL('./controller-0411.js?v=1.0.0-paid-reference-source', location.href);
   fetch(sourceUrl, {cache: 'no-store'})
     .then(response => { if (!response.ok) throw new Error(`Controller source HTTP ${response.status}`); return response.text(); })
     .then(source => {
@@ -20,13 +20,13 @@
         ["const API_CONTRACT = 'match-v6.1-page-worker';", `const API_CONTRACT = '${I.apiContract}';`],
         ["const LOG_KEY = 'generic-parser-eventlog-0411';", `const LOG_KEY = '${I.eventLogKey}';`],
         ["const COOLDOWN_MS = 2000;", "const COOLDOWN_MS = 0;"],
-        ["if (workerVersion && (workerVersion !== VERSION || workerBuild !== BUILD_ID || workerContract !== API_CONTRACT)) {", "if (workerVersion && (workerContract !== API_CONTRACT || workerVersion.split('.').slice(0,2).join('.') !== VERSION.split('.').slice(0,2).join('.'))) {"]
+        ["if (workerVersion && (workerVersion !== VERSION || workerBuild !== BUILD_ID || workerContract !== API_CONTRACT)) {", "if (workerVersion && (workerContract !== API_CONTRACT || !['1.0','0.45'].includes(workerVersion.split('.').slice(0,2).join('.')))) {"]
       ];
       for (const [from, to] of replacements) {
         if (!source.includes(from)) throw new Error(`Controller constant missing: ${from}`);
         source = source.replace(from, to);
       }
-      Function(`${source}\n//# sourceURL=controller-0452-build7-paid-runtime.js`)();
+      Function(`${source}\n//# sourceURL=controller-100-paid-runtime.js`)();
       try { adaptiveDelay = () => 0; } catch {}
       try { countdown = async () => {}; } catch {}
       try {
@@ -52,8 +52,8 @@
       const connection = document.getElementById('connection');
       if (connection) { connection.classList.remove('offline'); connection.innerHTML = '<span></span> Bereit'; }
       const state = document.getElementById('worker-state-text');
-      if (state) { state.className = 'compact-status done'; state.innerHTML = '<strong>Bereit</strong><span>Paid Worker · keine Schutzpausen · Modulvertrag v1 · Suche unverändert aus 0.44.6.5</span>'; }
-      window.GP_CONTROLLER_IDENTITY = {version:I.version,buildId:I.buildId,apiContract:I.apiContract,module:'controller-0450.js',moduleContract:I.moduleContract,referenceController:'0.44.6.5',referenceVersion:'0.44.4',operationalReference:'0.44.6.5',runtimeReference:'0.44.6.2',searchCoreChanged:false,controllerFlowChanged:false,compatibleReleaseLine:'0.45',workerPlan:'paid',protectionDelays:false,autoResume:true};
+      if (state) { state.className = 'compact-status done'; state.innerHTML = '<strong>Stable 1.0</strong><span>Paid Worker · keine Schutzpausen · Modulvertrag v1 · bewährte Suchruntime</span>'; }
+      window.GP_CONTROLLER_IDENTITY = {version:I.version,buildId:I.buildId,apiContract:I.apiContract,module:'controller-0450.js',moduleContract:I.moduleContract,referenceController:'0.44.6.5',referenceVersion:'0.44.4',operationalReference:'0.44.6.5',runtimeReference:'0.44.6.2',searchCoreChanged:false,controllerFlowChanged:false,compatibleReleaseLines:['1.0','0.45'],workerPlan:'paid',protectionDelays:false,autoResume:true};
       window.dispatchEvent(new CustomEvent('gp-controller-ready',{detail:window.GP_CONTROLLER_IDENTITY}));
     })
     .catch(error => {
