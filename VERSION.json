@@ -2,7 +2,7 @@
   "product": "GenericParser",
   "version": "0.45.2",
   "package_version": "0.45.2",
-  "build_id": "gp-0452-20260807-4",
+  "build_id": "gp-0452-20260808-7",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
   "entrypoint": "src/generic_parser/cloudflare_worker.py:Default.fetch",
@@ -13,73 +13,39 @@
   "stable_reference_version": "0.44.6.5",
   "runtime_reference_version": "0.44.6.2",
   "technical_base": "0.45.0",
-  "release_date": "2026-08-07",
+  "release_date": "2026-08-08",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "release-candidate-live-validation-required",
-  "purpose": "fix browser UI/worker build compatibility after Build 3 while keeping the live-proven 0.45.0 search runtime unchanged",
-  "module_endpoints": {
-    "health": "/health",
-    "version": "/version",
-    "diagnostics": "/diagnostics",
-    "capabilities": "/api/module/v1/capabilities",
-    "profile_validate": "/api/module/v1/profile/validate",
-    "search": "/api/module/v1/search",
-    "module_search_alias": "/api/module/search",
-    "legacy_search": "/api/search",
-    "root_search": "/search",
-    "self_test": "/api/module/v1/self-test?enabled=true"
-  },
-  "transport_features": {
-    "global_cors": true,
-    "options_preflight": true,
-    "request_id": true,
-    "structured_request_log": true,
-    "worker_first_routing": true,
-    "startup_model": "eager-asgi-0450",
-    "lazy_asgi_import": false
+  "status": "paid-worker-release-candidate",
+  "purpose": "remove Free Worker pacing and protection delays while preserving Build 6 Evercade compatibility and the live-proven 0.45.0 search runtime",
+  "worker_plan": "paid",
+  "timing_profile": {
+    "new_search_cooldown_ms": 0,
+    "normal_packet_delay_ms": 0,
+    "retry_waits_ms": [0,0,0,0],
+    "auto_resume_quiet_period_ms": 1,
+    "auto_resume_health_interval_ms": 1
   },
   "browser_compatibility": {
     "release_line": "0.45",
     "exact_build_match_required": false,
     "api_contract_match_required": true,
-    "incompatible_release_line_rejected": true,
-    "deployment_mismatch_regression_fixed": true
+    "incompatible_release_line_rejected": true
   },
   "unchanged_search_behavior": [
     "search_service_v0450",
     "0.44.4 search core",
     "0.44.6.5 operational reference",
     "seven-result work packets",
-    "five-second normal packet pause",
     "Kleinanzeigen pagination and extraction",
     "matching and scoring",
     "traffic-light evaluation",
-    "retry and recovery behavior",
     "generic-parser-module-v1"
   ],
-  "acceptance_test": {
-    "health_200": true,
-    "version_200": true,
-    "diagnostics_200": true,
-    "capabilities_200": true,
-    "browser_preflight": true,
-    "module_search_live": true,
-    "legacy_ui_search_live": true,
-    "startup_model": "eager-asgi-0450",
-    "search_core_diff_allowed": false
-  },
-  "rollback_plan": {
-    "last_live_search_reference": "73e5879b21cf038ad3494168da3bab6b483d00b5",
-    "version": "0.45.2",
-    "build_id": "gp-0452-20260807-3",
-    "action_if_regression": "restore main to Build 3 immediately"
-  },
   "verification": {
     "pre_deploy_ci": "required",
     "cloudflare_deployment": "required",
     "live_browser_contract": "required",
-    "live_evercade_search_packet": "required",
-    "legacy_ui_api_search": "required"
+    "live_evercade_search_packet": "required"
   },
-  "metadata_schema": 24
+  "metadata_schema": 25
 }
