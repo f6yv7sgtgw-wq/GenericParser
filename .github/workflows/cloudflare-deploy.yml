@@ -1,4 +1,4 @@
-name: Deploy GenericParser Mobile
+name: Deploy GenericParser 0.45.2 Build 3
 
 on:
   workflow_dispatch:
@@ -6,12 +6,16 @@ on:
     branches: [main]
     paths:
       - "cloudflare/**"
-      - "cloudflare_worker.py"
-      - "src/generic_parser/cloudflare_app.py"
-      - "src/generic_parser/models.py"
-      - "src/generic_parser/normalization.py"
-      - "src/generic_parser/sources/kleinanzeigen.py"
+      - "src/generic_parser/cloudflare_worker.py"
+      - "src/generic_parser/cloudflare_v0450.py"
+      - "src/generic_parser/cloudflare_v0452.py"
+      - "src/generic_parser/build_identity_v0452.py"
+      - "src/generic_parser/search_service_v0450.py"
+      - "src/generic_parser/module_api.py"
+      - "scripts/check_deployment.py"
+      - "tests/test_build3_v0452.py"
       - "pyproject.toml"
+      - "VERSION.json"
       - "wrangler.jsonc"
       - ".github/workflows/cloudflare-deploy.yml"
 
@@ -27,7 +31,7 @@ env:
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
 jobs:
-  test-and-deploy:
+  test-deploy-live:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: production
@@ -41,8 +45,18 @@ jobs:
           node-version: "22"
       - name: Install dependencies
         run: uv sync --group cloudflare --extra dev
-      - name: Run deployment tests
-        run: uv run pytest -q tests/test_cloudflare_app.py tests/test_pwa_assets.py tests/test_deployment_02d.py
+      - name: Run Build 3 and search-core regression tests
+        run: |
+          uv run pytest -q tests/test_build3_v0452.py tests/test_search_service_v0444.py
+      - name: Compile active runtime
+        run: |
+          uv run python -m py_compile \
+            src/generic_parser/cloudflare_worker.py \
+            src/generic_parser/cloudflare_v0450.py \
+            src/generic_parser/cloudflare_v0452.py \
+            src/generic_parser/build_identity_v0452.py \
+            src/generic_parser/search_service_v0450.py \
+            scripts/check_deployment.py
       - name: Validate secrets
         shell: bash
         run: |
@@ -50,9 +64,21 @@ jobs:
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN fehlt"; exit 1; }
       - name: Deploy Python Worker
         run: uv run --group cloudflare pywrangler deploy
-      - name: Smoke-test deployed URL
+      - name: Wait for Build 3 and verify live browser contract
         if: ${{ vars.CLOUDFLARE_WORKER_URL != '' }}
         env:
           DEPLOYMENT_URL: ${{ vars.CLOUDFLARE_WORKER_URL }}
           APP_TOKEN: ${{ secrets.APP_TOKEN }}
-        run: uv run python scripts/check_deployment.py "$DEPLOYMENT_URL"
+        shell: bash
+        run: |
+          set -e
+          for i in $(seq 1 24); do
+            body="$(curl -fsS --max-time 15 "$DEPLOYMENT_URL/health" 2>/dev/null || true)"
+            if printf '%s' "$body" | grep -q 'gp-0452-20260807-3'; then
+              printf '%s\n' "$body"
+              break
+            fi
+            if [ "$i" -eq 24 ]; then echo "Build 3 wurde nicht live erkannt"; exit 1; fi
+            sleep 10
+          done
+          uv run python scripts/check_deployment.py "$DEPLOYMENT_URL" --live-search --browser-origin https://f6yv7sgtgw-wq.github.io
