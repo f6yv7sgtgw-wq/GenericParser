@@ -10,7 +10,7 @@ from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
 EXPECTED_VERSION = "0.45.2"
-EXPECTED_BUILD = "gp-0452-20260807-3"
+EXPECTED_BUILD = "gp-0452-20260807-4"
 EXPECTED_CONTRACT = "generic-parser-module-v1"
 
 
@@ -18,7 +18,7 @@ def call(base_url: str, path: str, *, method: str = "GET", body: dict | None = N
          token: str | None = None, origin: str | None = None,
          request_headers: dict[str, str] | None = None) -> tuple[int, dict[str, str], bytes]:
     url = urljoin(base_url.rstrip("/") + "/", path.lstrip("/"))
-    headers = {"User-Agent": "GenericParser-DeploymentCheck/0.45.2-build3", "Accept": "application/json"}
+    headers = {"User-Agent": "GenericParser-DeploymentCheck/0.45.2-build4", "Accept": "application/json"}
     if body is not None:
         headers["Content-Type"] = "application/json"
     if token:
@@ -88,7 +88,7 @@ def main() -> int:
     assert_identity(diagnostics.get("worker") or {}, "/diagnostics")
     assert_cors(diag_headers, "/diagnostics")
     if (diagnostics.get("checks") or {}).get("startup_model") != "eager-asgi-0450":
-        raise RuntimeError("Build 3 verwendet nicht den erwarteten eager 0.45.0 ASGI-Start")
+        raise RuntimeError("Build 4 verwendet nicht den erwarteten eager 0.45.0 ASGI-Start")
 
     for path in ("/api/module/search", "/api/search", "/search"):
         status, headers, _ = call(
@@ -116,7 +116,7 @@ def main() -> int:
     assert_cors(capabilities_headers, "/api/module/v1/capabilities")
 
     if args.live_search:
-        payload = {
+        module_payload = {
             "profile": {
                 "profile_id": "deployment-evercade",
                 "display_name": "Deployment Evercade",
@@ -132,13 +132,36 @@ def main() -> int:
             args.base_url,
             "/api/module/search",
             method="POST",
-            body=payload,
+            body=module_payload,
             token=token,
             origin=args.browser_origin,
         )
         assert_cors(search_headers, "POST /api/module/search")
         if result.get("contract") != EXPECTED_CONTRACT:
             raise RuntimeError(f"Modulsuche contract: {result.get('contract')!r}")
+
+        legacy_payload = {
+            "mode": "live",
+            "query": "Snes",
+            "accept_bundles": False,
+            "accept_incomplete": False,
+            "include_review": True,
+            "include_rejected": True,
+            "sort_by": "relevance",
+            "page": 0,
+            "source": "auto",
+        }
+        legacy, legacy_headers = json_call(
+            args.base_url,
+            "/api/search",
+            method="POST",
+            body=legacy_payload,
+            token=token,
+            origin=args.browser_origin,
+        )
+        assert_cors(legacy_headers, "POST /api/search")
+        if not isinstance(legacy.get("listings"), list):
+            raise RuntimeError("Legacy-UI-Suche liefert keine listings-Liste")
 
     print(f"Deployment OK: {args.base_url} ({EXPECTED_VERSION}, {EXPECTED_BUILD})")
     return 0
