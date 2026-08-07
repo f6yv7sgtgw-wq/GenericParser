@@ -2,11 +2,11 @@
   "product": "GenericParser",
   "version": "0.45.2",
   "package_version": "0.45.2",
-  "build_id": "gp-0452-20260807-1",
+  "build_id": "gp-0452-20260807-2",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
   "entrypoint": "src/generic_parser/cloudflare_worker.py:Default.fetch",
-  "bootstrap_module": "generic_parser.cloudflare_v0451",
+  "bootstrap_module": "generic_parser.cloudflare_v0452",
   "search_module": "generic_parser.search_service_v0450",
   "module_api_source": "src/generic_parser/module_api.py",
   "build_identity_source": "src/generic_parser/build_identity_v0452.py",
@@ -20,7 +20,7 @@
   "service_worker_source": "cloudflare/public/service-worker.js",
   "functional_reference_version": "0.44.4",
   "stable_reference_version": "0.44.6.5",
-  "runtime_reference_version": "0.44.6.2",
+  "runtime_reference_version": "0.45.0",
   "technical_base": "0.45.1",
   "release_date": "2026-08-07",
   "repository": "f6yv7sgtgw-wq/GenericParser",
@@ -30,20 +30,20 @@
   "operational_reference": false,
   "candidate_for_operational_reference": true,
   "live_cloudflare_test": false,
-  "purpose": "eliminate browser-level Load failed failures with a dependency-free Cloudflare edge shell for CORS, preflight and diagnostics while preserving all search behavior",
+  "purpose": "keep the 0.45.2 dependency-free browser edge shell while routing search through the live-proven 0.45.0 ASGI application after Build 1 exposed Cloudflare 1101 in the 0.45.1 ASGI path",
   "release": {
-    "name": "GenericParser 0.45.2 – Browser Edge Hotfix",
+    "name": "GenericParser 0.45.2 – Browser Edge Hotfix Build 2",
     "tag": "v0.45.2",
     "channel": "stable-candidate",
     "prerelease": false,
     "technical_reference_commit": "994237ea196f6d8d84a12065eaa50f484295b089",
-    "metadata_base_commit": "994237ea196f6d8d84a12065eaa50f484295b089",
+    "metadata_base_commit": "0da9445df2cebefc11fdd5681c6de0413fcf90f9",
     "final_commit": null,
     "release_notes": "docs/releases/0.45.2.md",
     "api_documentation": "docs/API_0.45.2.md",
     "deployment_documentation": "docs/DEPLOYMENT.md",
     "release_process": "docs/RELEASE_PROCESS.md",
-    "source_archive": "https://github.com/f6yv7sgtgw-wq/GenericParser/archive/refs/tags/v0.45.2.zip",
+    "source_archive": "https://github.com/f6yv7sgtgw-wq/GenericParser/archive/refs/heads/main.zip",
     "rollback_archive": "https://github.com/f6yv7sgtgw-wq/GenericParser/archive/994237ea196f6d8d84a12065eaa50f484295b089.zip"
   },
   "documentation_policy": {
@@ -77,10 +77,10 @@
   },
   "verification": {
     "required_for_confirmed_release": true,
-    "local_tests": {"status": "pending", "detail": "Release branch CI pending"},
+    "local_tests": {"status": "pending", "detail": "Build 2 release branch CI pending"},
     "github_release_integrity": {"status": "pending", "detail": "Runs on PR and main"},
     "cloudflare_deployment": {"status": "pending", "detail": "Runs after merge to main"},
-    "live_contract": {"status": "pending", "worker_url": "https://genericparser.f6yv7sgtgw.workers.dev"},
+    "live_contract": {"status": "pending", "worker_url": "https://genericparser.f6yv7sgtgw.workers.dev", "build1_evidence": "Edge health passed; search path failed with Cloudflare 1101"},
     "live_search_packet": {"status": "pending", "query": "Evercade"}
   },
   "release_test_suite": {
@@ -131,57 +131,13 @@
     "diagnostics_endpoint": true,
     "dependency_free_edge_diagnostics": true,
     "lazy_asgi_bootstrap": true,
-    "cors_error_fallback": true
+    "stable_0450_asgi_search_runtime": true
   },
-  "debug_logging": {
-    "enabled_by_default": false,
-    "browser_toggle": "debug-logs",
-    "request_header": "X-GenericParser-Debug: 1",
-    "module_request_field": "debug.enabled",
-    "include_payload_by_default": false,
-    "fail_open": true,
-    "search_blocking": false
-  },
-  "contract_tests": {
-    "enabled_by_default": false,
-    "browser_toggle": "module-tests",
-    "activation": "enabled=true or X-GenericParser-Tests: 1",
-    "network_used": false,
-    "search_blocking": false,
-    "ci_workflow": ".github/workflows/module-0450.yml",
-    "release_integrity_workflow": ".github/workflows/release-integrity.yml",
-    "deployment_workflow": ".github/workflows/cloudflare-deploy.yml"
-  },
-  "unchanged_from_0451": [
-    "cloudflare_v0451 ASGI application behavior",
-    "search_service_v0450",
-    "0.44.4 search core",
-    "seven-result work packets",
-    "five-second normal packet pause",
-    "Kleinanzeigen pagination and extraction",
-    "matching and scoring",
-    "traffic-light evaluation",
-    "retry and recovery behavior",
-    "generic-parser-module-v1"
-  ],
-  "acceptance_test": {
-    "health_without_asgi": true,
-    "version_without_asgi": true,
-    "diagnostics_without_asgi": true,
-    "preflight_without_asgi": true,
-    "cors_on_bootstrap_failure": true,
-    "legacy_search_compatible": true,
-    "module_contract_unchanged": true,
-    "packet_size_unchanged": 7,
-    "search_core_diff_allowed": false,
-    "evercade_end_to_end": true
-  },
-  "rollback_plan": {
-    "stable_reference": "0.45.1",
-    "deep_reference": "0.44.6.5",
-    "action_if_regression": "restore GenericParser 0.45.1 final deployment commit",
-    "reference_must_remain_available": true
-  },
-  "next_step_after_test": "confirm the public worker returns 0.45.2 from health/version/diagnostics, passes browser OPTIONS, then run a real Evercade Next search",
+  "debug_logging": {"enabled_by_default": false, "browser_toggle": "debug-logs", "request_header": "X-GenericParser-Debug: 1", "module_request_field": "debug.enabled", "include_payload_by_default": false, "fail_open": true, "search_blocking": false},
+  "contract_tests": {"enabled_by_default": false, "browser_toggle": "module-tests", "activation": "enabled=true or X-GenericParser-Tests: 1", "network_used": false, "search_blocking": false, "ci_workflow": ".github/workflows/module-0450.yml", "release_integrity_workflow": ".github/workflows/release-integrity.yml", "deployment_workflow": ".github/workflows/cloudflare-deploy.yml"},
+  "unchanged_from_0450": ["search_service_v0450", "0.44.4 search core", "seven-result work packets", "five-second normal packet pause", "Kleinanzeigen pagination and extraction", "matching and scoring", "traffic-light evaluation", "retry and recovery behavior", "generic-parser-module-v1"],
+  "acceptance_test": {"health_without_asgi": true, "version_without_asgi": true, "diagnostics_without_asgi": true, "preflight_without_asgi": true, "stable_0450_search_runtime": true, "legacy_search_compatible": true, "module_contract_unchanged": true, "packet_size_unchanged": 7, "search_core_diff_allowed": false, "evercade_end_to_end": true},
+  "rollback_plan": {"stable_reference": "0.45.1", "deep_reference": "0.44.6.5", "action_if_regression": "restore GenericParser 0.45.1 final deployment commit", "reference_must_remain_available": true},
+  "next_step_after_test": "confirm Build 2 live health/version/diagnostics/CORS and a real Evercade module search packet",
   "metadata_schema": 22
 }

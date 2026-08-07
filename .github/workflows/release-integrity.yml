@@ -40,7 +40,8 @@ jobs:
             src/generic_parser/integrations/snes.py \
             src/generic_parser/build_identity_v0452.py \
             src/generic_parser/search_service_v0450.py \
-            src/generic_parser/cloudflare_v0451.py \
+            src/generic_parser/cloudflare_v0450.py \
+            src/generic_parser/cloudflare_v0452.py \
             src/generic_parser/cloudflare_worker.py \
             scripts/check_deployment.py \
             scripts/check_release_metadata.py \
