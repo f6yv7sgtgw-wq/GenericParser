@@ -1,0 +1,13 @@
+"""Deployment identity for GenericParser 0.45.2 browser-edge hotfix."""
+
+VERSION = "0.45.2"
+BUILD_ID = "gp-0452-20260807-1"
+API_CONTRACT = "generic-parser-module-v1"
+ENTRYPOINT = "generic_parser.cloudflare_worker:Default.fetch"
+BOOTSTRAP_MODULE = "generic_parser.cloudflare_v0451"
+SEARCH_MODULE = "generic_parser.search_service_v0450"
+WORKER_UNIT = "edge-shell-0452+infrastructure-0451+reference-04465+module-v1"
+FUNCTIONAL_REFERENCE = "0.44.4"
+OPERATIONAL_REFERENCE = "0.44.6.5"
+RUNTIME_REFERENCE = "0.44.6.2"
+TECHNICAL_BASE = "0.45.1"

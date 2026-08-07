@@ -1,4 +1,4 @@
-name: Deploy GenericParser 0.45.1
+name: Deploy GenericParser 0.45.2
 
 on:
   workflow_dispatch:
@@ -48,7 +48,7 @@ jobs:
         run: uv run python scripts/run_release_tests.py
       - name: Check active browser assets
         run: |
-          node --check cloudflare/public/build-identity-0451.js
+          node --check cloudflare/public/build-identity-0452.js
           node --check cloudflare/public/controller-0450.js
           node --check cloudflare/public/module-debug-0450.js
           node --check cloudflare/public/auto-resume-0450.js
@@ -83,9 +83,10 @@ jobs:
           test -n "$deployment_url" || { echo "Keine Cloudflare-Deployment-URL ermittelt"; exit 1; }
           case "$deployment_url" in https://*) ;; *) echo "Deployment-URL ist nicht HTTPS: $deployment_url"; exit 1 ;; esac
           echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
-      - name: Smoke-test health version diagnostics CORS and live packet
+      - name: Live-test edge CORS contract and one search packet
         env:
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment_url }}
           APP_TOKEN: ${{ secrets.APP_TOKEN }}
           CLOUDFLARE_LIVE_QUERY: ${{ vars.CLOUDFLARE_LIVE_QUERY }}
-        run: uv run python scripts/check_deployment.py "$DEPLOYMENT_URL" --live-search
+          EVERCADE_ORIGIN: https://f6yv7sgtgw-wq.github.io
+        run: uv run python scripts/check_deployment.py "$DEPLOYMENT_URL" --live-search --browser-origin "$EVERCADE_ORIGIN"
