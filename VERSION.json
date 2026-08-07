@@ -1,49 +1,49 @@
 {
   "product": "GenericParser",
-  "version": "0.45.0",
-  "package_version": "0.45.0",
-  "build_id": "gp-0450-20260805-1",
+  "version": "0.45.1",
+  "package_version": "0.45.1",
+  "build_id": "gp-0451-20260807-1",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
   "entrypoint": "src/generic_parser/cloudflare_worker.py:Default.fetch",
-  "bootstrap_module": "generic_parser.cloudflare_v0450",
+  "bootstrap_module": "generic_parser.cloudflare_v0451",
   "search_module": "generic_parser.search_service_v0450",
   "module_api_source": "src/generic_parser/module_api.py",
-  "build_identity_source": "src/generic_parser/build_identity_v0450.py",
+  "build_identity_source": "src/generic_parser/build_identity_v0451.py",
   "controller_source": "cloudflare/public/controller-0450.js",
   "controller_base": "cloudflare/public/controller-0411.js",
   "module_debug_source": "cloudflare/public/module-debug-0450.js",
   "auto_resume_source": "cloudflare/public/auto-resume-0450.js",
   "auto_resume_reference_source": "cloudflare/public/auto-resume-04462.js",
   "eventlog_source": "cloudflare/public/eventlog-0450.js",
-  "browser_identity_source": "cloudflare/public/build-identity-0450.js",
+  "browser_identity_source": "cloudflare/public/build-identity-0451.js",
   "service_worker_source": "cloudflare/public/service-worker.js",
   "functional_reference_version": "0.44.4",
   "stable_reference_version": "0.44.6.5",
   "runtime_reference_version": "0.44.6.2",
-  "technical_base": "0.43.6.3",
-  "release_date": "2026-08-05",
+  "technical_base": "0.45.0",
+  "release_date": "2026-08-07",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "stable-candidate-blocked-cloudflare-credentials",
+  "status": "stable-candidate-release-validation-required",
   "test_release": false,
   "functional_reference": false,
   "operational_reference": false,
   "candidate_for_operational_reference": true,
   "live_cloudflare_test": false,
-  "purpose": "provide a stable reusable Kleinanzeigen module API for Evercade, SNES-PAL and future projects without changing the accepted search behavior",
+  "purpose": "stabilize browser-to-worker communication with CORS, diagnostics, request tracing and deployment validation without changing search behavior",
   "release": {
-    "name": "GenericParser 0.45.0 – Module API v1",
-    "tag": "v0.45.0",
+    "name": "GenericParser 0.45.1 – Infrastructure Stability",
+    "tag": "v0.45.1",
     "channel": "stable-candidate",
     "prerelease": false,
     "technical_reference_commit": "f3697768cfed4828b5e4470d6ad0780451718252",
-    "metadata_base_commit": "a418c7cd87d06a46453e56ca2e76fba48569222d",
+    "metadata_base_commit": "f66363fa2f7f5963625736536532e7584179729c",
     "final_commit": null,
-    "release_notes": "docs/releases/0.45.0.md",
-    "api_documentation": "docs/API_0.45.0.md",
+    "release_notes": "docs/releases/0.45.1.md",
+    "api_documentation": "docs/API_0.45.1.md",
     "deployment_documentation": "docs/DEPLOYMENT.md",
     "release_process": "docs/RELEASE_PROCESS.md",
-    "source_archive": "https://github.com/f6yv7sgtgw-wq/GenericParser/archive/refs/tags/v0.45.0.zip",
+    "source_archive": "https://github.com/f6yv7sgtgw-wq/GenericParser/archive/refs/tags/v0.45.1.zip",
     "rollback_archive": "https://github.com/f6yv7sgtgw-wq/GenericParser/archive/ddba9bf55c999b349d98f1438b31a710bd570155.zip"
   },
   "documentation_policy": {
@@ -59,7 +59,7 @@
     "validation_script": "scripts/check_release_metadata.py"
   },
   "cloudflare_free_limits": {
-    "verified_on": "2026-08-05",
+    "verified_on": "2026-08-07",
     "requests_per_day": 100000,
     "reset_timezone": "UTC",
     "cpu_ms_per_http_request": 10,
@@ -77,47 +77,18 @@
   },
   "verification": {
     "required_for_confirmed_release": true,
-    "local_tests": {
-      "status": "passed",
-      "verified_at": "2026-08-05T09:37:45Z",
-      "command": "python scripts/run_release_tests.py",
-      "result": "84 passed"
-    },
-    "github_release_integrity": {
-      "status": "passed",
-      "verified_at": "2026-08-05T09:51:03Z",
-      "commit": "210573e50db7da4fbf496464bf47d0b080a0d175",
-      "run_url": "https://github.com/f6yv7sgtgw-wq/GenericParser/actions/runs/30994943847"
-    },
-    "cloudflare_deployment": {
-      "status": "blocked",
-      "verified_at": "2026-08-05T09:51:11Z",
-      "commit": "210573e50db7da4fbf496464bf47d0b080a0d175",
-      "run_url": "https://github.com/f6yv7sgtgw-wq/GenericParser/actions/runs/30994943869",
-      "detail": "Cloudflare rejected the configured API token before upload (authentication error 10000; invalid access token 9109).",
-      "required_action": "Replace the GitHub production secret CLOUDFLARE_API_TOKEN with a valid token scoped to the configured account and dispatch Deploy GenericParser 0.45.0 again."
-    },
-    "live_contract": {
-      "status": "blocked",
-      "verified_at": "2026-08-05T09:51:11Z",
-      "worker_url": null,
-      "version": null,
-      "build_id": null,
-      "detail": "Not executed because Cloudflare authentication failed before deployment."
-    },
-    "live_search_packet": {
-      "status": "blocked",
-      "verified_at": "2026-08-05T09:51:11Z",
-      "query": "Evercade",
-      "result_count": null,
-      "detail": "Not executed because Cloudflare authentication failed before deployment."
-    }
+    "local_tests": {"status": "pending", "detail": "Release branch validation pending"},
+    "github_release_integrity": {"status": "pending", "detail": "Runs after merge to main"},
+    "cloudflare_deployment": {"status": "pending", "detail": "Runs after merge to main"},
+    "live_contract": {"status": "pending", "worker_url": "https://genericparser.f6yv7sgtgw.workers.dev"},
+    "live_search_packet": {"status": "pending", "query": "Evercade"}
   },
   "release_test_suite": {
     "runner": "scripts/run_release_tests.py",
     "network_live_tests_enabled": false,
     "historical_release_assertions_excluded": true,
     "paths": [
+      "tests/test_infrastructure_v0451.py",
       "tests/test_module_v0450.py",
       "tests/test_search_service_v0444.py",
       "tests/test_pwa_assets.py",
@@ -135,11 +106,16 @@
     ]
   },
   "module_endpoints": {
+    "health": "/health",
+    "version": "/version",
+    "diagnostics": "/diagnostics",
+    "search": "/api/module/search",
+    "canonical_search": "/api/module/v1/search",
+    "legacy_search": "/api/search",
+    "root_search": "/search",
     "capabilities": "/api/module/v1/capabilities",
     "profile_validate": "/api/module/v1/profile/validate",
-    "search": "/api/module/v1/search",
-    "self_test": "/api/module/v1/self-test?enabled=true",
-    "legacy_search": "/api/search"
+    "self_test": "/api/module/v1/self-test?enabled=true"
   },
   "module_features": {
     "versioned_profile_contract": true,
@@ -148,7 +124,11 @@
     "evercade_adapter": true,
     "snes_pal_adapter": true,
     "single_source": "kleinanzeigen",
-    "future_source_extension": true
+    "future_source_extension": true,
+    "global_cors": true,
+    "options_preflight": true,
+    "request_tracing": true,
+    "diagnostics_endpoint": true
   },
   "debug_logging": {
     "enabled_by_default": false,
@@ -169,39 +149,32 @@
     "release_integrity_workflow": ".github/workflows/release-integrity.yml",
     "deployment_workflow": ".github/workflows/cloudflare-deploy.yml"
   },
-  "unchanged_from_04465": [
-    "controller-0411 source and search event handlers",
-    "worker ASGI entry pattern",
-    "search_service_v0444 core",
+  "unchanged_from_0450": [
+    "search_service_v0450",
+    "0.44.4 search core",
     "seven-result work packets",
     "five-second normal packet pause",
-    "real Kleinanzeigen next-link pagination",
-    "title, price and image extraction",
-    "deduplication and progress persistence",
-    "active-rule red-yellow-green evaluation",
-    "single stable auto-resume behavior",
-    "retry behavior",
-    "result-card UI"
+    "Kleinanzeigen pagination and extraction",
+    "matching and scoring",
+    "traffic-light evaluation",
+    "retry and recovery behavior"
   ],
   "acceptance_test": {
-    "version_endpoint_must_match_identity": true,
-    "legacy_search_must_match_04465": true,
-    "module_profile_roundtrip": true,
-    "module_result_contract": true,
-    "empty_fields_must_not_be_forwarded": true,
-    "evercade_adapter_contract": true,
-    "snes_adapter_contract": true,
-    "debug_default_off": true,
-    "tests_default_off": true,
-    "self_test_network_used": false,
+    "health_endpoint": true,
+    "version_endpoint": true,
+    "diagnostics_endpoint": true,
+    "browser_cors_preflight": true,
+    "legacy_search_compatible": true,
+    "module_contract_unchanged": true,
     "packet_size_unchanged": 7,
-    "search_core_diff_allowed": false
+    "search_core_diff_allowed": false,
+    "evercade_end_to_end": true
   },
   "rollback_plan": {
     "stable_reference": "0.44.6.5",
     "action_if_regression": "restore active 0.44.6.5 identity, worker and assets",
     "reference_must_remain_available": true
   },
-  "next_step_after_test": "replace the invalid GitHub CLOUDFLARE_API_TOKEN secret, rerun Deploy GenericParser 0.45.0 manually, record the live evidence, and only then integrate the module contract into Evercade as 0.45.1",
-  "metadata_schema": 20
+  "next_step_after_test": "confirm deployed 0.45.1 health, version, diagnostics, CORS and Evercade Next end-to-end search",
+  "metadata_schema": 21
 }
