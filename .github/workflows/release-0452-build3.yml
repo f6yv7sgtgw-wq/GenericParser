@@ -1,0 +1,37 @@
+name: GenericParser 0.45.2 Build 3 integrity
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build3-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install project and tests
+        run: python -m pip install --disable-pip-version-check -e '.[dev]'
+      - name: Prove search runtime is unchanged from main reference
+        run: |
+          git diff --exit-code origin/main -- src/generic_parser/search_service_v0450.py src/generic_parser/search_service_v0444.py src/generic_parser/module_api.py
+      - name: Compile Build 3 runtime
+        run: |
+          python -m py_compile \
+            src/generic_parser/cloudflare_worker.py \
+            src/generic_parser/cloudflare_v0450.py \
+            src/generic_parser/cloudflare_v0452.py \
+            src/generic_parser/build_identity_v0452.py \
+            src/generic_parser/search_service_v0450.py \
+            scripts/check_deployment.py
+      - name: Run Build 3 transport and module regressions
+        run: pytest -q tests/test_build3_v0452.py tests/test_module_v0450.py tests/test_search_service_v0444.py
