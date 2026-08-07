@@ -89,7 +89,7 @@
     "historical_release_assertions_excluded": true,
     "paths": [
       "tests/test_infrastructure_v0451.py",
-      "tests/test_module_v0450.py",
+      "tests/test_module_compat_v0451.py",
       "tests/test_search_service_v0444.py",
       "tests/test_pwa_assets.py",
       "tests/test_deployment_02d.py",
