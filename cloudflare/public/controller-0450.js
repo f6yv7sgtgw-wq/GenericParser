@@ -3,6 +3,13 @@
   const I = window.GP_BUILD_IDENTITY;
   if (!I) throw new Error('Build identity missing');
   window.GP_HANDSHAKE_READY = true;
+  document.title = `GenericParser ${I.version}`;
+  const heroVersion = document.querySelector('.hero h1 span');
+  if (heroVersion) heroVersion.textContent = I.version;
+  const workerChip = document.getElementById('worker-version');
+  if (workerChip) workerChip.textContent = I.version;
+  const footerBuild = document.querySelector('footer span');
+  if (footerBuild) footerBuild.textContent = `GenericParser Mobile · Build ${I.buildId}`;
   const sourceUrl = new URL('./controller-0411.js?v=0.452-build4-reference-source', location.href);
   fetch(sourceUrl, {cache: 'no-store'})
     .then(response => { if (!response.ok) throw new Error(`Controller source HTTP ${response.status}`); return response.text(); })
