@@ -4,94 +4,53 @@ Wiederverwendbarer Kleinanzeigen-Parser und mobile PWA für **Evercade**, **SNES
 
 ## Aktueller Stand
 
-- **Version:** `0.45.1`
-- **Build-ID:** `gp-0451-20260807-1`
+- **Version:** `0.45.2`
+- **Build-ID:** `gp-0452-20260807-1`
 - **Modulvertrag:** `generic-parser-module-v1`
-- **Stabile Rückfallreferenz:** `0.44.6.5`
+- **Release-Typ:** Browser-/Worker-Infrastruktur-Hotfix
+- **Technische Basis:** `0.45.1`
+- **Stabile tiefe Rückfallreferenz:** `0.44.6.5`
 - **Fachlicher Suchkern:** unverändert `0.44.4`
 - **Suchservice:** unverändert `search_service_v0450`
-- **Zielplattform:** Cloudflare Workers Free
-- **Release-Typ:** Stabilitäts- und Infrastruktur-Release
 
-Vollständige Release-Unterlagen:
+Vollständige Unterlagen:
 
-- [API-, Infrastruktur- und Limitierungsdokumentation 0.45.1](docs/API_0.45.1.md)
-- [Release Notes 0.45.1](docs/releases/0.45.1.md)
+- [API-, Infrastruktur- und Limitierungsdokumentation 0.45.2](docs/API_0.45.2.md)
+- [Release Notes 0.45.2](docs/releases/0.45.2.md)
 - [Deployment und Live-Abnahme](docs/DEPLOYMENT.md)
 - [Release-Prozess](docs/RELEASE_PROCESS.md)
 
-## Ziel von 0.45.1
+## Was 0.45.2 behebt
 
-0.45.1 verändert **nicht**, wie Kleinanzeigen gesucht, gefiltert, bewertet oder paginiert wird. Der Release stabilisiert ausschließlich Browser↔Worker-Kommunikation und Betrieb:
+Evercade Next konnte seine Queue vollständig abarbeiten, erhielt vom GenericParser im Browser jedoch für Health, Version, Diagnostics, Preflight und Suche nur `Load failed`. 0.45.2 setzt deshalb einen minimalen Cloudflare-Edge-Shell vor die bestehende ASGI-Anwendung.
 
-- globale CORS-Behandlung
-- browserkompatible `OPTIONS`-Preflights
-- zentrale Request-ID
-- strukturiertes Request-Logging
-- Health-, Version- und Diagnostics-Endpunkte
-- konsistente Suchrouten und Alias-Endpunkte
-- Vor- und Nach-Deployment-Prüfungen
+Der Edge-Shell beantwortet `GET /health`, `GET /version`, `GET /api/version`, `GET /diagnostics` und alle `OPTIONS`-Requests **ohne** FastAPI-, Pydantic- oder Suchmodul-Import. Anwendungstraffic wird erst danach lazy an den bestehenden 0.45.1-ASGI-Pfad delegiert. Scheitert dieser Bootstrap, erhält der Browser eine CORS-fähige JSON-503-Antwort statt eines undiagnostizierbaren Netzwerkfehlers.
 
-## Endpunkte
+## Öffentliche Endpunkte
 
-Diagnose:
+Diagnose: `GET /health`, `GET /version`, `GET /api/version`, `GET /diagnostics`.
 
-- `GET /health`
-- `GET /version`
-- `GET /api/version`
-- `GET /diagnostics`
+Suche: `POST /search`, `POST /api/search`, `POST /api/module/search`, `POST /api/module/v1/search`.
 
-Suche:
+Modul: `GET /api/module/v1/capabilities`, `POST /api/module/v1/profile/validate`, `GET /api/module/v1/self-test?enabled=true`.
 
-- `POST /search`
-- `POST /api/search`
-- `POST /api/module/search`
-- `POST /api/module/v1/search`
+## CORS
 
-Modul:
+Preflight wird direkt im Worker-Entrypoint beantwortet. Unterstützt werden `GET`, `POST`, `OPTIONS` und die von Evercade/SNES benötigten Header einschließlich `Content-Type`, `X-GenericParser-Token`, `X-GenericParser-Contract` und `X-Request-ID`.
 
-- `GET /api/module/v1/capabilities`
-- `POST /api/module/v1/profile/validate`
-- `GET /api/module/v1/self-test?enabled=true`
+## Unverändert
 
-## CORS und Browserkompatibilität
+0.45.2 verändert weder Suche noch Bewertung. Unverändert bleiben `generic-parser-module-v1`, `search_service_v0450`, Suchkern 0.44.4, Pagination, sieben Ergebnisse je Arbeitspaket, normale Pause, Matching, Ranking, Preisbewertung, Ampel, Retry, Recovery sowie Evercade-/SNES-Adapter.
 
-Alle Worker-Antworten tragen einheitliche `Access-Control-Allow-*`-Header. `OPTIONS` wird global beantwortet. Die Browserdiagnose kann dadurch CORS-/Preflight-Probleme eindeutig von Routing-, Worker- oder Suchproblemen unterscheiden.
-
-## Logging
-
-Jeder Worker-Request protokolliert serverseitig Request-ID, Timestamp, Route, Methode, Origin, User-Agent, Laufzeit, HTTP-Status und Trefferzahl. Bei Fehlern werden Fehlertyp und Stacktrace im Workerlog protokolliert. Stacktraces werden nicht ungefiltert an Browserclients übertragen.
-
-## Kompatibilität
-
-`generic-parser-module-v1` bleibt unverändert. Evercade Next und SNES PAL können bestehende Profile und Ergebnisverträge weiterverwenden. `/api/search` und `/api/module/v1/search` bleiben kompatibel; `/search` und `/api/module/search` kommen als browserfreundliche Aliase hinzu.
-
-## Unverändert gegenüber 0.45.0
-
-- Suchalgorithmus
-- Matching und Scoring
-- Ranking
-- Preisbewertung
-- Kleinanzeigen als einzige automatische Quelle
-- maximal sieben Karten pro Arbeitspaket
-- echte Kleinanzeigen-Pagination
-- Deduplizierung
-- Ampellogik
-- Retry-/Recovery-Verhalten
-
-## Cloudflare Workers Free
-
-Die dokumentierten Free-Tarif-Grenzen und Auswirkungen stehen vollständig in [`docs/API_0.45.1.md`](docs/API_0.45.1.md). Maßgeblich sind die offiziellen Cloudflare-Limits: https://developers.cloudflare.com/workers/platform/limits/
-
-## Release-Prüfung
+## Tests und Deployment
 
 ```bash
 python scripts/check_release_metadata.py
 python scripts/run_release_tests.py
-python -m py_compile src/generic_parser/cloudflare_v0451.py
-node --check cloudflare/public/build-identity-0451.js
 ```
 
-Der Produktionsworkflow `.github/workflows/cloudflare-deploy.yml` deployt nach erfolgreicher Prüfung den exakten `main`-Commit und testet anschließend Health, Version, Diagnostics, CORS/Preflight, Browserassets und ein begrenztes echtes Live-Arbeitspaket.
+Der Produktionsworkflow deployt exakt den getesteten Main-Commit und führt danach einen Live-Gate aus: Health, Version, Diagnostics, Browser-CORS-Preflights für `/api/module/search`, `/api/search` und `/search`, Browserassets sowie ein reales Modul-Arbeitspaket.
 
-Weitere Informationen: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json) und [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md).
+## Cloudflare Workers Free
+
+Die dokumentierten Free-Tarif-Grenzen bleiben relevant: 100.000 Requests/Tag, 10 ms CPU je HTTP-Aufruf, 128 MB Speicher und 50 Subrequests je Invocation. Details und bekannte Grenzen stehen in [`docs/API_0.45.2.md`](docs/API_0.45.2.md).
