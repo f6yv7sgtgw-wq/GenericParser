@@ -29,6 +29,7 @@ permissions:
 env:
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  DEPLOYMENT_URL: https://genericparser.f6yv7sgtgw.workers.dev
 
 jobs:
   test-deploy-live:
@@ -74,9 +75,7 @@ jobs:
       - name: Deploy Python Worker
         run: uv run --group cloudflare pywrangler deploy
       - name: Wait for 1.0.0 and verify live contract
-        if: ${{ vars.CLOUDFLARE_WORKER_URL != '' }}
         env:
-          DEPLOYMENT_URL: ${{ vars.CLOUDFLARE_WORKER_URL }}
           APP_TOKEN: ${{ secrets.APP_TOKEN }}
         shell: bash
         run: |
