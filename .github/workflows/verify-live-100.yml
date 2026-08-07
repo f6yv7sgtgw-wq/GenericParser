@@ -9,7 +9,8 @@ permissions:
   contents: read
 
 env:
-  RELEASE_COMMIT: eef9bcf88f928ebba1cedfaf43cb565834e08572
+  RELEASE_COMMIT: 4eae53ff56a2abb45f243e7d59b51d4955272470
+  DEPLOYMENT_URL: https://genericparser.f6yv7sgtgw.workers.dev
 
 jobs:
   verify-live:
@@ -26,11 +27,8 @@ jobs:
       - name: Install project
         run: python -m pip install --disable-pip-version-check -e '.[dev]'
       - name: Wait for deployed 1.0.0 identity
-        env:
-          DEPLOYMENT_URL: ${{ vars.CLOUDFLARE_WORKER_URL }}
         shell: bash
         run: |
-          test -n "$DEPLOYMENT_URL" || { echo "CLOUDFLARE_WORKER_URL fehlt"; exit 1; }
           for i in $(seq 1 30); do
             body="$(curl -fsS --max-time 15 "$DEPLOYMENT_URL/health" 2>/dev/null || true)"
             if printf '%s' "$body" | grep -q 'gp-100-20260808-1'; then
@@ -43,7 +41,6 @@ jobs:
           exit 1
       - name: Verify health, CORS and live Evercade/SNES paths
         env:
-          DEPLOYMENT_URL: ${{ vars.CLOUDFLARE_WORKER_URL }}
           APP_TOKEN: ${{ secrets.APP_TOKEN }}
         run: python scripts/check_deployment.py "$DEPLOYMENT_URL" --live-search --browser-origin https://f6yv7sgtgw-wq.github.io
       - name: Build exact 1.0.0 source ZIP
