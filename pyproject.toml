@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generic-kleinanzeigen-parser"
-version = "0.45.0"
-description = "Reusable Kleinanzeigen parser module with stable module-v1 API and opt-in diagnostics"
+version = "0.45.1"
+description = "Reusable Kleinanzeigen parser module with stable module-v1 API, browser-safe CORS and diagnostics"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [{ name = "Jan Leduc" }]
-keywords = ["kleinanzeigen", "parser", "cloudflare-workers", "pwa", "matching", "scoring", "traffic-light", "module-api", "evercade", "snes", "debug"]
+keywords = ["kleinanzeigen", "parser", "cloudflare-workers", "pwa", "matching", "scoring", "traffic-light", "module-api", "evercade", "snes", "debug", "cors", "diagnostics"]
 dependencies = [
   "PyYAML>=6.0",
   "beautifulsoup4>=4.12",
@@ -22,7 +22,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/f6yv7sgtgw-wq/GenericParser"
-Documentation = "https://github.com/f6yv7sgtgw-wq/GenericParser/blob/main/docs/API_0.45.0.md"
+Documentation = "https://github.com/f6yv7sgtgw-wq/GenericParser/blob/main/docs/API_0.45.1.md"
 Changelog = "https://github.com/f6yv7sgtgw-wq/GenericParser/blob/main/CHANGELOG.md"
 Source = "https://github.com/f6yv7sgtgw-wq/GenericParser"
 Issues = "https://github.com/f6yv7sgtgw-wq/GenericParser/issues"

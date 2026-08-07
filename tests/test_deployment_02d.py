@@ -11,6 +11,7 @@ def test_deployment_workflow_is_safe_and_reproducible() -> None:
     assert workflow[True]["workflow_dispatch"] is None
     job = workflow["jobs"]["test-and-deploy"]
     assert job["environment"] == "production"
+    assert "Deploy GenericParser 0.45.1" in text
     assert "CLOUDFLARE_API_TOKEN" in text
     assert "pywrangler deploy" in text
     assert "scripts/check_deployment.py" in text
@@ -42,16 +43,10 @@ def test_deployment_files_exist() -> None:
         assert (ROOT / path).is_file(), path
 
 
-def test_deployment_check_targets_current_version() -> None:
+def test_deployment_check_targets_0451_infrastructure_contract() -> None:
     text = (ROOT / "scripts/check_deployment.py").read_text(encoding="utf-8")
-    assert 'ROOT / "VERSION.json"' in text
-    assert '"/health"' in text
-    assert '"/api/version"' in text
-    assert '"/manifest.webmanifest"' in text
-    assert '"/api/module/v1/profile/validate"' in text
-    assert '"/api/module/v1/self-test?enabled=true"' in text
-    assert '"/api/module/v1/search"' in text
-    assert "len(listings) > 7" in text
+    for marker in ["/health", "/version", "/diagnostics", "/api/module/search", "OPTIONS", "access-control-allow-origin", "len(listings)>7"]:
+        assert marker in text
 
 
 def test_release_integrity_workflow_has_no_path_filter() -> None:

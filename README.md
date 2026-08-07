@@ -1,165 +1,97 @@
 # GenericParser
 
-Wiederverwendbarer Kleinanzeigen-Parser und mobile PWA für die Einbindung in **Evercade**, **SNES-PAL-Sammlung** und weitere Projekte.
+Wiederverwendbarer Kleinanzeigen-Parser und mobile PWA für **Evercade**, **SNES-PAL-Sammlung** und weitere Projekte.
 
 ## Aktueller Stand
 
-- **Version:** `0.45.0`
-- **Build-ID:** `gp-0450-20260805-1`
+- **Version:** `0.45.1`
+- **Build-ID:** `gp-0451-20260807-1`
 - **Modulvertrag:** `generic-parser-module-v1`
 - **Stabile Rückfallreferenz:** `0.44.6.5`
-- **Fachlicher Suchkern:** unverändert aus `0.44.4`
+- **Fachlicher Suchkern:** unverändert `0.44.4`
+- **Suchservice:** unverändert `search_service_v0450`
 - **Zielplattform:** Cloudflare Workers Free
-- **Release-Status:** Stable Candidate; GitHub-CI bestanden, Cloudflare-Liveprüfung durch ungültigen Deployment-Token blockiert
+- **Release-Typ:** Stabilitäts- und Infrastruktur-Release
 
 Vollständige Release-Unterlagen:
 
-- [API-, Funktions- und Limitierungsdokumentation 0.45.0](docs/API_0.45.0.md)
-- [Release Notes 0.45.0](docs/releases/0.45.0.md)
+- [API-, Infrastruktur- und Limitierungsdokumentation 0.45.1](docs/API_0.45.1.md)
+- [Release Notes 0.45.1](docs/releases/0.45.1.md)
 - [Deployment und Live-Abnahme](docs/DEPLOYMENT.md)
-- [Verbindlicher Prozess für alle folgenden Releases](docs/RELEASE_PROCESS.md)
+- [Release-Prozess](docs/RELEASE_PROCESS.md)
 
-## Ziel von 0.45
+## Ziel von 0.45.1
 
-0.45 verändert nicht, wie gesucht wird. Der bestätigte Suchfluss aus 0.44.6.5 bleibt erhalten. Neu ist eine stabile Integrationsgrenze für andere Projekte:
+0.45.1 verändert **nicht**, wie Kleinanzeigen gesucht, gefiltert, bewertet oder paginiert wird. Der Release stabilisiert ausschließlich Browser↔Worker-Kommunikation und Betrieb:
 
-```text
-Evercade / SNES / weiteres Projekt
-→ ModuleSearchProfile
-→ /api/module/v1/search
-→ einheitliche Listings, Pagination, Summary und Ampel
-```
+- globale CORS-Behandlung
+- browserkompatible `OPTIONS`-Preflights
+- zentrale Request-ID
+- strukturiertes Request-Logging
+- Health-, Version- und Diagnostics-Endpunkte
+- konsistente Suchrouten und Alias-Endpunkte
+- Vor- und Nach-Deployment-Prüfungen
 
-## Modul-Endpunkte
+## Endpunkte
+
+Diagnose:
+
+- `GET /health`
+- `GET /version`
+- `GET /api/version`
+- `GET /diagnostics`
+
+Suche:
+
+- `POST /search`
+- `POST /api/search`
+- `POST /api/module/search`
+- `POST /api/module/v1/search`
+
+Modul:
 
 - `GET /api/module/v1/capabilities`
 - `POST /api/module/v1/profile/validate`
-- `POST /api/module/v1/search`
 - `GET /api/module/v1/self-test?enabled=true`
-- `POST /api/search` bleibt als kompatibler UI- und Referenzpfad erhalten
 
-## Beispielprofil
+## CORS und Browserkompatibilität
 
-```json
-{
-  "profile": {
-    "profile_id": "evercade:interplay-1",
-    "display_name": "Evercade · Interplay Collection 1",
-    "query": "Evercade Interplay Collection 1",
-    "required_terms": [],
-    "excluded_terms": [],
-    "model_patterns": [],
-    "brands": ["Evercade", "Blaze"],
-    "max_price": 35,
-    "market_value": 30,
-    "accept_bundles": false,
-    "accept_incomplete": false
-  },
-  "page": 0,
-  "source": "auto",
-  "debug": {
-    "enabled": false
-  }
-}
-```
+Alle Worker-Antworten tragen einheitliche `Access-Control-Allow-*`-Header. `OPTIONS` wird global beantwortet. Die Browserdiagnose kann dadurch CORS-/Preflight-Probleme eindeutig von Routing-, Worker- oder Suchproblemen unterscheiden.
 
-Leere optionale Felder werden nicht an den Referenzkern weitergegeben und daher nicht ausgewertet.
+## Logging
 
-## Einheitliches Ergebnisformat
+Jeder Worker-Request protokolliert serverseitig Request-ID, Timestamp, Route, Methode, Origin, User-Agent, Laufzeit, HTTP-Status und Trefferzahl. Bei Fehlern werden Fehlertyp und Stacktrace im Workerlog protokolliert. Stacktraces werden nicht ungefiltert an Browserclients übertragen.
 
-Die Modulantwort enthält:
+## Kompatibilität
 
-- `listings`: ID, Titel, URL, Bild, Preis, Ort, Match und Ampel
-- `pagination`: aktuelle Seite, nächste Seite, Abschluss und Quelle
-- `summary`: abgerufen, sichtbar, ausgeblendet, eindeutig und Ampelzählung
-- `deployment`: Version, Build und Referenzstand
-- `debug`: nur bei ausdrücklich aktiviertem Debugmodus
+`generic-parser-module-v1` bleibt unverändert. Evercade Next und SNES PAL können bestehende Profile und Ergebnisverträge weiterverwenden. `/api/search` und `/api/module/v1/search` bleiben kompatibel; `/search` und `/api/module/search` kommen als browserfreundliche Aliase hinzu.
 
-## Projektadapter
+## Unverändert gegenüber 0.45.0
 
-```python
-from generic_parser import evercade_profile, snes_pal_profile
+- Suchalgorithmus
+- Matching und Scoring
+- Ranking
+- Preisbewertung
+- Kleinanzeigen als einzige automatische Quelle
+- maximal sieben Karten pro Arbeitspaket
+- echte Kleinanzeigen-Pagination
+- Deduplizierung
+- Ampellogik
+- Retry-/Recovery-Verhalten
 
-profile = evercade_profile(
-    "Interplay Collection 1",
-    market_value=30,
-    max_price=35,
-)
+## Cloudflare Workers Free
 
-snes = snes_pal_profile(
-    "Super Metroid",
-    market_value=70,
-)
-```
+Die dokumentierten Free-Tarif-Grenzen und Auswirkungen stehen vollständig in [`docs/API_0.45.1.md`](docs/API_0.45.1.md). Maßgeblich sind die offiziellen Cloudflare-Limits: https://developers.cloudflare.com/workers/platform/limits/
 
-Die Adapter übersetzen projektspezifische Titel, Varianten und Preise in den gemeinsamen Modulvertrag. Sammlungs- und Kaufentscheidungen bleiben in den aufrufenden Projekten.
-
-## Deaktivierbare Debug-Logs
-
-Debug-Logs sind standardmäßig aus.
-
-Aktivierungsmöglichkeiten:
-
-- Schalter **Debug-Logs aktivieren** in der mobilen Oberfläche
-- Header `X-GenericParser-Debug: 1`
-- Feld `debug.enabled: true` beim Modulrequest
-
-Ohne Aktivierung werden keine zusätzlichen Debugereignisse und keine Payloaddaten erzeugt. Payloadlogging bleibt auch im Debugmodus standardmäßig aus.
-
-## Deaktivierbare Modultests
-
-Die Selbsttests sind ebenfalls standardmäßig aus und verwenden kein Kleinanzeigen-Netzwerk.
-
-Aktivierung:
-
-- Schalter **Netzwerkfreie Modultests aktivieren**
-- Schaltfläche **Modultest ausführen**
-- `GET /api/module/v1/self-test?enabled=true`
-- Header `X-GenericParser-Tests: 1`
-
-Geprüft werden Profilnormalisierung, Ignorieren leerer Felder, Ergebnisvertrag, Ampelzusammenfassung sowie Evercade- und SNES-Adapter.
-
-## Unverändert gegenüber 0.44.6.5
-
-- Controller- und UI-Suchfluss
-- ASGI-Workerpfad
-- 0.44.4-Suchkern
-- höchstens sieben Karten pro Arbeitspaket
-- fünf Sekunden normale Pause
-- echte Kleinanzeigen-Weiter-Navigation
-- Titel-, Preis- und Bildextraktion
-- Deduplizierung und persistenter Suchstand
-- Pflicht- und Ausschlussbegriffe
-- Maximalpreis, Richtwert und Ampel
-- bestehendes Retry- und Recovery-Verhalten
-
-## Cloudflare-Free-Grenzen
-
-Mit Stand 2026-08-05 gelten unter anderem 100.000 dynamische Requests pro Tag, 10 ms CPU-Zeit je HTTP-Aufruf, 128 MB Speicher je Isolat und 50 Subrequests je Aufruf. GenericParser begrenzt deshalb jeden Request auf höchstens sieben Karten und koordiniert lange Suchen über mehrere Browseranfragen mit fünf Sekunden Pause.
-
-Das ist keine Vollständigkeits- oder Recovery-Garantie: Lange Läufe können weiterhin mit Cloudflare-/Upstream-Fehlern abbrechen, die Browser-Recovery kann erneut scheitern und es gibt keine serverseitige Queue oder dauerhafte Worker-Persistenz. Zahlen, Auswirkungen, Fehlervertrag und die Integrationspflichten für Evercade und SNES stehen vollständig in [`docs/API_0.45.0.md`](docs/API_0.45.0.md).
-
-## Tests
+## Release-Prüfung
 
 ```bash
 python scripts/check_release_metadata.py
 python scripts/run_release_tests.py
-node --check cloudflare/public/module-debug-0450.js
-node tests/check_module_debug_v0450.js
+python -m py_compile src/generic_parser/cloudflare_v0451.py
+node --check cloudflare/public/build-identity-0451.js
 ```
 
-Der versionsbezogene Modultest liegt in `.github/workflows/module-0450.yml`. Der allgemeine Check `.github/workflows/release-integrity.yml` läuft ohne Pfadfilter auf jedem Commit nach `main`, sodass auch Dokumentations- und Metadatenänderungen einen GitHub-Status erhalten. Die alte 0.44.6.6-Experiment-Suite ist nur noch manuell ausführbar.
-
-## Live-Abnahme
-
-Aktueller externer Blocker: Der Lauf vom 5. August 2026 hat alle Build- und Releaseprüfungen bestanden, Cloudflare hat den hinterlegten `CLOUDFLARE_API_TOKEN` jedoch mit den Fehlercodes `10000` und `9109` abgelehnt. Nach Ersetzen des Secrets muss der Workflow `Deploy GenericParser 0.45.0` erneut gestartet werden.
-
-1. `/api/version` meldet `0.45.0`, `gp-0450-20260805-1` und `generic-parser-module-v1`.
-2. Die bestehende Suche liefert denselben Ablauf wie 0.44.6.5.
-3. `/api/module/v1/capabilities` meldet Kleinanzeigen, Evercade und SNES-PAL.
-4. Profilvalidierung ignoriert leere Regeln.
-5. Der Selbsttest ist ohne Aktivierung gesperrt und mit Aktivierung netzwerkfrei ausführbar.
-6. Debug-Logs erscheinen nur bei eingeschaltetem Schalter.
-7. Der Deployment-Workflow prüft anschließend genau ein echtes, auf sieben Karten begrenztes Modul-Arbeitspaket.
+Der Produktionsworkflow `.github/workflows/cloudflare-deploy.yml` deployt nach erfolgreicher Prüfung den exakten `main`-Commit und testet anschließend Health, Version, Diagnostics, CORS/Preflight, Browserassets und ein begrenztes echtes Live-Arbeitspaket.
 
 Weitere Informationen: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json) und [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md).

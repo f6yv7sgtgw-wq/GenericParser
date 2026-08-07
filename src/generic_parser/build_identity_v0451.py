@@ -1,0 +1,13 @@
+"""Gemeinsame Deployment-Identität für GenericParser 0.45.1."""
+
+VERSION = "0.45.1"
+BUILD_ID = "gp-0451-20260807-1"
+API_CONTRACT = "generic-parser-module-v1"
+ENTRYPOINT = "generic_parser.cloudflare_worker:Default.fetch"
+BOOTSTRAP_MODULE = "generic_parser.cloudflare_v0451"
+SEARCH_MODULE = "generic_parser.search_service_v0450"
+WORKER_UNIT = "reference-0444+rollback-04465+module-v1+infra-0451"
+FUNCTIONAL_REFERENCE = "0.44.4"
+OPERATIONAL_REFERENCE = "0.44.6.5"
+RUNTIME_REFERENCE = "0.44.6.2"
+TECHNICAL_BASE = "0.45.0"

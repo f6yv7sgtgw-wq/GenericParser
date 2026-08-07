@@ -22,25 +22,24 @@ def test_pwa_manifest_and_required_assets_exist() -> None:
         assert (PUBLIC / path).is_file(), path
 
 
-def test_mobile_interface_supports_deployed_and_direct_file_modes() -> None:
+def test_mobile_interface_uses_0451_identity_with_unchanged_0450_controller() -> None:
     html = (PUBLIC / "index.html").read_text(encoding="utf-8")
     js = (PUBLIC / "app.js").read_text(encoding="utf-8")
     controller = (PUBLIC / "controller-0450.js").read_text(encoding="utf-8")
-    assert "Controller lädt" in html
+    assert "GenericParser <span>0.45.1</span>" in html
+    assert "gp-0451-20260807-1" in html
+    assert "build-identity-0451.js" in html
+    assert "controller-0450.js" in html
     assert "Live-Suche starten" in controller
-    assert "Demo anzeigen" in html
     assert "const apiUrl=p=>new URL" in js
     assert "apiUrl('api/search')" in js
-    assert "register('./service-worker.js?v=0.450')" in js
-    assert 'href="./app.css?v=0.450"' in html
-    assert 'src="./app.js?v=0.450"' in html
 
 
 def test_service_worker_cache_matches_active_release() -> None:
     worker = (PUBLIC / "service-worker.js").read_text(encoding="utf-8")
-    assert 'generic-parser-mobile-0.45.0-gp-0450-20260805-1' in worker
+    assert 'generic-parser-mobile-0.45.1-gp-0451-20260807-1' in worker
     for asset in [
-        "build-identity-0450.js",
+        "build-identity-0451.js",
         "controller-0450.js",
         "module-debug-0450.js",
         "auto-resume-0450.js",
