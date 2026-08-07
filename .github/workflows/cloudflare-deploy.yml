@@ -1,4 +1,4 @@
-name: Deploy GenericParser 0.45.0
+name: Deploy GenericParser 0.45.1
 
 on:
   workflow_dispatch:
@@ -12,6 +12,7 @@ on:
       - "scripts/run_release_tests.py"
       - "tests/**"
       - "pyproject.toml"
+      - "VERSION.json"
       - "wrangler.jsonc"
       - ".github/workflows/cloudflare-deploy.yml"
 
@@ -47,7 +48,7 @@ jobs:
         run: uv run python scripts/run_release_tests.py
       - name: Check active browser assets
         run: |
-          node --check cloudflare/public/build-identity-0450.js
+          node --check cloudflare/public/build-identity-0451.js
           node --check cloudflare/public/controller-0450.js
           node --check cloudflare/public/module-debug-0450.js
           node --check cloudflare/public/auto-resume-0450.js
@@ -80,12 +81,9 @@ jobs:
           discovered_url="$(grep -Eo 'https://[A-Za-z0-9.-]+\.workers\.dev' "$deploy_log" | tail -n 1 || true)"
           deployment_url="${CONFIGURED_URL:-$discovered_url}"
           test -n "$deployment_url" || { echo "Keine Cloudflare-Deployment-URL ermittelt"; exit 1; }
-          case "$deployment_url" in
-            https://*) ;;
-            *) echo "Deployment-URL ist nicht HTTPS: $deployment_url"; exit 1 ;;
-          esac
+          case "$deployment_url" in https://*) ;; *) echo "Deployment-URL ist nicht HTTPS: $deployment_url"; exit 1 ;; esac
           echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
-      - name: Smoke-test deployed contract and one live packet
+      - name: Smoke-test health version diagnostics CORS and live packet
         env:
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment_url }}
           APP_TOKEN: ${{ secrets.APP_TOKEN }}
