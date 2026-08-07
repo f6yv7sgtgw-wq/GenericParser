@@ -29,22 +29,33 @@ jobs:
           url="https://genericparser.f6yv7sgtgw.workers.dev/health"
           for i in $(seq 1 24); do
             body="$(curl -fsS --max-time 15 "$url" 2>/dev/null || true)"
-            if printf '%s' "$body" | grep -q 'gp-0452-20260807-3'; then
-              printf '%s\n' "$body"
-              exit 0
-            fi
-            echo "Warte auf 0.45.2 Build 3 ($i/24)"
-            sleep 10
+            if printf '%s' "$body" | grep -q 'gp-0452-20260807-3'; then printf '%s\n' "$body"; exit 0; fi
+            echo "Warte auf 0.45.2 Build 3 ($i/24)"; sleep 10
           done
-          echo "0.45.2 Build 3 wurde nicht live erkannt"
           exit 1
+      - name: Probe every public endpoint separately
+        shell: bash
+        run: |
+          base=https://genericparser.f6yv7sgtgw.workers.dev
+          origin=https://f6yv7sgtgw-wq.github.io
+          probe_get() { echo "=== GET $1 ==="; curl -sS --max-time 30 -o /tmp/body -D /tmp/headers -w 'HTTP=%{http_code}\n' -H "Origin: $origin" "$base$1" || true; head -c 800 /tmp/body; echo; grep -iE 'content-type|access-control|x-genericparser|x-request-id|cf-ray' /tmp/headers || true; }
+          probe_options() { echo "=== OPTIONS $1 ==="; curl -sS --max-time 30 -o /tmp/body -D /tmp/headers -w 'HTTP=%{http_code}\n' -X OPTIONS -H "Origin: $origin" -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: content-type,x-genericparser-contract,x-request-id' "$base$1" || true; head -c 400 /tmp/body; echo; grep -iE 'content-type|access-control|x-genericparser|x-request-id|cf-ray' /tmp/headers || true; }
+          probe_get /health
+          probe_get /version
+          probe_get /diagnostics
+          probe_get /api/module/v1/capabilities
+          probe_options /api/module/search
+          probe_options /api/search
+          probe_options /search
       - name: Verify live browser contract and Evercade packet
         env:
           APP_TOKEN: ${{ secrets.APP_TOKEN }}
         run: python scripts/check_deployment.py https://genericparser.f6yv7sgtgw.workers.dev --live-search --browser-origin https://f6yv7sgtgw-wq.github.io
       - name: Build exact release ZIP
+        if: always()
         run: git archive --format=zip --output=GenericParser-0.45.2-Build3.zip 73e5879b21cf038ad3494168da3bab6b483d00b5
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: GenericParser-0.45.2-Build3
           path: GenericParser-0.45.2-Build3.zip
