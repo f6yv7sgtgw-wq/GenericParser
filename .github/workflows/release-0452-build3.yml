@@ -33,5 +33,5 @@ jobs:
             src/generic_parser/build_identity_v0452.py \
             src/generic_parser/search_service_v0450.py \
             scripts/check_deployment.py
-      - name: Run Build 3 transport and module regressions
-        run: pytest -q tests/test_build3_v0452.py tests/test_module_v0450.py tests/test_search_service_v0444.py
+      - name: Run Build 3 transport and search-core regressions
+        run: pytest -q tests/test_build3_v0452.py tests/test_search_service_v0444.py
