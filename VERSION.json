@@ -1,8 +1,8 @@
 {
   "product": "GenericParser",
-  "version": "1.1.1",
-  "package_version": "1.1.1",
-  "build_id": "gp-111-20260808-1",
+  "version": "1.1.2",
+  "package_version": "1.1.2",
+  "build_id": "gp-112-20260808-1",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
   "entrypoint": "src/generic_parser/cloudflare_worker.py:Default.fetch",
@@ -12,16 +12,16 @@
   "functional_reference_version": "0.44.4",
   "stable_reference_version": "0.44.6.5",
   "runtime_reference_version": "0.44.6.2",
-  "technical_base": "1.1.0+runtime-identity-hotfix",
+  "technical_base": "1.1.1+vinted-session-bootstrap",
   "release_date": "2026-08-08",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "release-candidate",
-  "purpose": "fix the 1.1.0 search-service identity mismatch without changing the Kleinanzeigen or Vinted search behavior",
+  "purpose": "establish a normal anonymous Vinted public-web session before catalog/API requests while leaving Kleinanzeigen and the stable search core unchanged",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted"],
     "kleinanzeigen": {"strategy": "proven html search core"},
-    "vinted": {"strategy": "public catalog html with structured-data/card parser and api fallback", "fail_open": true}
+    "vinted": {"strategy": "anonymous session bootstrap, public catalog html, api fallback", "fail_open": true, "access_control_bypass": false}
   },
   "timing_profile": {
     "new_search_cooldown_ms": 0,
@@ -59,11 +59,12 @@
     "live_kleinanzeigen_search": "required",
     "live_vinted_search": "required",
     "live_multisource_search": "required",
+    "vinted_bootstrap_status": "required",
     "legacy_ui_api_search": "required"
   },
   "rollback_plan": {
-    "last_stable_baseline": "1.0.0",
-    "commit": "8b531a2349a32a65f168b2df91c3a3be34728fe5"
+    "last_stable_baseline": "1.1.1",
+    "commit": "21845d3057da5fab42c08497367a0300eb37f211"
   },
-  "metadata_schema": 32
+  "metadata_schema": 33
 }
