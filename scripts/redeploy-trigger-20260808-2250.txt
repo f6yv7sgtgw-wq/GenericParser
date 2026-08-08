@@ -1,0 +1,2 @@
+Manual production redeploy trigger for GenericParser 1.2.2 Build 3 (gp-122-20260808-3).
+Requested after merge e6a0bce9615be5fb33548691262efda467d81ffc because the live URL still showed 1.2.1.
