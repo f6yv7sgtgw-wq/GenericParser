@@ -1,0 +1,91 @@
+name: Vinted Browser PoC
+
+on:
+  pull_request:
+    paths:
+      - "pocs/vinted-browser/**"
+      - ".github/workflows/vinted-browser-poc.yml"
+  push:
+    branches: [main]
+    paths:
+      - "pocs/vinted-browser/**"
+      - ".github/workflows/vinted-browser-poc.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  POC_DIR: pocs/vinted-browser
+  POC_URL: https://genericparser-vinted-poc.f6yv7sgtgw.workers.dev
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Install PoC dependencies
+        working-directory: ${{ env.POC_DIR }}
+        run: npm install --no-audit --no-fund
+      - name: Check Worker syntax
+        working-directory: ${{ env.POC_DIR }}
+        run: npm run check
+      - name: Validate Wrangler configuration
+        working-directory: ${{ env.POC_DIR }}
+        run: npx wrangler deploy --dry-run --outdir ../../.poc-dist
+
+  deploy-and-probe:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Install PoC dependencies
+        working-directory: ${{ env.POC_DIR }}
+        run: npm install --no-audit --no-fund
+      - name: Validate Cloudflare credentials
+        run: |
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID fehlt"; exit 1; }
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN fehlt"; exit 1; }
+      - name: Deploy isolated Browser Run worker
+        working-directory: ${{ env.POC_DIR }}
+        run: npx wrangler deploy
+      - name: Wait for PoC health
+        run: |
+          set -e
+          for i in $(seq 1 18); do
+            body="$(curl -fsS --max-time 15 "$POC_URL/health" 2>/dev/null || true)"
+            if printf '%s' "$body" | grep -q 'vinted-browser-poc-0.1.0'; then
+              printf '%s\n' "$body"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "PoC health endpoint not ready"
+          exit 1
+      - name: Probe Vinted with real Chromium
+        run: |
+          set -e
+          curl -sS --max-time 50 "$POC_URL/search?q=Evercade" -o /tmp/vinted-poc.json -w '%{http_code}' > /tmp/vinted-poc.status
+          cat /tmp/vinted-poc.json
+          python - <<'PY'
+          import json
+          data=json.load(open('/tmp/vinted-poc.json'))
+          print('POC_STATUS=', data.get('status'))
+          print('HTTP_STATUS=', data.get('httpStatus'))
+          print('CHALLENGE=', (data.get('browser') or {}).get('challengeDetected'))
+          print('ITEM_ANCHORS=', (data.get('browser') or {}).get('itemAnchorCount'))
+          print('LISTINGS=', len(data.get('listings') or []))
+          if data.get('status') != 'ok' or not data.get('listings'):
+              raise SystemExit('Browser PoC did not obtain public Vinted listings; see diagnostics above')
+          PY
