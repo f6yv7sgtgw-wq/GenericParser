@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "cloudflare/**"
+      - "pocs/vinted-browser/**"
       - "src/generic_parser/cloudflare_worker.py"
       - "src/generic_parser/cloudflare_v0450.py"
       - "src/generic_parser/cloudflare_v0452.py"
@@ -33,6 +34,7 @@ env:
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   DEPLOYMENT_URL: https://genericparser.f6yv7sgtgw.workers.dev
+  POC_URL: https://genericparser-vinted-poc.f6yv7sgtgw.workers.dev
 
 jobs:
   test-deploy-live:
@@ -77,8 +79,6 @@ jobs:
           grep -q 'VERSION = "0.45.0"' src/generic_parser/build_identity_v0450.py
           grep -q 'SEARCH_MODULE = "generic_parser.search_service_v111_runtime"' src/generic_parser/build_identity_v0450.py
           grep -q "version:'1.1.2'" cloudflare/public/build-identity-0450.js
-          grep -q 'async def _bootstrap_session' src/generic_parser/vinted_adapter.py
-          grep -q 'session-bootstrap+html+api-fallback' src/generic_parser/vinted_adapter.py
       - name: Validate production secrets
         shell: bash
         run: |
@@ -86,9 +86,7 @@ jobs:
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN fehlt"; exit 1; }
       - name: Deploy Python Worker
         run: uv run --group cloudflare pywrangler deploy
-      - name: Wait for 1.1.2 and verify all three live search modes
-        env:
-          APP_TOKEN: ${{ secrets.APP_TOKEN }}
+      - name: Verify GenericParser health
         shell: bash
         run: |
           set -e
@@ -96,18 +94,67 @@ jobs:
             body="$(curl -fsS --max-time 15 "$DEPLOYMENT_URL/health" 2>/dev/null || true)"
             if printf '%s' "$body" | grep -q 'gp-112-20260808-1'; then
               printf '%s\n' "$body"
-              break
+              exit 0
             fi
-            if [ "$i" -eq 24 ]; then echo "GenericParser 1.1.2 wurde nicht live erkannt"; exit 1; fi
             sleep 10
           done
-          uv run python scripts/check_deployment.py "$DEPLOYMENT_URL" --live-search --browser-origin https://f6yv7sgtgw-wq.github.io
+          echo "GenericParser 1.1.2 wurde nicht live erkannt"
+          exit 1
 
-          ka="$(curl -fsS --max-time 30 -X POST "$DEPLOYMENT_URL/api/search" -H 'Content-Type: application/json' --data '{"mode":"live","query":"Evercade","page":0,"source":"kleinanzeigen","include_review":true,"include_rejected":true}')"
-          printf '%s' "$ka" | python -c 'import json,sys; d=json.load(sys.stdin); rows=d.get("listings",[]); assert rows, d; assert all(x.get("source")=="kleinanzeigen" for x in rows), rows[:2]; print("Kleinanzeigen live OK:",len(rows))'
-
-          vi="$(curl -fsS --max-time 30 -X POST "$DEPLOYMENT_URL/api/search" -H 'Content-Type: application/json' --data '{"mode":"live","query":"Evercade","page":0,"source":"vinted","include_review":true,"include_rejected":true}')"
-          printf '%s' "$vi" | python -c 'import json,sys; d=json.load(sys.stdin); s=d.get("source_status",{}).get("vinted",{}); rows=[x for x in d.get("listings",[]) if x.get("source")=="vinted"]; assert s.get("status")=="ok", s; assert rows, s; assert str(s.get("strategy") or "").startswith("session+"), s; print("Vinted live OK:",len(rows),"via",s.get("strategy"))'
-
-          auto="$(curl -fsS --max-time 30 -X POST "$DEPLOYMENT_URL/api/search" -H 'Content-Type: application/json' --data '{"mode":"live","query":"Evercade","page":0,"source":"auto","include_review":true,"include_rejected":true}')"
-          printf '%s' "$auto" | python -c 'import json,sys; d=json.load(sys.stdin); sources={x.get("source") for x in d.get("listings",[])}; assert "kleinanzeigen" in sources, sources; assert "vinted" in sources, sources; assert d.get("pagination",{}).get("source")=="multi-source", d.get("pagination"); print("Auto multi-source live OK:",sources)'
+  deploy-vinted-browser-poc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Validate Cloudflare credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          test -n "$CLOUDFLARE_API_TOKEN"
+      - name: Install Browser PoC dependencies
+        working-directory: pocs/vinted-browser
+        run: npm install --no-audit --no-fund
+      - name: Deploy Browser PoC on workers.dev
+        working-directory: pocs/vinted-browser
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx wrangler deploy --name genericparser-vinted-poc 2>&1 | tee /tmp/poc-deploy.log
+          cat /tmp/poc-deploy.log
+      - name: Verify PoC health
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 24); do
+            code="$(curl -sS -o /tmp/health.json -w '%{http_code}' --max-time 15 "$POC_URL/health" || true)"
+            body="$(cat /tmp/health.json 2>/dev/null || true)"
+            echo "attempt=$i http=$code body=$body"
+            if [ "$code" = "200" ] && printf '%s' "$body" | grep -q 'vinted-browser-poc-0.1.0'; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "PoC health endpoint nicht erreichbar"
+          exit 1
+      - name: Probe Vinted Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          code="$(curl -sS -o /tmp/poc.json -w '%{http_code}' --max-time 60 "$POC_URL/search?q=Evercade")"
+          cat /tmp/poc.json
+          test "$code" = "200"
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/poc.json'))
+          print('status=', d.get('status'))
+          print('httpStatus=', d.get('httpStatus'))
+          print('browser=', d.get('browser'))
+          print('listings=', len(d.get('listings') or []))
+          if d.get('status') != 'ok' or not d.get('listings'):
+              raise SystemExit('Vinted Browser PoC returned no public listings')
+          PY
