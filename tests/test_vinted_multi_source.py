@@ -56,8 +56,8 @@ def test_vinted_structured_product_is_parsed():
 
 
 def test_runtime_identity_is_current_release_not_0450():
-    assert service.VERSION == "1.1.0"
-    assert service.BUILD_ID == "gp-110-20260808-1"
+    assert service.VERSION == "1.1.1"
+    assert service.BUILD_ID == "gp-111-20260808-1"
 
 
 def test_auto_search_merges_kleinanzeigen_and_vinted(monkeypatch):
@@ -91,7 +91,7 @@ def test_auto_search_merges_kleinanzeigen_and_vinted(monkeypatch):
     assert result["pagination"]["source"] == "multi-source"
     assert result["source_status"]["vinted"]["status"] == "ok"
     assert result["source_status"]["vinted"]["strategy"] == "html"
-    assert result["worker"]["version"] == "1.1.0"
+    assert result["worker"]["version"] == "1.1.1"
 
 
 def test_vinted_failure_does_not_remove_kleinanzeigen(monkeypatch):

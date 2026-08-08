@@ -1,22 +1,22 @@
 {
   "product": "GenericParser",
-  "version": "1.1.0",
-  "package_version": "1.1.0",
-  "build_id": "gp-110-20260808-1",
+  "version": "1.1.1",
+  "package_version": "1.1.1",
+  "build_id": "gp-111-20260808-1",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
   "entrypoint": "src/generic_parser/cloudflare_worker.py:Default.fetch",
   "bootstrap_module": "generic_parser.cloudflare_v0452",
-  "search_module": "generic_parser.search_service_v0450",
-  "search_runtime": "0.45.0+multisource-1.1",
+  "search_module": "generic_parser.search_service_v111_runtime",
+  "search_runtime": "0.45.0+multisource-1.1-runtime-bridge",
   "functional_reference_version": "0.44.4",
   "stable_reference_version": "0.44.6.5",
   "runtime_reference_version": "0.44.6.2",
-  "technical_base": "1.0.0+vinted-multisource-fix",
+  "technical_base": "1.1.0+runtime-identity-hotfix",
   "release_date": "2026-08-08",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "release-candidate",
-  "purpose": "add Vinted as a second default marketplace source, fix runtime version identity and expose per-source status while preserving module-v1 compatibility",
+  "purpose": "fix the 1.1.0 search-service identity mismatch without changing the Kleinanzeigen or Vinted search behavior",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted"],
@@ -56,13 +56,14 @@
     "cloudflare_deployment": "required",
     "health_version_diagnostics": "required",
     "cors_preflight": "required",
+    "live_kleinanzeigen_search": "required",
+    "live_vinted_search": "required",
     "live_multisource_search": "required",
-    "vinted_source_visible_or_explicitly_degraded": "required",
     "legacy_ui_api_search": "required"
   },
   "rollback_plan": {
     "last_stable_baseline": "1.0.0",
     "commit": "8b531a2349a32a65f168b2df91c3a3be34728fe5"
   },
-  "metadata_schema": 31
+  "metadata_schema": 32
 }
