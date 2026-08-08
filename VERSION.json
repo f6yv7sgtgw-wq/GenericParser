@@ -1,23 +1,28 @@
 {
   "product": "GenericParser",
-  "version": "1.0.0",
-  "package_version": "1.0.0",
-  "build_id": "gp-100-20260808-1",
+  "version": "1.1.0",
+  "package_version": "1.1.0",
+  "build_id": "gp-110-20260808-1",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
   "entrypoint": "src/generic_parser/cloudflare_worker.py:Default.fetch",
   "bootstrap_module": "generic_parser.cloudflare_v0452",
   "search_module": "generic_parser.search_service_v0450",
-  "search_runtime": "0.45.0",
+  "search_runtime": "0.45.0+multisource-1.1",
   "functional_reference_version": "0.44.4",
   "stable_reference_version": "0.44.6.5",
   "runtime_reference_version": "0.44.6.2",
-  "technical_base": "0.45.2-build7-paid",
+  "technical_base": "1.0.0+vinted-multisource-fix",
   "release_date": "2026-08-08",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "stable",
-  "purpose": "first stable production release based on the proven Paid Worker baseline with module-v1 compatibility and no artificial Free Worker pacing",
+  "status": "release-candidate",
+  "purpose": "add Vinted as a second default marketplace source, fix runtime version identity and expose per-source status while preserving module-v1 compatibility",
   "worker_plan": "paid",
+  "sources": {
+    "default": ["kleinanzeigen", "vinted"],
+    "kleinanzeigen": {"strategy": "proven html search core"},
+    "vinted": {"strategy": "public catalog html with structured-data/card parser and api fallback", "fail_open": true}
+  },
   "timing_profile": {
     "new_search_cooldown_ms": 0,
     "normal_packet_delay_ms": 0,
@@ -28,7 +33,7 @@
   "compatibility": {
     "api_contract": "generic-parser-module-v1",
     "legacy_release_line": "0.45",
-    "stable_release_line": "1.0",
+    "stable_release_lines": ["1.0", "1.1"],
     "exact_build_match_required": false,
     "contract_match_required": true,
     "evercade_adapter": true,
@@ -46,28 +51,18 @@
     "root_search": "/search",
     "self_test": "/api/module/v1/self-test?enabled=true"
   },
-  "unchanged_search_behavior": [
-    "search_service_v0450",
-    "0.44.4 search core",
-    "0.44.6.5 operational reference",
-    "seven-result work packets",
-    "Kleinanzeigen pagination and extraction",
-    "matching and scoring",
-    "traffic-light evaluation",
-    "generic-parser-module-v1"
-  ],
   "verification": {
     "pre_deploy_ci": "required",
     "cloudflare_deployment": "required",
     "health_version_diagnostics": "required",
     "cors_preflight": "required",
-    "live_evercade_search_packet": "required",
-    "legacy_ui_api_search": "required",
-    "exact_source_zip": "required"
+    "live_multisource_search": "required",
+    "vinted_source_visible_or_explicitly_degraded": "required",
+    "legacy_ui_api_search": "required"
   },
   "rollback_plan": {
-    "last_pre_1_0_baseline": "0.45.2 Build 7 Paid Worker",
-    "commit": "70c22ee4cda2f029490fb6825668db57358e4aa5"
+    "last_stable_baseline": "1.0.0",
+    "commit": "8b531a2349a32a65f168b2df91c3a3be34728fe5"
   },
-  "metadata_schema": 30
+  "metadata_schema": 31
 }
