@@ -41,7 +41,8 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     needs: validate
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    environment: production
+    timeout-minutes: 12
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -53,31 +54,49 @@ jobs:
       - name: Install PoC dependencies
         working-directory: ${{ env.POC_DIR }}
         run: npm install --no-audit --no-fund
-      - name: Validate Cloudflare credentials
+      - name: Validate Cloudflare production credentials
+        shell: bash
         run: |
-          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID fehlt"; exit 1; }
-          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN fehlt"; exit 1; }
+          set -euo pipefail
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID fehlt im GitHub-Environment production"; exit 1; }
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN fehlt im GitHub-Environment production"; exit 1; }
+          echo "Cloudflare production credentials available"
       - name: Deploy isolated Browser Run worker
+        id: deploy
         working-directory: ${{ env.POC_DIR }}
-        run: npx wrangler deploy
-      - name: Wait for PoC health
+        shell: bash
         run: |
-          set -e
-          for i in $(seq 1 18); do
-            body="$(curl -fsS --max-time 15 "$POC_URL/health" 2>/dev/null || true)"
-            if printf '%s' "$body" | grep -q 'vinted-browser-poc-0.1.0'; then
-              printf '%s\n' "$body"
+          set -euo pipefail
+          npx wrangler deploy 2>&1 | tee /tmp/vinted-poc-deploy.log
+          grep -q 'genericparser-vinted-poc' /tmp/vinted-poc-deploy.log || {
+            echo "Wrangler output did not confirm genericparser-vinted-poc"
+            cat /tmp/vinted-poc-deploy.log
+            exit 1
+          }
+      - name: Wait for PoC health
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 24); do
+            code="$(curl -sS -o /tmp/vinted-poc-health.json -w '%{http_code}' --max-time 15 "$POC_URL/health" || true)"
+            body="$(cat /tmp/vinted-poc-health.json 2>/dev/null || true)"
+            echo "health attempt $i: HTTP $code $body"
+            if [ "$code" = "200" ] && printf '%s' "$body" | grep -q 'vinted-browser-poc-0.1.0'; then
+              echo "PoC health endpoint ready"
               exit 0
             fi
             sleep 5
           done
-          echo "PoC health endpoint not ready"
+          echo "PoC health endpoint not ready at $POC_URL/health"
           exit 1
       - name: Probe Vinted with real Chromium
+        shell: bash
         run: |
-          set -e
-          curl -sS --max-time 50 "$POC_URL/search?q=Evercade" -o /tmp/vinted-poc.json -w '%{http_code}' > /tmp/vinted-poc.status
+          set -euo pipefail
+          http_code="$(curl -sS --max-time 60 "$POC_URL/search?q=Evercade" -o /tmp/vinted-poc.json -w '%{http_code}')"
+          echo "PoC endpoint HTTP $http_code"
           cat /tmp/vinted-poc.json
+          test "$http_code" = "200" || { echo "PoC search endpoint returned HTTP $http_code"; exit 1; }
           python - <<'PY'
           import json
           data=json.load(open('/tmp/vinted-poc.json'))
