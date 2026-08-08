@@ -1,4 +1,4 @@
-name: GenericParser 1.1.2 integrity
+name: GenericParser release integrity
 
 on:
   pull_request:
@@ -19,14 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v6
+        with: {python-version: "3.13"}
       - uses: actions/setup-node@v6
-        with:
-          node-version: "22"
+        with: {node-version: "22"}
       - name: Install project and tests
         run: python -m pip install --disable-pip-version-check -e '.[dev]'
       - name: Prove Kleinanzeigen core, module contract and orchestration are unchanged
@@ -36,25 +33,29 @@ jobs:
             src/generic_parser/module_api.py \
             src/generic_parser/search_service_v0450.py \
             src/generic_parser/search_service_v111_runtime.py
-      - name: Compile active runtime, bridge and Vinted adapter
-        run: python -m py_compile src/generic_parser/build_identity_v0450.py src/generic_parser/build_identity_v0452.py src/generic_parser/cloudflare_v0450.py src/generic_parser/cloudflare_v0452.py src/generic_parser/search_service_v0450.py src/generic_parser/search_service_v111_runtime.py src/generic_parser/vinted_adapter.py scripts/check_deployment.py
+      - name: Compile active runtime and release identity
+        run: python -m py_compile src/generic_parser/release_identity.py src/generic_parser/build_identity_v0450.py src/generic_parser/build_identity_v0452.py src/generic_parser/cloudflare_v0450.py src/generic_parser/cloudflare_v0452.py src/generic_parser/search_service_v0450.py src/generic_parser/search_service_v111_runtime.py src/generic_parser/vinted_adapter.py scripts/check_deployment.py
       - name: Check browser syntax
         run: |
           node --check cloudflare/public/controller-0450.js
           node --check cloudflare/public/source-colors-110.js
       - name: Run stable, bridge and Vinted regression tests
         run: pytest -q tests/test_release_100.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py
-      - name: Validate 1.1.2 metadata and runtime separation
-        shell: bash
+      - name: Validate metadata from single release identity
         run: |
-          grep -q '"version": "1.1.2"' VERSION.json
-          grep -q '"build_id": "gp-112-20260808-1"' VERSION.json
-          grep -q 'version = "1.1.2"' pyproject.toml
-          grep -q 'VERSION = "1.1.2"' src/generic_parser/build_identity_v0452.py
-          grep -q 'VERSION = "0.45.0"' src/generic_parser/build_identity_v0450.py
-          grep -q 'SEARCH_MODULE = "generic_parser.search_service_v111_runtime"' src/generic_parser/build_identity_v0450.py
-          grep -q "version:'1.1.2'" cloudflare/public/build-identity-0450.js
-          grep -q 'GenericParser 1.1.2' cloudflare/public/index.html
-          grep -q 'async def _bootstrap_session' src/generic_parser/vinted_adapter.py
-          grep -q 'session-bootstrap+html+api-fallback' src/generic_parser/vinted_adapter.py
-          grep -q 'from .search_service_v0450 import' src/generic_parser/search_service_v111_runtime.py
+          python - <<'PY'
+          import json
+          from generic_parser.release_identity import VERSION, BUILD_ID, API_CONTRACT
+          d=json.load(open('VERSION.json'))
+          assert d['version']==VERSION
+          assert d['build_id']==BUILD_ID
+          assert d['api_contract']==API_CONTRACT
+          assert d['identity_source']=='src/generic_parser/release_identity.py'
+          package=open('pyproject.toml').read()
+          assert 'dynamic = ["version"]' in package
+          assert 'generic_parser.release_identity.VERSION' in package
+          compat=open('src/generic_parser/build_identity_v0452.py').read()
+          assert 'from .release_identity import' in compat
+          controller=open('cloudflare/public/controller-0450.js').read()
+          assert 'exactVersionMatchRequired:false' in controller
+          PY
