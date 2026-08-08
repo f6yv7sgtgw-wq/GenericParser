@@ -27,14 +27,32 @@ def test_release_identity_is_consistent() -> None:
     assert "from .release_identity import" in identity
 
 
+def test_public_browser_identity_is_runtime_loaded_not_release_pinned() -> None:
+    browser = read("cloudflare/public/build-identity-0450.js")
+    controller = read("cloudflare/public/controller-0450.js")
+    assert "fetch('./health?identity=ui'" in browser
+    assert "GP_BUILD_IDENTITY_READY" in browser
+    assert "health.version" in browser
+    assert "health.build_id" in browser
+    assert "health.api_contract" in browser
+    assert VERSION not in browser
+    assert BUILD_ID not in browser
+    assert "browser-run-worker+public-web-fallback" not in browser
+    assert "vintedStrategy: 'service-binding'" in browser
+    assert "GP_BUILD_IDENTITY_READY" in controller
+    assert "workerContract !== API_CONTRACT" in controller
+    assert "workerVersion !== VERSION" not in controller
+    assert "workerBuild !== BUILD_ID" not in controller
+
+
 def test_paid_timing_profile_is_active() -> None:
     browser = read("cloudflare/public/build-identity-0450.js")
     controller = read("cloudflare/public/controller-0450.js")
-    assert "workerPlan:'paid'" in browser
-    assert "protectionDelays:false" in browser
-    assert "quietPeriodMs:1" in browser
-    assert "healthIntervalMs:1" in browser
-    assert '["const COOLDOWN_MS = 2000;", "const COOLDOWN_MS = 0;"]' in controller
+    assert "workerPlan: 'paid'" in browser
+    assert "protectionDelays: false" in browser
+    assert "quietPeriodMs: 1" in browser
+    assert "healthIntervalMs: 1" in browser
+    assert "COOLDOWN_MS = 0" in controller
     assert "adaptiveDelay = () => 0" in controller
     assert "countdown = async () => {}" in controller
 
