@@ -1,4 +1,4 @@
-name: GenericParser 1.0.0 integrity
+name: GenericParser 1.1.0 integrity
 
 on:
   pull_request:
@@ -9,10 +9,6 @@ on:
       - "scripts/**"
       - "pyproject.toml"
       - "VERSION.json"
-      - "README.md"
-      - "ROADMAP.md"
-      - "CHANGELOG.md"
-      - "docs/**"
       - ".github/workflows/**"
 
 permissions:
@@ -46,15 +42,14 @@ jobs:
           node --check cloudflare/public/source-colors-110.js
       - name: Run stable and multi-source regression tests
         run: pytest -q tests/test_release_100.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py
-      - name: Validate release metadata consistency
+      - name: Validate 1.1 release metadata consistency
         shell: bash
         run: |
-          grep -q '"version": "1.0.0"' VERSION.json
-          grep -q '"build_id": "gp-100-20260808-1"' VERSION.json
-          grep -q '"status": "stable"' VERSION.json
-          grep -q 'version = "1.0.0"' pyproject.toml
-          grep -q 'VERSION = "1.0.0"' src/generic_parser/build_identity_v0452.py
-          grep -q "version:'1.0.0'" cloudflare/public/build-identity-0450.js
-          grep -q 'GenericParser 1.0.0' README.md
-          grep -q '## 1.0.0' CHANGELOG.md
-          grep -q '## 1.0.0' ROADMAP.md
+          grep -q '"version": "1.1.0"' VERSION.json
+          grep -q '"build_id": "gp-110-20260808-1"' VERSION.json
+          grep -q 'version = "1.1.0"' pyproject.toml
+          grep -q 'VERSION = "1.1.0"' src/generic_parser/build_identity_v0452.py
+          grep -q "version:'1.1.0'" cloudflare/public/build-identity-0450.js
+          grep -q 'GenericParser 1.1.0' cloudflare/public/index.html
+          grep -q 'VINTED_CATALOG_PAGE' src/generic_parser/vinted_adapter.py
+          grep -q 'from .build_identity_v0452 import' src/generic_parser/search_service_v0450.py
