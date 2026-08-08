@@ -110,21 +110,28 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
-      - name: Validate Cloudflare credentials
+      - name: Validate Cloudflare credentials and account
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$CLOUDFLARE_ACCOUNT_ID"
-          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID fehlt"; exit 1; }
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN fehlt"; exit 1; }
+          cd pocs/vinted-browser
+          npx wrangler whoami
       - name: Install Browser PoC dependencies
         working-directory: pocs/vinted-browser
         run: npm install --no-audit --no-fund
-      - name: Deploy Browser PoC on workers.dev
+      - name: Validate Quick Action Worker
+        working-directory: pocs/vinted-browser
+        run: |
+          npm run check
+          npx wrangler deploy --dry-run --outdir ../../.poc-dist
+      - name: Deploy Browser Quick Action PoC on workers.dev
         working-directory: pocs/vinted-browser
         shell: bash
         run: |
           set -euo pipefail
-          npx wrangler deploy --name genericparser-vinted-poc 2>&1 | tee /tmp/poc-deploy.log
+          npx wrangler deploy --name genericparser-vinted-poc --log-level debug 2>&1 | tee /tmp/poc-deploy.log
           cat /tmp/poc-deploy.log
       - name: Verify PoC health
         shell: bash
@@ -134,14 +141,14 @@ jobs:
             code="$(curl -sS -o /tmp/health.json -w '%{http_code}' --max-time 15 "$POC_URL/health" || true)"
             body="$(cat /tmp/health.json 2>/dev/null || true)"
             echo "attempt=$i http=$code body=$body"
-            if [ "$code" = "200" ] && printf '%s' "$body" | grep -q 'vinted-browser-poc-0.1.0'; then
+            if [ "$code" = "200" ] && printf '%s' "$body" | grep -q 'vinted-browser-poc-0.2.0'; then
               exit 0
             fi
             sleep 5
           done
           echo "PoC health endpoint nicht erreichbar"
           exit 1
-      - name: Probe Vinted Chromium
+      - name: Probe Vinted Browser Run Quick Action
         shell: bash
         run: |
           set -euo pipefail
@@ -156,5 +163,5 @@ jobs:
           print('browser=', d.get('browser'))
           print('listings=', len(d.get('listings') or []))
           if d.get('status') != 'ok' or not d.get('listings'):
-              raise SystemExit('Vinted Browser PoC returned no public listings')
+              raise SystemExit('Vinted Browser Run Quick Action returned no public listings')
           PY
