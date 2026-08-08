@@ -4,6 +4,12 @@
   "main": "src/generic_parser/cloudflare_worker.py",
   "compatibility_date": "2026-08-01",
   "compatibility_flags": ["python_workers"],
+  "services": [
+    {
+      "binding": "VINTED_BROWSER",
+      "service": "genericparser-vinted-poc"
+    }
+  ],
   "assets": {
     "directory": "./cloudflare/public",
     "binding": "ASSETS",
