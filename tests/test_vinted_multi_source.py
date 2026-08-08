@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import asyncio
 
+import httpx
 from bs4 import BeautifulSoup
 
 from generic_parser import search_service_v0450 as service
-from generic_parser.vinted_adapter import _from_cards, _from_structured_data, _normalize_api
+from generic_parser.vinted_adapter import _bootstrap_session, _from_cards, _from_structured_data, _normalize_api
 
 
 def test_vinted_api_item_is_normalized_with_source_prefix():
@@ -55,9 +56,40 @@ def test_vinted_structured_product_is_parsed():
     assert rows[0]["price"] == 19.5
 
 
+def test_anonymous_session_bootstrap_keeps_received_cookie():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert str(request.url) == "https://www.vinted.de/"
+        return httpx.Response(200, headers={"set-cookie": "anon_session=test123; Path=/; Secure"}, text="ok")
+
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler), follow_redirects=True) as client:
+            result = await _bootstrap_session(client)
+            return result, client.cookies.get("anon_session")
+
+    result, cookie = asyncio.run(run())
+    assert result["status"] == "ok"
+    assert result["http_status"] == 200
+    assert result["cookie_count"] == 1
+    assert cookie == "test123"
+
+
+def test_anonymous_session_bootstrap_reports_access_limit():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(403, text="blocked")
+
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler), follow_redirects=True) as client:
+            return await _bootstrap_session(client)
+
+    result = asyncio.run(run())
+    assert result["status"] == "degraded"
+    assert result["http_status"] == 403
+    assert result["reason"] == "vinted_session_bootstrap_access_limited"
+
+
 def test_runtime_identity_is_current_release_not_0450():
-    assert service.VERSION == "1.1.1"
-    assert service.BUILD_ID == "gp-111-20260808-1"
+    assert service.VERSION == "1.1.2"
+    assert service.BUILD_ID == "gp-112-20260808-1"
 
 
 def test_auto_search_merges_kleinanzeigen_and_vinted(monkeypatch):
@@ -79,7 +111,7 @@ def test_auto_search_merges_kleinanzeigen_and_vinted(monkeypatch):
         return {
             "listings": [{"id": "vinted:2", "title": "Evercade Interplay Collection 1", "url": "https://www.vinted.de/items/2-evercade", "price": 25, "source": "vinted", "source_label": "Vinted", "result_info": {"offer_type": "Produkt", "condition": "wie neu", "scope": "Einzelangebot"}}],
             "next_page": None, "complete": True, "status": "ok", "http_status": 200, "reason": None,
-            "strategy": "html", "url": "https://www.vinted.de/catalog?search_text=Evercade",
+            "strategy": "session+html", "url": "https://www.vinted.de/catalog?search_text=Evercade",
         }
 
     monkeypatch.setattr(service.reference, "search_page", fake_ka)
@@ -90,8 +122,8 @@ def test_auto_search_merges_kleinanzeigen_and_vinted(monkeypatch):
     assert {item.get("source") for item in result["listings"]} == {"kleinanzeigen", "vinted"}
     assert result["pagination"]["source"] == "multi-source"
     assert result["source_status"]["vinted"]["status"] == "ok"
-    assert result["source_status"]["vinted"]["strategy"] == "html"
-    assert result["worker"]["version"] == "1.1.1"
+    assert result["source_status"]["vinted"]["strategy"] == "session+html"
+    assert result["worker"]["version"] == "1.1.2"
 
 
 def test_vinted_failure_does_not_remove_kleinanzeigen(monkeypatch):
@@ -104,7 +136,7 @@ def test_vinted_failure_does_not_remove_kleinanzeigen(monkeypatch):
         }
 
     async def failed_vinted(query, page=0):
-        return {"listings": [], "next_page": None, "complete": True, "status": "degraded", "http_status": 429, "reason": "vinted_access_limited", "strategy": "html", "url": "https://www.vinted.de/"}
+        return {"listings": [], "next_page": None, "complete": True, "status": "degraded", "http_status": 403, "reason": "bootstrap:degraded:vinted_session_bootstrap_access_limited; html:vinted_html_access_limited; api:vinted_api_access_limited", "strategy": "session-bootstrap+html+api-fallback", "url": "https://www.vinted.de/"}
 
     monkeypatch.setattr(service.reference, "search_page", fake_ka)
     monkeypatch.setattr(service, "search_vinted", failed_vinted)
@@ -113,4 +145,4 @@ def test_vinted_failure_does_not_remove_kleinanzeigen(monkeypatch):
     assert len(result["listings"]) == 1
     assert result["listings"][0]["source"] == "kleinanzeigen"
     assert result["source_status"]["vinted"]["status"] == "degraded"
-    assert result["source_status"]["vinted"]["http_status"] == 429
+    assert result["source_status"]["vinted"]["http_status"] == 403
