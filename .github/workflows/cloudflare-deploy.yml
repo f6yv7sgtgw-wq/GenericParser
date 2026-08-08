@@ -1,4 +1,4 @@
-name: Deploy GenericParser 1.1.2
+name: Deploy GenericParser
 
 on:
   workflow_dispatch:
@@ -6,17 +6,8 @@ on:
     branches: [main]
     paths:
       - "cloudflare/**"
-      - "pocs/vinted-browser/**"
-      - "src/generic_parser/cloudflare_worker.py"
-      - "src/generic_parser/cloudflare_v0450.py"
-      - "src/generic_parser/cloudflare_v0452.py"
-      - "src/generic_parser/build_identity_v0450.py"
-      - "src/generic_parser/build_identity_v0452.py"
-      - "src/generic_parser/search_service_v0450.py"
-      - "src/generic_parser/search_service_v111_runtime.py"
-      - "src/generic_parser/vinted_adapter.py"
-      - "src/generic_parser/module_api.py"
-      - "scripts/check_deployment.py"
+      - "src/generic_parser/**"
+      - "scripts/**"
       - "tests/**"
       - "pyproject.toml"
       - "VERSION.json"
@@ -34,7 +25,6 @@ env:
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   DEPLOYMENT_URL: https://genericparser.f6yv7sgtgw.workers.dev
-  POC_URL: https://genericparser-vinted-poc.f6yv7sgtgw.workers.dev
 
 jobs:
   test-deploy-live:
@@ -44,124 +34,60 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
+        with: {enable-cache: true}
       - uses: actions/setup-node@v6
-        with:
-          node-version: "22"
+        with: {node-version: "22"}
       - name: Install dependencies
         run: uv sync --group cloudflare --extra dev
-      - name: Run stable, bridge and Vinted regression tests
-        run: uv run pytest -q tests/test_release_100.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py
-      - name: Compile active runtime and bridge
+      - name: Read active release identity
+        id: release
         run: |
-          uv run python -m py_compile \
-            src/generic_parser/cloudflare_worker.py \
-            src/generic_parser/cloudflare_v0450.py \
-            src/generic_parser/cloudflare_v0452.py \
-            src/generic_parser/build_identity_v0450.py \
-            src/generic_parser/build_identity_v0452.py \
-            src/generic_parser/search_service_v0450.py \
-            src/generic_parser/search_service_v111_runtime.py \
-            src/generic_parser/vinted_adapter.py \
-            scripts/check_deployment.py
+          echo "version=$(uv run python -c 'from generic_parser.release_identity import VERSION; print(VERSION)')" >> "$GITHUB_OUTPUT"
+          echo "build=$(uv run python -c 'from generic_parser.release_identity import BUILD_ID; print(BUILD_ID)')" >> "$GITHUB_OUTPUT"
+          echo "contract=$(uv run python -c 'from generic_parser.release_identity import API_CONTRACT; print(API_CONTRACT)')" >> "$GITHUB_OUTPUT"
+      - name: Run regression tests
+        run: uv run pytest -q tests/test_release_100.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py
+      - name: Compile active runtime
+        run: |
+          uv run python -m py_compile src/generic_parser/release_identity.py src/generic_parser/cloudflare_worker.py src/generic_parser/cloudflare_v0450.py src/generic_parser/cloudflare_v0452.py src/generic_parser/build_identity_v0450.py src/generic_parser/build_identity_v0452.py src/generic_parser/search_service_v0450.py src/generic_parser/search_service_v111_runtime.py src/generic_parser/vinted_adapter.py scripts/check_deployment.py
       - name: Validate browser controller syntax
         run: |
           node --check cloudflare/public/controller-0450.js
           node --check cloudflare/public/source-colors-110.js
-      - name: Validate 1.1.2 release identity and isolated Vinted change
-        shell: bash
+      - name: Validate release metadata without hard version literals
         run: |
-          grep -q '"version": "1.1.2"' VERSION.json
-          grep -q '"build_id": "gp-112-20260808-1"' VERSION.json
-          grep -q 'version = "1.1.2"' pyproject.toml
-          grep -q 'VERSION = "1.1.2"' src/generic_parser/build_identity_v0452.py
-          grep -q 'VERSION = "0.45.0"' src/generic_parser/build_identity_v0450.py
-          grep -q 'SEARCH_MODULE = "generic_parser.search_service_v111_runtime"' src/generic_parser/build_identity_v0450.py
-          grep -q "version:'1.1.2'" cloudflare/public/build-identity-0450.js
+          uv run python - <<'PY'
+          import json
+          from generic_parser.release_identity import VERSION, BUILD_ID, API_CONTRACT
+          d=json.load(open('VERSION.json'))
+          assert d['version']==VERSION
+          assert d['build_id']==BUILD_ID
+          assert d['api_contract']==API_CONTRACT
+          assert d['identity_source']=='src/generic_parser/release_identity.py'
+          PY
       - name: Validate production secrets
-        shell: bash
         run: |
-          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID fehlt"; exit 1; }
-          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN fehlt"; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          test -n "$CLOUDFLARE_API_TOKEN"
       - name: Deploy Python Worker
         run: uv run --group cloudflare pywrangler deploy
-      - name: Verify GenericParser health
-        shell: bash
+      - name: Verify live release identity
+        env:
+          EXPECTED_VERSION: ${{ steps.release.outputs.version }}
+          EXPECTED_BUILD: ${{ steps.release.outputs.build }}
+          EXPECTED_CONTRACT: ${{ steps.release.outputs.contract }}
         run: |
-          set -e
+          set -euo pipefail
           for i in $(seq 1 24); do
-            body="$(curl -fsS --max-time 15 "$DEPLOYMENT_URL/health" 2>/dev/null || true)"
-            if printf '%s' "$body" | grep -q 'gp-112-20260808-1'; then
-              printf '%s\n' "$body"
-              exit 0
-            fi
+            code="$(curl -sS -o /tmp/health.json -w '%{http_code}' --max-time 15 "$DEPLOYMENT_URL/health" || true)"
+            python - "$code" <<'PY' && exit 0 || true
+          import json,os,sys
+          try: d=json.load(open('/tmp/health.json'))
+          except Exception: raise SystemExit(1)
+          ok=(sys.argv[1]=='200' and d.get('version')==os.environ['EXPECTED_VERSION'] and d.get('build_id')==os.environ['EXPECTED_BUILD'] and d.get('api_contract')==os.environ['EXPECTED_CONTRACT'])
+          raise SystemExit(0 if ok else 1)
+          PY
             sleep 10
           done
-          echo "GenericParser 1.1.2 wurde nicht live erkannt"
+          cat /tmp/health.json || true
           exit 1
-
-  deploy-vinted-browser-poc:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment: production
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-      - name: Validate Cloudflare credentials and account
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID fehlt"; exit 1; }
-          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN fehlt"; exit 1; }
-          cd pocs/vinted-browser
-          npx wrangler whoami
-      - name: Install Browser PoC dependencies
-        working-directory: pocs/vinted-browser
-        run: npm install --no-audit --no-fund
-      - name: Validate Quick Action Worker
-        working-directory: pocs/vinted-browser
-        run: |
-          npm run check
-          npx wrangler deploy --dry-run --outdir ../../.poc-dist
-      - name: Deploy Browser Quick Action PoC on workers.dev
-        working-directory: pocs/vinted-browser
-        shell: bash
-        run: |
-          set -euo pipefail
-          npx wrangler deploy --name genericparser-vinted-poc --log-level debug 2>&1 | tee /tmp/poc-deploy.log
-          cat /tmp/poc-deploy.log
-      - name: Verify PoC health
-        shell: bash
-        run: |
-          set -euo pipefail
-          for i in $(seq 1 24); do
-            code="$(curl -sS -o /tmp/health.json -w '%{http_code}' --max-time 15 "$POC_URL/health" || true)"
-            body="$(cat /tmp/health.json 2>/dev/null || true)"
-            echo "attempt=$i http=$code body=$body"
-            if [ "$code" = "200" ] && printf '%s' "$body" | grep -q 'vinted-browser-poc-0.2.0'; then
-              exit 0
-            fi
-            sleep 5
-          done
-          echo "PoC health endpoint nicht erreichbar"
-          exit 1
-      - name: Probe Vinted Browser Run Quick Action
-        shell: bash
-        run: |
-          set -euo pipefail
-          code="$(curl -sS -o /tmp/poc.json -w '%{http_code}' --max-time 60 "$POC_URL/search?q=Evercade")"
-          cat /tmp/poc.json
-          test "$code" = "200"
-          python - <<'PY'
-          import json
-          d=json.load(open('/tmp/poc.json'))
-          print('status=', d.get('status'))
-          print('httpStatus=', d.get('httpStatus'))
-          print('browser=', d.get('browser'))
-          print('listings=', len(d.get('listings') or []))
-          if d.get('status') != 'ok' or not d.get('listings'):
-              raise SystemExit('Vinted Browser Run Quick Action returned no public listings')
-          PY
