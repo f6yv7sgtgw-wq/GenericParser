@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generic-kleinanzeigen-parser"
-version = "1.1.2"
+dynamic = ["version"]
 description = "Reusable multi-source marketplace parser for Kleinanzeigen and Vinted with module-v1 API, Evercade/SNES adapters and Cloudflare Worker diagnostics"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -26,6 +26,9 @@ generic-parser-web = "generic_parser.web.app:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
+
+[tool.setuptools.dynamic]
+version = {attr = "generic_parser.release_identity.VERSION"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
