@@ -1,70 +1,47 @@
 {
   "product": "GenericParser",
-  "version": "1.1.2",
-  "package_version": "1.1.2",
-  "build_id": "gp-112-20260808-1",
+  "version": "1.2.0",
+  "package_version": "dynamic:generic_parser.release_identity.VERSION",
+  "build_id": "gp-120-20260808-1",
+  "identity_source": "src/generic_parser/release_identity.py",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
   "entrypoint": "src/generic_parser/cloudflare_worker.py:Default.fetch",
   "bootstrap_module": "generic_parser.cloudflare_v0452",
   "search_module": "generic_parser.search_service_v111_runtime",
-  "search_runtime": "0.45.0+multisource-1.1-runtime-bridge",
+  "search_runtime": "0.45.0+multisource-runtime-bridge",
   "functional_reference_version": "0.44.4",
   "stable_reference_version": "0.44.6.5",
   "runtime_reference_version": "0.44.6.2",
-  "technical_base": "1.1.1+vinted-session-bootstrap",
+  "technical_base": "1.1.2+browser-run-vinted",
   "release_date": "2026-08-08",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "release-candidate",
-  "purpose": "establish a normal anonymous Vinted public-web session before catalog/API requests while leaving Kleinanzeigen and the stable search core unchanged",
+  "purpose": "remove hard release-version coupling and move Vinted public search to isolated Browser Run parsing while preserving the Kleinanzeigen reference core",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted"],
     "kleinanzeigen": {"strategy": "proven html search core"},
-    "vinted": {"strategy": "anonymous session bootstrap, public catalog html, api fallback", "fail_open": true, "access_control_bypass": false}
-  },
-  "timing_profile": {
-    "new_search_cooldown_ms": 0,
-    "normal_packet_delay_ms": 0,
-    "retry_waits_ms": [0, 0, 0, 0],
-    "auto_resume_quiet_period_ms": 1,
-    "auto_resume_health_interval_ms": 1
+    "vinted": {"strategy": "browser-run public catalog", "fail_open": true, "access_control_bypass": false}
   },
   "compatibility": {
     "api_contract": "generic-parser-module-v1",
-    "legacy_release_line": "0.45",
-    "stable_release_lines": ["1.0", "1.1"],
     "exact_build_match_required": false,
+    "exact_release_line_match_required": false,
     "contract_match_required": true,
     "evercade_adapter": true,
     "snes_pal_adapter": true
   },
-  "module_endpoints": {
-    "health": "/health",
-    "version": "/version",
-    "diagnostics": "/diagnostics",
-    "capabilities": "/api/module/v1/capabilities",
-    "profile_validate": "/api/module/v1/profile/validate",
-    "search": "/api/module/v1/search",
-    "module_search_alias": "/api/module/search",
-    "legacy_search": "/api/search",
-    "root_search": "/search",
-    "self_test": "/api/module/v1/self-test?enabled=true"
-  },
   "verification": {
-    "pre_deploy_ci": "required",
+    "release_identity_source": "required",
     "cloudflare_deployment": "required",
-    "health_version_diagnostics": "required",
-    "cors_preflight": "required",
+    "health_contract": "required",
     "live_kleinanzeigen_search": "required",
-    "live_vinted_search": "required",
-    "live_multisource_search": "required",
-    "vinted_bootstrap_status": "required",
-    "legacy_ui_api_search": "required"
+    "live_vinted_browser_search": "required",
+    "live_multisource_search": "required"
   },
   "rollback_plan": {
-    "last_stable_baseline": "1.1.1",
-    "commit": "21845d3057da5fab42c08497367a0300eb37f211"
+    "last_stable_baseline": "1.1.2"
   },
-  "metadata_schema": 33
+  "metadata_schema": 34
 }

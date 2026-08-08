@@ -4,22 +4,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#07111f">
-  <title>GenericParser 1.1.2</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=1.1.2">
-  <link rel="stylesheet" href="./app.css?v=1.1.2">
-  <link rel="stylesheet" href="./layout-0409.css?v=1.1.2">
-  <link rel="stylesheet" href="./compact-04362.css?v=1.1.2">
-  <link rel="stylesheet" href="./cards-0440.css?v=1.1.2">
-  <link rel="stylesheet" href="./traffic-light-0443.css?v=1.1.2">
-  <link rel="stylesheet" href="./source-colors-110.css?v=1.1.2">
+  <title>GenericParser</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./app.css">
+  <link rel="stylesheet" href="./layout-0409.css">
+  <link rel="stylesheet" href="./compact-04362.css">
+  <link rel="stylesheet" href="./cards-0440.css">
+  <link rel="stylesheet" href="./traffic-light-0443.css">
+  <link rel="stylesheet" href="./source-colors-110.css">
 </head>
 <body>
 <main class="app-shell">
   <header class="hero">
     <div>
       <p class="eyebrow">Kleinanzeigen + Vinted · Matching & Scoring · Modul v1 · Paid Worker</p>
-      <h1>GenericParser <span>1.1.2</span></h1>
-      <p class="subtitle">Multi-Source-Suche über Kleinanzeigen und Vinted. 1.1.2 ändert ausschließlich den Vinted-Zugriff: vor Katalog und API wird eine normale anonyme öffentliche Vinted-Session aufgebaut. Kleinanzeigen und der stabile Suchkern bleiben unverändert.</p>
+      <h1>GenericParser <span>…</span></h1>
+      <p class="subtitle">Multi-Source-Suche über Kleinanzeigen und Vinted. Die öffentliche Release-Identität wird zur Laufzeit geladen; Kleinanzeigen nutzt weiterhin den stabilen Referenzkern, Vinted den Browser-Run-Zugriff.</p>
     </div>
     <div id="connection" class="status offline"><span></span> Controller lädt</div>
   </header>
@@ -39,10 +39,7 @@
     <details>
       <summary>Ort, Umfang, Optionen und Moduldiagnose</summary>
       <div class="details-grid">
-        <label>PLZ<input id="postal-code"></label>
-        <label>Location-ID<input id="location-id"></label>
-        <label>Radius km<input id="radius-km"></label>
-        <label>Max. Rohfunde<input id="max-results"></label>
+        <label>PLZ<input id="postal-code"></label><label>Location-ID<input id="location-id"></label><label>Radius km<input id="radius-km"></label><label>Max. Rohfunde<input id="max-results"></label>
         <label>Sortierung<select id="sort-by"><option value="relevance">Relevanz</option><option value="date">Neueste</option></select></label>
         <label>Suchumfang<select id="search-scope"><option value="500" selected>Bis zum natürlichen Ende</option></select></label>
         <label>Paketpause<select id="page-delay" disabled><option value="0" selected>0 Sekunden · Paid Worker</option></select></label>
@@ -52,52 +49,25 @@
       <label><input id="include-review" type="checkbox" checked> Prüffälle anzeigen</label>
       <label><input id="include-rejected" type="checkbox" checked> Abgelehnte Ergebnisse anzeigen</label>
       <label>Zugriffstoken<input id="token" type="password"></label>
-      <div class="diagnostic">
-        <span><strong>Optionale Moduldiagnose</strong></span>
-        <label><input id="debug-logs" type="checkbox"> Debug-Logs aktivieren</label>
-        <label><input id="module-tests" type="checkbox"> Netzwerkfreie Modultests aktivieren</label>
-        <button id="run-module-tests" class="secondary" type="button">Modultest ausführen</button>
-        <span id="module-debug-status">Debug aus · Modultests aus</span>
-      </div>
+      <div class="diagnostic"><span><strong>Optionale Moduldiagnose</strong></span><label><input id="debug-logs" type="checkbox"> Debug-Logs aktivieren</label><label><input id="module-tests" type="checkbox"> Netzwerkfreie Modultests aktivieren</label><button id="run-module-tests" class="secondary" type="button">Modultest ausführen</button><span id="module-debug-status">Debug aus · Modultests aus</span></div>
     </details>
     <div class="actions">
-      <button id="search-button" class="primary" disabled>Controller lädt …</button>
-      <button id="stop-button" class="secondary hidden">Suche stoppen</button>
-      <button id="resume-button" class="secondary hidden" disabled>Letzte Suche fortsetzen</button>
-      <button id="save-profile" class="secondary">Profil speichern</button>
-      <button id="clear-progress" class="secondary">Suchstand löschen</button>
-      <button id="demo-button" class="secondary" aria-hidden="true">Demo anzeigen</button>
-      <a class="secondary" href="./eventlog.html?v=1.1.2">Eventlog öffnen</a>
+      <button id="search-button" class="primary" disabled>Controller lädt …</button><button id="stop-button" class="secondary hidden">Suche stoppen</button><button id="resume-button" class="secondary hidden" disabled>Letzte Suche fortsetzen</button><button id="save-profile" class="secondary">Profil speichern</button><button id="clear-progress" class="secondary">Suchstand löschen</button><button id="demo-button" class="secondary" aria-hidden="true">Demo anzeigen</button><a class="secondary" href="./eventlog.html">Eventlog öffnen</a>
     </div>
     <label>Gespeicherte Profile<select id="profiles"><option value="">– auswählen –</option></select></label>
   </section>
 
-  <section id="worker-state" class="card">
-    <div class="row between"><h2>Status</h2><span id="worker-version" class="chip">1.1.2</span></div>
-    <div id="worker-state-text" class="compact-status">Suchcontroller wird geladen</div>
-  </section>
+  <section id="worker-state" class="card"><div class="row between"><h2>Status</h2><span id="worker-version" class="chip">…</span></div><div id="worker-state-text" class="compact-status">Suchcontroller wird geladen</div></section>
   <section id="message" class="message hidden"></section>
-  <section class="card technical-shell">
-    <button id="technical-toggle" class="technical-toggle" type="button" aria-expanded="false">Technische Details anzeigen</button>
-    <div id="technical-content" class="technical-content">
-      <section id="summary" class="metrics hidden"></section>
-      <section id="diagnostics-card" class="card hidden">
-        <h2>Diagnose und Konsistenz</h2>
-        <div id="urls" class="urls"></div>
-        <div id="diagnostics"></div>
-      </section>
-      <p><a href="./eventlog.html?v=1.1.2">Eventlog öffnen</a></p>
-    </div>
-  </section>
-  <section id="results" class="results"></section>
-  <button id="show-more" class="secondary hidden">Weitere Ergebnisse anzeigen</button>
-  <footer><span>GenericParser Mobile · Build gp-112-20260808-1</span><a href="./eventlog.html?v=1.1.2">Diagnose</a></footer>
+  <section class="card technical-shell"><button id="technical-toggle" class="technical-toggle" type="button" aria-expanded="false">Technische Details anzeigen</button><div id="technical-content" class="technical-content"><section id="summary" class="metrics hidden"></section><section id="diagnostics-card" class="card hidden"><h2>Diagnose und Konsistenz</h2><div id="urls" class="urls"></div><div id="diagnostics"></div></section><p><a href="./eventlog.html">Eventlog öffnen</a></p></div></section>
+  <section id="results" class="results"></section><button id="show-more" class="secondary hidden">Weitere Ergebnisse anzeigen</button>
+  <footer><span>GenericParser Mobile · Build …</span><a href="./eventlog.html">Diagnose</a></footer>
 </main>
-<script src="./build-identity-0450.js?v=1.1.2" defer></script>
-<script src="./app.js?v=1.1.2" defer></script>
-<script src="./controller-0450.js?v=1.1.2" defer></script>
-<script src="./module-debug-0450.js?v=1.1.2" defer></script>
-<script src="./auto-resume-0450.js?v=1.1.2" defer></script>
-<script src="./source-colors-110.js?v=1.1.2" defer></script>
+<script src="./build-identity-0450.js" defer></script>
+<script src="./app.js" defer></script>
+<script src="./controller-0450.js" defer></script>
+<script src="./module-debug-0450.js" defer></script>
+<script src="./auto-resume-0450.js" defer></script>
+<script src="./source-colors-110.js" defer></script>
 </body>
 </html>

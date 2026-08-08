@@ -1,9 +1,11 @@
+import json
 from pathlib import Path
 
 from fastapi.testclient import TestClient
 
 from generic_parser.cloudflare_v0452 import app
 from generic_parser.cloudflare_v0450 import load_service
+from generic_parser.release_identity import API_CONTRACT, BUILD_ID, VERSION
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -13,17 +15,16 @@ def read(path: str) -> str:
 
 
 def test_release_identity_is_consistent() -> None:
-    metadata = read("VERSION.json")
+    metadata = json.loads(read("VERSION.json"))
     package = read("pyproject.toml")
     identity = read("src/generic_parser/build_identity_v0452.py")
-    browser = read("cloudflare/public/build-identity-0450.js")
-    assert '"version": "1.1.2"' in metadata
-    assert '"build_id": "gp-112-20260808-1"' in metadata
-    assert 'version = "1.1.2"' in package
-    assert 'VERSION = "1.1.2"' in identity
-    assert 'BUILD_ID = "gp-112-20260808-1"' in identity
-    assert "version:'1.1.2'" in browser
-    assert "buildId:'gp-112-20260808-1'" in browser
+    assert metadata["version"] == VERSION
+    assert metadata["build_id"] == BUILD_ID
+    assert metadata["api_contract"] == API_CONTRACT
+    assert metadata["identity_source"] == "src/generic_parser/release_identity.py"
+    assert 'dynamic = ["version"]' in package
+    assert 'generic_parser.release_identity.VERSION' in package
+    assert "from .release_identity import" in identity
 
 
 def test_paid_timing_profile_is_active() -> None:
@@ -39,11 +40,9 @@ def test_paid_timing_profile_is_active() -> None:
 
 
 def test_search_runtime_bridge_preserves_reference_identity() -> None:
-    outer = read("src/generic_parser/build_identity_v0452.py")
     inner = read("src/generic_parser/build_identity_v0450.py")
     service = read("src/generic_parser/search_service_v0450.py")
     bridge = read("src/generic_parser/search_service_v111_runtime.py")
-    assert 'SEARCH_RUNTIME = "0.45.0+multisource-1.1-runtime-bridge"' in outer
     assert 'VERSION = "0.45.0"' in inner
     assert 'SEARCH_MODULE = "generic_parser.search_service_v111_runtime"' in inner
     assert "from . import search_service_v0444 as reference" in service
@@ -51,42 +50,24 @@ def test_search_runtime_bridge_preserves_reference_identity() -> None:
     assert "from .search_service_v0450 import" in bridge
     loaded = load_service()
     assert loaded.VERSION == "0.45.0"
-    assert loaded.BUILD_ID == "gp-0450-20260805-1"
-    assert loaded.API_CONTRACT == "generic-parser-module-v1"
+    assert loaded.API_CONTRACT == API_CONTRACT
 
 
-def test_vinted_change_is_isolated_to_adapter() -> None:
-    identity = read("src/generic_parser/build_identity_v0452.py")
-    adapter = read("src/generic_parser/vinted_adapter.py")
-    assert 'TECHNICAL_BASE = "1.1.1+vinted-session-bootstrap"' in identity
-    assert "async def _bootstrap_session" in adapter
-    assert '"strategy": "session-bootstrap+html+api-fallback"' in adapter
-    assert "rotate proxies" in adapter
-    assert "bypass access controls" in adapter
-
-
-def test_health_version_diagnostics_and_capabilities() -> None:
+def test_public_health_uses_single_release_identity() -> None:
     client = TestClient(app)
     headers = {"Origin": "https://f6yv7sgtgw-wq.github.io"}
-
     health = client.get("/health", headers=headers)
     assert health.status_code == 200
-    assert health.json()["version"] == "1.1.2"
-    assert health.json()["build_id"] == "gp-112-20260808-1"
+    assert health.json()["version"] == VERSION
+    assert health.json()["build_id"] == BUILD_ID
     assert health.headers["access-control-allow-origin"] == "*"
-
     version = client.get("/version", headers=headers)
     assert version.status_code == 200
-    assert version.json()["version"] == "1.1.2"
-    assert version.json()["build_id"] == "gp-112-20260808-1"
-
-    diagnostics = client.get("/diagnostics", headers=headers)
-    assert diagnostics.status_code == 200
-    assert diagnostics.json()["checks"]["startup_model"] == "eager-asgi-0450"
-
+    assert version.json()["version"] == VERSION
+    assert version.json()["build_id"] == BUILD_ID
     capabilities = client.get("/api/module/v1/capabilities", headers=headers)
     assert capabilities.status_code == 200
-    assert capabilities.json()["contract"] == "generic-parser-module-v1"
+    assert capabilities.json()["contract"] == API_CONTRACT
 
 
 def test_preflight_remains_browser_compatible() -> None:
