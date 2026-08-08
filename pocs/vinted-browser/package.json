@@ -1,6 +1,6 @@
 {
   "name": "genericparser-vinted-browser-poc",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,7 +8,6 @@
     "deploy": "wrangler deploy"
   },
   "devDependencies": {
-    "@cloudflare/puppeteer": "^1.1.0",
     "wrangler": "^4.0.0"
   }
 }
