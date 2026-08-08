@@ -1,4 +1,4 @@
-name: Deploy GenericParser 1.1.1
+name: Deploy GenericParser 1.1.2
 
 on:
   workflow_dispatch:
@@ -49,7 +49,7 @@ jobs:
           node-version: "22"
       - name: Install dependencies
         run: uv sync --group cloudflare --extra dev
-      - name: Run stable, bridge and multi-source regression tests
+      - name: Run stable, bridge and Vinted regression tests
         run: uv run pytest -q tests/test_release_100.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py
       - name: Compile active runtime and bridge
         run: |
@@ -67,16 +67,18 @@ jobs:
         run: |
           node --check cloudflare/public/controller-0450.js
           node --check cloudflare/public/source-colors-110.js
-      - name: Validate 1.1.1 release identity and runtime bridge
+      - name: Validate 1.1.2 release identity and isolated Vinted change
         shell: bash
         run: |
-          grep -q '"version": "1.1.1"' VERSION.json
-          grep -q '"build_id": "gp-111-20260808-1"' VERSION.json
-          grep -q 'version = "1.1.1"' pyproject.toml
-          grep -q 'VERSION = "1.1.1"' src/generic_parser/build_identity_v0452.py
+          grep -q '"version": "1.1.2"' VERSION.json
+          grep -q '"build_id": "gp-112-20260808-1"' VERSION.json
+          grep -q 'version = "1.1.2"' pyproject.toml
+          grep -q 'VERSION = "1.1.2"' src/generic_parser/build_identity_v0452.py
           grep -q 'VERSION = "0.45.0"' src/generic_parser/build_identity_v0450.py
           grep -q 'SEARCH_MODULE = "generic_parser.search_service_v111_runtime"' src/generic_parser/build_identity_v0450.py
-          grep -q "version:'1.1.1'" cloudflare/public/build-identity-0450.js
+          grep -q "version:'1.1.2'" cloudflare/public/build-identity-0450.js
+          grep -q 'async def _bootstrap_session' src/generic_parser/vinted_adapter.py
+          grep -q 'session-bootstrap+html+api-fallback' src/generic_parser/vinted_adapter.py
       - name: Validate production secrets
         shell: bash
         run: |
@@ -84,7 +86,7 @@ jobs:
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN fehlt"; exit 1; }
       - name: Deploy Python Worker
         run: uv run --group cloudflare pywrangler deploy
-      - name: Wait for 1.1.1 and verify all three live search modes
+      - name: Wait for 1.1.2 and verify all three live search modes
         env:
           APP_TOKEN: ${{ secrets.APP_TOKEN }}
         shell: bash
@@ -92,11 +94,11 @@ jobs:
           set -e
           for i in $(seq 1 24); do
             body="$(curl -fsS --max-time 15 "$DEPLOYMENT_URL/health" 2>/dev/null || true)"
-            if printf '%s' "$body" | grep -q 'gp-111-20260808-1'; then
+            if printf '%s' "$body" | grep -q 'gp-112-20260808-1'; then
               printf '%s\n' "$body"
               break
             fi
-            if [ "$i" -eq 24 ]; then echo "GenericParser 1.1.1 wurde nicht live erkannt"; exit 1; fi
+            if [ "$i" -eq 24 ]; then echo "GenericParser 1.1.2 wurde nicht live erkannt"; exit 1; fi
             sleep 10
           done
           uv run python scripts/check_deployment.py "$DEPLOYMENT_URL" --live-search --browser-origin https://f6yv7sgtgw-wq.github.io
@@ -105,7 +107,7 @@ jobs:
           printf '%s' "$ka" | python -c 'import json,sys; d=json.load(sys.stdin); rows=d.get("listings",[]); assert rows, d; assert all(x.get("source")=="kleinanzeigen" for x in rows), rows[:2]; print("Kleinanzeigen live OK:",len(rows))'
 
           vi="$(curl -fsS --max-time 30 -X POST "$DEPLOYMENT_URL/api/search" -H 'Content-Type: application/json' --data '{"mode":"live","query":"Evercade","page":0,"source":"vinted","include_review":true,"include_rejected":true}')"
-          printf '%s' "$vi" | python -c 'import json,sys; d=json.load(sys.stdin); s=d.get("source_status",{}).get("vinted",{}); rows=[x for x in d.get("listings",[]) if x.get("source")=="vinted"]; assert s.get("status")=="ok", s; assert rows, s; print("Vinted live OK:",len(rows),"via",s.get("strategy"))'
+          printf '%s' "$vi" | python -c 'import json,sys; d=json.load(sys.stdin); s=d.get("source_status",{}).get("vinted",{}); rows=[x for x in d.get("listings",[]) if x.get("source")=="vinted"]; assert s.get("status")=="ok", s; assert rows, s; assert str(s.get("strategy") or "").startswith("session+"), s; print("Vinted live OK:",len(rows),"via",s.get("strategy"))'
 
           auto="$(curl -fsS --max-time 30 -X POST "$DEPLOYMENT_URL/api/search" -H 'Content-Type: application/json' --data '{"mode":"live","query":"Evercade","page":0,"source":"auto","include_review":true,"include_rejected":true}')"
           printf '%s' "$auto" | python -c 'import json,sys; d=json.load(sys.stdin); sources={x.get("source") for x in d.get("listings",[])}; assert "kleinanzeigen" in sources, sources; assert "vinted" in sources, sources; assert d.get("pagination",{}).get("source")=="multi-source", d.get("pagination"); print("Auto multi-source live OK:",sources)'
