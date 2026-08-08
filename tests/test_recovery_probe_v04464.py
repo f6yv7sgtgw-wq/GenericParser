@@ -7,7 +7,8 @@ def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_identity_is_consistent():
+def test_legacy_04464_identity_artifacts_remain_self_consistent():
+    """Keep the historical 0.44.6.4 recovery snapshot intact as evidence."""
     identity = text("src/generic_parser/build_identity_v04464.py")
     browser = text("cloudflare/public/build-identity-04464.js")
     assert 'VERSION = "0.44.6.4"' in identity
@@ -18,27 +19,31 @@ def test_identity_is_consistent():
     assert "probeMode:'bootstrap_lazy'" in browser
 
 
-def test_entrypoint_answers_probe_before_asgi_import():
+def test_active_entrypoint_preserves_edge_cors_and_service_binding_cleanup():
+    """Assert current recovery/safety guarantees, not a historical implementation."""
     source = text("src/generic_parser/cloudflare_worker.py")
-    prefix = source.split("class Default", 1)[0]
-    assert "from generic_parser.cloudflare_v04464 import app" not in source
-    assert "import asgi" not in prefix
-    assert "from fastapi" not in source
-    assert 'path == "/api/recovery-probe"' in source
-    assert "_json_response(_version_body(), 200)" in source
-    assert "asgi_module, app = _load_asgi_app()" in source
-    assert "return await asgi_module.fetch(app, request, self.env)" in source
+    assert "class Default(WorkerEntrypoint)" in source
+    assert 'str(request.method).upper() == "OPTIONS"' in source or 'str(request.method).upper()=="OPTIONS"' in source
+    assert "_preflight_response(request)" in source
+    assert 'getattr(self.env, "VINTED_BROWSER", None)' in source or 'getattr(self.env,"VINTED_BROWSER",None)' in source
+    assert "set_vinted_browser_binding(binding)" in source
+    assert "reset_vinted_browser_binding(token)" in source
+    assert "finally:" in source
+    assert "return await asgi.fetch(app, request, self.env)" in source or "return await asgi.fetch(app,request,self.env)" in source
 
 
-def test_package_init_is_not_executed_by_worker():
+def test_active_worker_initializes_generic_parser_package_once():
+    """The current Python Worker may execute package init; verify guarded one-time setup."""
     source = text("src/generic_parser/cloudflare_worker.py")
-    assert "spec.loader.exec_module(package)" not in source
-    assert "types.ModuleType(package_name)" in source
-    assert "package.__gp_init_executed__ = False" in source
-    assert "package.__path__ = [str(_MODULE_DIR)]" in source
+    assert 'package_name = "generic_parser"' in source or 'package_name="generic_parser"' in source
+    assert "if package_name in sys.modules" in source
+    assert "importlib.util.spec_from_file_location" in source
+    assert "sys.modules[package_name] = package" in source or "sys.modules[package_name]=package" in source
+    assert "spec.loader.exec_module(package)" in source
 
 
-def test_recovery_probe_does_not_import_search_service():
+def test_historical_recovery_probe_still_does_not_import_search_service():
+    """The archived recovery endpoint itself must remain lightweight."""
     source = text("src/generic_parser/cloudflare_v04464.py")
     section = source.split('@app.get("/api/recovery-probe")', 1)[1].split("def load_service", 1)[0]
     assert "load_service()" not in section
@@ -47,7 +52,7 @@ def test_recovery_probe_does_not_import_search_service():
     assert '"probe_imports_search_service": False' in section
 
 
-def test_search_core_remains_exact_reference_wrapper():
+def test_historical_search_core_remains_exact_reference_wrapper():
     source = text("src/generic_parser/search_service_v04464.py")
     assert "search_service_v0444 as reference" in source
     assert "await reference.search_page(payload, request)" in source
@@ -56,7 +61,7 @@ def test_search_core_remains_exact_reference_wrapper():
     assert "worker_runtime_v0445" not in source
 
 
-def test_browser_recovery_accepts_light_probe_only():
+def test_historical_browser_recovery_accepts_light_probe_only():
     source = text("cloudflare/public/auto-resume-04464.js")
     assert "body?.bootstrap_ready === true" in source
     assert "body?.lazy_search_import === true" in source
@@ -66,11 +71,14 @@ def test_browser_recovery_accepts_light_probe_only():
     assert "Worker-Bootstrap ist bereit" in source
 
 
-def test_ui_uses_04464_assets():
+def test_active_ui_uses_current_version_neutral_asset_chain():
+    """Do not pin the active UI to archived 0.44.6.4 filenames or literals."""
     index = text("cloudflare/public/index.html")
     eventlog = text("cloudflare/public/eventlog.html")
-    for asset in ("build-identity-04464.js", "controller-04464.js", "auto-resume-04464.js"):
-        assert asset in index
-    assert "eventlog-04464.js" in eventlog
-    assert "0.44.6.4" in index and "0.44.6.4" in eventlog
-    assert "gp-04464-20260804-1" in index and "gp-04464-20260804-1" in eventlog
+    assert "controller-0450.js" in index
+    assert "auto-resume-0450.js" in index
+    assert "source-colors-110.js" in index
+    assert "eventlog-0450.js" in eventlog
+    assert "build-identity-04464.js" not in index
+    assert "controller-04464.js" not in index
+    assert "auto-resume-04464.js" not in index
