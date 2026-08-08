@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generic-kleinanzeigen-parser"
-version = "1.0.0"
-description = "Stable reusable Kleinanzeigen parser module with module-v1 API, Evercade/SNES adapters and Cloudflare Worker transport diagnostics"
+version = "1.1.0"
+description = "Reusable multi-source marketplace parser for Kleinanzeigen and Vinted with module-v1 API, Evercade/SNES adapters and Cloudflare Worker diagnostics"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [{ name = "Jan Leduc" }]
-keywords = ["kleinanzeigen", "parser", "cloudflare-workers", "pwa", "matching", "scoring", "traffic-light", "module-api", "evercade", "snes", "debug", "cors"]
+keywords = ["kleinanzeigen", "vinted", "parser", "cloudflare-workers", "pwa", "matching", "scoring", "traffic-light", "module-api", "evercade", "snes", "debug", "cors"]
 dependencies = [
   "PyYAML>=6.0",
   "beautifulsoup4>=4.12",
@@ -40,7 +40,7 @@ generic_parser = [
 ]
 
 [tool.pytest.ini_options]
-markers = ["live: expliziter Live-Test gegen Kleinanzeigen"]
+markers = ["live: expliziter Live-Test gegen externe Marktplatzquellen"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 addopts = "-ra"
