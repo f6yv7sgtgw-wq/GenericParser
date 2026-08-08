@@ -89,7 +89,7 @@ jobs:
             code="$(curl -sS -o /tmp/vinted-poc-health.json -w '%{http_code}' --max-time 15 "$POC_URL/health" || true)"
             body="$(cat /tmp/vinted-poc-health.json 2>/dev/null || true)"
             echo "health attempt $i: HTTP $code $body"
-            if [ "$code" = "200" ] && printf '%s' "$body" | grep -q 'vinted-browser-poc-0.2.0'; then
+            if [ "$code" = "200" ] && printf '%s' "$body" | grep -Eq '"poc"[[:space:]]*:[[:space:]]*"vinted-browser-poc-0\.2\.[0-9]+"'; then
               echo "PoC health endpoint ready at $POC_URL"
               exit 0
             fi
