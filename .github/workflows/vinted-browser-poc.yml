@@ -17,7 +17,7 @@ permissions:
 
 env:
   POC_DIR: pocs/vinted-browser
-  POC_URL: https://genericparser-vinted-poc.f6yv7sgtgw.workers.dev
+  EXPECTED_POC_URL: https://genericparser-vinted-poc.f6yv7sgtgw.workers.dev
 
 jobs:
   validate:
@@ -35,14 +35,14 @@ jobs:
         run: npm run check
       - name: Validate Wrangler configuration
         working-directory: ${{ env.POC_DIR }}
-        run: npx wrangler deploy --dry-run --outdir ../../.poc-dist
+        run: npx wrangler deploy --dry-run --outdir ../../.poc-dist --name genericparser-vinted-poc
 
   deploy-and-probe:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     needs: validate
     runs-on: ubuntu-latest
     environment: production
-    timeout-minutes: 12
+    timeout-minutes: 15
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -67,22 +67,30 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npx wrangler deploy 2>&1 | tee /tmp/vinted-poc-deploy.log
+          npx wrangler deploy --name genericparser-vinted-poc 2>&1 | tee /tmp/vinted-poc-deploy.log
           grep -q 'genericparser-vinted-poc' /tmp/vinted-poc-deploy.log || {
             echo "Wrangler output did not confirm genericparser-vinted-poc"
             cat /tmp/vinted-poc-deploy.log
             exit 1
           }
+          DEPLOY_URL="$(grep -Eo 'https://[A-Za-z0-9._-]+\.workers\.dev' /tmp/vinted-poc-deploy.log | tail -n1 || true)"
+          if [ -z "$DEPLOY_URL" ]; then
+            DEPLOY_URL="$EXPECTED_POC_URL"
+          fi
+          echo "deploy_url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+          echo "Using PoC URL: $DEPLOY_URL"
       - name: Wait for PoC health
         shell: bash
+        env:
+          POC_URL: ${{ steps.deploy.outputs.deploy_url }}
         run: |
           set -euo pipefail
-          for i in $(seq 1 24); do
+          for i in $(seq 1 30); do
             code="$(curl -sS -o /tmp/vinted-poc-health.json -w '%{http_code}' --max-time 15 "$POC_URL/health" || true)"
             body="$(cat /tmp/vinted-poc-health.json 2>/dev/null || true)"
             echo "health attempt $i: HTTP $code $body"
             if [ "$code" = "200" ] && printf '%s' "$body" | grep -q 'vinted-browser-poc-0.1.0'; then
-              echo "PoC health endpoint ready"
+              echo "PoC health endpoint ready at $POC_URL"
               exit 0
             fi
             sleep 5
@@ -91,6 +99,8 @@ jobs:
           exit 1
       - name: Probe Vinted with real Chromium
         shell: bash
+        env:
+          POC_URL: ${{ steps.deploy.outputs.deploy_url }}
         run: |
           set -euo pipefail
           http_code="$(curl -sS --max-time 60 "$POC_URL/search?q=Evercade" -o /tmp/vinted-poc.json -w '%{http_code}')"
