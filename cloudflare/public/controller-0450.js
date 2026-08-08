@@ -1,7 +1,7 @@
-(() => {
+(async () => {
   'use strict';
-  const I = window.GP_BUILD_IDENTITY;
-  if (!I) throw new Error('Build identity missing');
+  const I = await (window.GP_BUILD_IDENTITY_READY || Promise.resolve(window.GP_BUILD_IDENTITY));
+  if (!I?.version || !I?.buildId || !I?.apiContract) throw new Error('Live build identity missing');
   window.GP_HANDSHAKE_READY = true;
   document.title = `GenericParser ${I.version}`;
   const heroVersion = document.querySelector('.hero h1 span');
@@ -15,16 +15,16 @@
     .then(response => { if (!response.ok) throw new Error(`Controller source HTTP ${response.status}`); return response.text(); })
     .then(source => {
       const replacements = [
-        ["const VERSION = '0.41.1';", `const VERSION = '${I.version}';`],
-        ["const BUILD_ID = 'gp-0411-20260802-1';", `const BUILD_ID = '${I.buildId}';`],
-        ["const API_CONTRACT = 'match-v6.1-page-worker';", `const API_CONTRACT = '${I.apiContract}';`],
-        ["const LOG_KEY = 'generic-parser-eventlog-0411';", `const LOG_KEY = '${I.eventLogKey}';`],
-        ["const COOLDOWN_MS = 2000;", "const COOLDOWN_MS = 0;"],
-        ["if (workerVersion && (workerVersion !== VERSION || workerBuild !== BUILD_ID || workerContract !== API_CONTRACT)) {", "if (workerVersion && workerContract !== API_CONTRACT) {"]
+        [/const VERSION = '[^']+';/, `const VERSION = '${I.version}';`],
+        [/const BUILD_ID = '[^']+';/, `const BUILD_ID = '${I.buildId}';`],
+        [/const API_CONTRACT = '[^']+';/, `const API_CONTRACT = '${I.apiContract}';`],
+        [/const LOG_KEY = '[^']+';/, `const LOG_KEY = '${I.eventLogKey}';`],
+        [/const COOLDOWN_MS = \d+;/, 'const COOLDOWN_MS = 0;'],
+        [/if \(workerVersion && \(workerVersion !== VERSION \|\| workerBuild !== BUILD_ID \|\| workerContract !== API_CONTRACT\)\) \{/, 'if (workerVersion && workerContract !== API_CONTRACT) {']
       ];
-      for (const [from, to] of replacements) {
-        if (!source.includes(from)) throw new Error(`Controller constant missing: ${from}`);
-        source = source.replace(from, to);
+      for (const [pattern, to] of replacements) {
+        if (!pattern.test(source)) throw new Error(`Controller runtime pattern missing: ${pattern}`);
+        source = source.replace(pattern, to);
       }
       Function(`${source}\n//# sourceURL=controller-runtime.js`)();
       try { adaptiveDelay = () => 0; } catch {}
@@ -61,8 +61,28 @@
       const connection = document.getElementById('connection');
       if (connection) { connection.classList.remove('offline'); connection.innerHTML = '<span></span> Bereit'; }
       const state = document.getElementById('worker-state-text');
-      if (state) { state.className='compact-status done'; state.innerHTML=`<strong>GenericParser ${I.version}</strong><span>Kleinanzeigen + Vinted · Browser Run · Paid Worker · Modulvertrag v1</span>`; }
-      window.GP_CONTROLLER_IDENTITY = {version:I.version,buildId:I.buildId,apiContract:I.apiContract,module:'controller-0450.js',moduleContract:I.moduleContract,referenceController:'0.44.6.5',referenceVersion:'0.44.4',operationalReference:'0.44.6.5',runtimeReference:'0.44.6.2',searchCoreChanged:false,controllerFlowChanged:false,exactVersionMatchRequired:false,contractMatchRequired:true,sources:['kleinanzeigen','vinted'],runtimeBridge:'0.45.0',vintedStrategy:'browser-run-public-catalog',workerPlan:'paid',protectionDelays:false,autoResume:true};
+      if (state) { state.className='compact-status done'; state.innerHTML=`<strong>GenericParser ${I.version}</strong><span>Kleinanzeigen + Vinted · Service Binding · Paid Worker · Modulvertrag v1</span>`; }
+      window.GP_CONTROLLER_IDENTITY = {
+        version:I.version,
+        buildId:I.buildId,
+        apiContract:I.apiContract,
+        module:'controller-runtime',
+        moduleContract:I.moduleContract,
+        referenceController:I.operationalReference || null,
+        referenceVersion:I.referenceVersion || null,
+        operationalReference:I.operationalReference || null,
+        runtimeReference:I.runtimeReference || null,
+        searchCoreChanged:false,
+        controllerFlowChanged:false,
+        exactVersionMatchRequired:false,
+        contractMatchRequired:true,
+        sources:I.sources,
+        runtimeBridge:I.runtimeBridge || null,
+        vintedStrategy:I.vintedStrategy,
+        workerPlan:I.workerPlan,
+        protectionDelays:false,
+        autoResume:true
+      };
       window.dispatchEvent(new CustomEvent('gp-controller-ready',{detail:window.GP_CONTROLLER_IDENTITY}));
     })
     .catch(error => {
@@ -72,4 +92,10 @@
       const state = document.getElementById('worker-state-text');
       if (state) { state.className='compact-status error'; state.textContent=`Controller konnte nicht geladen werden: ${error.message || error}`; }
     });
-})();
+})().catch(error => {
+  window.GP_HANDSHAKE_READY = false;
+  const button = document.getElementById('search-button');
+  if (button) { button.disabled = true; button.textContent = 'Live-Suche gesperrt'; }
+  const state = document.getElementById('worker-state-text');
+  if (state) { state.className='compact-status error'; state.textContent=`Release-Identität konnte nicht geladen werden: ${error.message || error}`; }
+});
