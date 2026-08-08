@@ -1,8 +1,6 @@
-name: GenericParser 0.45.2 Build 7 paid integrity
+name: GenericParser 0.45.2 Build 7 paid integrity (historical)
 
 on:
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -14,8 +12,6 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -24,15 +20,12 @@ jobs:
           node-version: "22"
       - name: Install project and tests
         run: python -m pip install --disable-pip-version-check -e '.[dev]'
-      - name: Prove search runtime is unchanged from main
-        run: git diff --exit-code origin/main -- src/generic_parser/search_service_v0450.py src/generic_parser/search_service_v0444.py src/generic_parser/module_api.py src/generic_parser/cloudflare_v0450.py src/generic_parser/cloudflare_v0452.py
-      - name: Compile active runtime
+      - name: Compile historical paid runtime
         run: python -m py_compile src/generic_parser/build_identity_v0452.py src/generic_parser/cloudflare_worker.py src/generic_parser/search_service_v0450.py
       - name: Check paid browser controller syntax
         run: node --check cloudflare/public/controller-0450.js
       - name: Verify paid timing profile
         run: |
-          grep -q "gp-0452-20260808-7" cloudflare/public/build-identity-0450.js
           grep -q "quietPeriodMs:1" cloudflare/public/build-identity-0450.js
           grep -q "healthIntervalMs:1" cloudflare/public/build-identity-0450.js
           grep -q 'const COOLDOWN_MS = 0' cloudflare/public/controller-0450.js

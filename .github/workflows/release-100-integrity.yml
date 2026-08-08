@@ -33,18 +33,19 @@ jobs:
           node-version: "22"
       - name: Install project and tests
         run: python -m pip install --disable-pip-version-check -e '.[dev]'
-      - name: Prove functional search core is unchanged
+      - name: Prove stable Kleinanzeigen core and module contract are unchanged
         run: |
           git diff --exit-code origin/main -- \
-            src/generic_parser/search_service_v0450.py \
             src/generic_parser/search_service_v0444.py \
             src/generic_parser/module_api.py
-      - name: Compile active runtime
-        run: python -m py_compile src/generic_parser/build_identity_v0452.py src/generic_parser/cloudflare_v0452.py scripts/check_deployment.py
+      - name: Compile active runtime and marketplace adapter
+        run: python -m py_compile src/generic_parser/build_identity_v0452.py src/generic_parser/cloudflare_v0452.py src/generic_parser/search_service_v0450.py src/generic_parser/vinted_adapter.py scripts/check_deployment.py
       - name: Check browser syntax
-        run: node --check cloudflare/public/controller-0450.js
-      - name: Run 1.0.0 release tests
-        run: pytest -q tests/test_release_100.py tests/test_search_service_v0444.py
+        run: |
+          node --check cloudflare/public/controller-0450.js
+          node --check cloudflare/public/source-colors-110.js
+      - name: Run stable and multi-source regression tests
+        run: pytest -q tests/test_release_100.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py
       - name: Validate release metadata consistency
         shell: bash
         run: |
