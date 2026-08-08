@@ -11,10 +11,16 @@ function normalizeQuery(value) {
   if (!query || query.length > 100) throw new Error("query must contain 1-100 characters");
   return query;
 }
-function searchUrl(query) {
+function normalizePage(value) {
+  const page = Number.parseInt(String(value ?? "0"), 10);
+  if (!Number.isFinite(page) || page < 0 || page > 100) throw new Error("page must be between 0 and 100");
+  return page;
+}
+function searchUrl(query, page) {
   const url = new URL("/catalog", BASE);
   url.searchParams.set("search_text", query);
   url.searchParams.set("order", "newest_first");
+  if (page > 0) url.searchParams.set("page", String(page + 1));
   return url.toString();
 }
 function clean(value) { return String(value || "").replace(/\s+/g, " ").trim(); }
@@ -60,8 +66,8 @@ function extractListings(content, query) {
   if (htmlListings.length) return { strategy:"html-item-links", listings:htmlListings };
   return { strategy:"rendered-text", listings:extractTextListings(content, query) };
 }
-async function inspectVinted(env, query) {
-  const started = Date.now(), targetUrl = searchUrl(query);
+async function inspectVinted(env, query, page) {
+  const started = Date.now(), targetUrl = searchUrl(query, page);
   const response = await env.BROWSER.quickAction("content", { url:targetUrl, gotoOptions:{waitUntil:"networkidle2",timeout:30000}, setExtraHTTPHeaders:{"Accept-Language":"de-DE,de;q=0.9,en;q=0.7"}, cacheTTL:0 });
   const httpStatus = response.status, content = unwrapContent(await response.text());
   const sample = clean(content).slice(0,1800), lower = stripTags(content).slice(0,5000).toLowerCase();
@@ -70,14 +76,14 @@ async function inspectVinted(env, query) {
   let status="ok", reason=null;
   if (challengeDetected || [401,403,429].includes(httpStatus)) { status="blocked"; reason="vinted_browser_access_limited"; }
   else if (!listings.length) { status="empty"; reason="no_public_listings_parsed"; }
-  return { component:COMPONENT, schema:SCHEMA, revision:env.REVISION || null, status, reason, query, targetUrl, httpStatus, elapsedMs:Date.now()-started, browser:{mode:"browser-run-quick-action-content",parseStrategy:parsed.strategy,challengeDetected,parsedListingCount:listings.length,browserMsUsed:response.headers.get("x-browser-ms-used")}, listings, bodySample:status === "ok" ? undefined : sample };
+  return { component:COMPONENT, schema:SCHEMA, revision:env.REVISION || null, status, reason, query, page, targetUrl, httpStatus, elapsedMs:Date.now()-started, browser:{mode:"browser-run-quick-action-content",parseStrategy:parsed.strategy,challengeDetected,parsedListingCount:listings.length,browserMsUsed:response.headers.get("x-browser-ms-used")}, listings, complete:listings.length < MAX_RESULTS, nextPage:listings.length < MAX_RESULTS ? null : page + 1, bodySample:status === "ok" ? undefined : sample };
 }
 export default { async fetch(request, env) {
   const url = new URL(request.url);
   if (request.method === "OPTIONS") return new Response(null,{status:204,headers:{"access-control-allow-origin":"*","access-control-allow-methods":"GET, OPTIONS"}});
   if (request.method !== "GET") return json({component:COMPONENT,schema:SCHEMA,status:"error",reason:"method_not_allowed"},405);
-  if (url.pathname === "/health" || url.pathname === "/") return json({component:COMPONENT,schema:SCHEMA,revision:env.REVISION || null,status:"ok",mode:"browser-run-quick-action-content",source:"vinted",endpoints:["/health","/search?q=Evercade"]});
+  if (url.pathname === "/health" || url.pathname === "/") return json({component:COMPONENT,schema:SCHEMA,revision:env.REVISION || null,status:"ok",mode:"browser-run-quick-action-content",source:"vinted",endpoints:["/health","/search?q=Evercade&page=0"]});
   if (url.pathname !== "/search") return json({component:COMPONENT,schema:SCHEMA,status:"error",reason:"not_found"},404);
-  try { const result=await inspectVinted(env,normalizeQuery(url.searchParams.get("q"))); return json(result,result.status === "ok" ? 200 : 502); }
+  try { const result=await inspectVinted(env,normalizeQuery(url.searchParams.get("q")),normalizePage(url.searchParams.get("page"))); return json(result,result.status === "ok" ? 200 : 502); }
   catch(error){ return json({component:COMPONENT,schema:SCHEMA,status:"error",reason:"browser_run_quick_action_failed",errorType:error?.name||"Error",error:String(error?.message||error)},500); }
 }};
