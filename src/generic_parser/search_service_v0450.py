@@ -82,8 +82,6 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
 
     ka_result: dict[str, Any] | None = None
     if want_ka:
-        # Preserve the proven Kleinanzeigen core exactly. For multi-source mode
-        # the reference receives auto so its established pagination still works.
         ka_payload = payload.model_copy(update={"source": "auto"}) if hasattr(payload, "model_copy") else payload
         ka_result = await reference.search_page(ka_payload, request)
         for item in ka_result.get("listings") or []:
@@ -210,12 +208,13 @@ async def search_module_page(
     trace.mark("multi_source_search_completed", sources=["kleinanzeigen", "vinted"])
     result["deployment_identity"] = identity()
     result["worker"] = {**(result.get("worker") or {}), **identity()}
-    return module_response_from_legacy(result, payload, trace)
+    response = module_response_from_legacy(result, payload, trace)
+    for listing in response.listings:
+        listing.source = "vinted" if listing.id.startswith("vinted:") else "kleinanzeigen"
+    return response
 
 
 def validate_module_profile(profile: ModuleSearchProfile) -> dict[str, Any]:
-    """Validiert auch gegen den unveränderten 0.44.4-Requestvertrag."""
-
     legacy_payload = profile.to_legacy_payload()
     validated = SearchRequest.model_validate(legacy_payload)
     return {
@@ -234,25 +233,10 @@ def run_module_self_tests() -> dict[str, Any]:
     adapter_checks: list[dict[str, Any]] = []
 
     evercade = evercade_profile("Interplay Collection 1", market_value=30)
-    adapter_checks.append(
-        {
-            "name": "evercade_adapter",
-            "ok": evercade.query.startswith("Evercade ") and evercade.market_value == 30,
-        }
-    )
+    adapter_checks.append({"name": "evercade_adapter", "ok": evercade.query.startswith("Evercade ") and evercade.market_value == 30})
     snes = snes_pal_profile("Super Metroid", market_value=70)
-    adapter_checks.append(
-        {
-            "name": "snes_adapter",
-            "ok": "PAL" in snes.required_terms and "NTSC" in snes.excluded_terms,
-        }
-    )
-    adapter_checks.append(
-        {
-            "name": "multi_source_default",
-            "ok": identity()["default_sources"] == ["kleinanzeigen", "vinted"],
-        }
-    )
+    adapter_checks.append({"name": "snes_adapter", "ok": "PAL" in snes.required_terms and "NTSC" in snes.excluded_terms})
+    adapter_checks.append({"name": "multi_source_default", "ok": identity()["default_sources"] == ["kleinanzeigen", "vinted"]})
     result["checks"].extend(adapter_checks)
     result["ok"] = bool(result["ok"] and all(item["ok"] for item in adapter_checks))
     result["deployment"] = identity()
