@@ -16,13 +16,13 @@ def test_release_identity_is_consistent() -> None:
     package = read("pyproject.toml")
     identity = read("src/generic_parser/build_identity_v0452.py")
     browser = read("cloudflare/public/build-identity-0450.js")
-    assert '"version": "1.0.0"' in metadata
-    assert '"build_id": "gp-100-20260808-1"' in metadata
-    assert 'version = "1.0.0"' in package
-    assert 'VERSION = "1.0.0"' in identity
-    assert 'BUILD_ID = "gp-100-20260808-1"' in identity
-    assert "version:'1.0.0'" in browser
-    assert "buildId:'gp-100-20260808-1'" in browser
+    assert '"version": "1.1.0"' in metadata
+    assert '"build_id": "gp-110-20260808-1"' in metadata
+    assert 'version = "1.1.0"' in package
+    assert 'VERSION = "1.1.0"' in identity
+    assert 'BUILD_ID = "gp-110-20260808-1"' in identity
+    assert "version:'1.1.0'" in browser
+    assert "buildId:'gp-110-20260808-1'" in browser
 
 
 def test_paid_timing_profile_is_active() -> None:
@@ -37,13 +37,15 @@ def test_paid_timing_profile_is_active() -> None:
     assert "countdown = async () => {}" in controller
 
 
-def test_search_runtime_is_still_reference_runtime() -> None:
+def test_search_runtime_keeps_reference_core_with_multisource_layer() -> None:
     identity = read("src/generic_parser/build_identity_v0452.py")
     service = read("src/generic_parser/search_service_v0450.py")
-    assert 'SEARCH_RUNTIME = "0.45.0"' in identity
+    assert 'SEARCH_RUNTIME = "0.45.0+multisource-1.1"' in identity
     assert 'OPERATIONAL_REFERENCE = "0.44.6.5"' in identity
     assert 'FUNCTIONAL_REFERENCE = "0.44.4"' in identity
     assert "from . import search_service_v0444 as reference" in service
+    assert "from .vinted_adapter import search_vinted" in service
+    assert "from .build_identity_v0452 import" in service
 
 
 def test_health_version_diagnostics_and_capabilities() -> None:
@@ -52,14 +54,14 @@ def test_health_version_diagnostics_and_capabilities() -> None:
 
     health = client.get("/health", headers=headers)
     assert health.status_code == 200
-    assert health.json()["version"] == "1.0.0"
-    assert health.json()["build_id"] == "gp-100-20260808-1"
+    assert health.json()["version"] == "1.1.0"
+    assert health.json()["build_id"] == "gp-110-20260808-1"
     assert health.headers["access-control-allow-origin"] == "*"
 
     version = client.get("/version", headers=headers)
     assert version.status_code == 200
-    assert version.json()["version"] == "1.0.0"
-    assert version.json()["build_id"] == "gp-100-20260808-1"
+    assert version.json()["version"] == "1.1.0"
+    assert version.json()["build_id"] == "gp-110-20260808-1"
 
     diagnostics = client.get("/diagnostics", headers=headers)
     assert diagnostics.status_code == 200

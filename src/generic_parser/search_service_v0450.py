@@ -6,7 +6,7 @@ from typing import Any
 from fastapi import Request
 
 from . import search_service_v0444 as reference
-from .build_identity_v0450 import (
+from .build_identity_v0452 import (
     API_CONTRACT,
     BUILD_ID,
     FUNCTIONAL_REFERENCE,
@@ -146,6 +146,7 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
         "vinted": {
             "enabled": want_vinted,
             "status": (vinted_result or {}).get("status", "disabled" if not want_vinted else "degraded"),
+            "strategy": (vinted_result or {}).get("strategy"),
             "visible": len(vinted_visible),
             "hidden": vinted_hidden,
             "http_status": (vinted_result or {}).get("http_status"),
@@ -205,7 +206,7 @@ async def search_module_page(
     legacy_payload = SearchRequest.model_validate(legacy_dict)
     trace.mark("legacy_payload_validated")
     result = await _multi_source_search(legacy_payload, request)
-    trace.mark("multi_source_search_completed", sources=["kleinanzeigen", "vinted"])
+    trace.mark("multi_source_search_completed", source_status=result.get("source_status"))
     result["deployment_identity"] = identity()
     result["worker"] = {**(result.get("worker") or {}), **identity()}
     response = module_response_from_legacy(result, payload, trace)
