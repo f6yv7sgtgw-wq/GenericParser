@@ -6,7 +6,7 @@ workflows, tests or transport wrappers.
 """
 
 VERSION = "1.2.2"
-BUILD_ID = "gp-122-20260808-1"
+BUILD_ID = "gp-122-20260808-2"
 API_CONTRACT = "generic-parser-module-v1"
 MODULE_CONTRACT = API_CONTRACT
 ENTRYPOINT = "generic_parser.cloudflare_worker:Default.fetch"
@@ -17,6 +17,6 @@ WORKER_UNIT = "stable-paid+runtime-bridge+kleinanzeigen+vinted-service-binding+e
 FUNCTIONAL_REFERENCE = "0.44.4"
 OPERATIONAL_REFERENCE = "0.44.6.5"
 RUNTIME_REFERENCE = "0.44.6.2"
-TECHNICAL_BASE = "1.2.1+vinted-browser-service-binding"
+TECHNICAL_BASE = "1.2.2+service-binding+version-neutral-recovery-regressions"
 RELEASE_DATE = "2026-08-08"
 WORKER_PLAN = "paid"
