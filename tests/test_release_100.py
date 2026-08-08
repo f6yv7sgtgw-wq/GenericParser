@@ -17,13 +17,13 @@ def test_release_identity_is_consistent() -> None:
     package = read("pyproject.toml")
     identity = read("src/generic_parser/build_identity_v0452.py")
     browser = read("cloudflare/public/build-identity-0450.js")
-    assert '"version": "1.1.1"' in metadata
-    assert '"build_id": "gp-111-20260808-1"' in metadata
-    assert 'version = "1.1.1"' in package
-    assert 'VERSION = "1.1.1"' in identity
-    assert 'BUILD_ID = "gp-111-20260808-1"' in identity
-    assert "version:'1.1.1'" in browser
-    assert "buildId:'gp-111-20260808-1'" in browser
+    assert '"version": "1.1.2"' in metadata
+    assert '"build_id": "gp-112-20260808-1"' in metadata
+    assert 'version = "1.1.2"' in package
+    assert 'VERSION = "1.1.2"' in identity
+    assert 'BUILD_ID = "gp-112-20260808-1"' in identity
+    assert "version:'1.1.2'" in browser
+    assert "buildId:'gp-112-20260808-1'" in browser
 
 
 def test_paid_timing_profile_is_active() -> None:
@@ -55,20 +55,30 @@ def test_search_runtime_bridge_preserves_reference_identity() -> None:
     assert loaded.API_CONTRACT == "generic-parser-module-v1"
 
 
+def test_vinted_change_is_isolated_to_adapter() -> None:
+    identity = read("src/generic_parser/build_identity_v0452.py")
+    adapter = read("src/generic_parser/vinted_adapter.py")
+    assert 'TECHNICAL_BASE = "1.1.1+vinted-session-bootstrap"' in identity
+    assert "async def _bootstrap_session" in adapter
+    assert '"strategy": "session-bootstrap+html+api-fallback"' in adapter
+    assert "rotate proxies" in adapter
+    assert "bypass access controls" in adapter
+
+
 def test_health_version_diagnostics_and_capabilities() -> None:
     client = TestClient(app)
     headers = {"Origin": "https://f6yv7sgtgw-wq.github.io"}
 
     health = client.get("/health", headers=headers)
     assert health.status_code == 200
-    assert health.json()["version"] == "1.1.1"
-    assert health.json()["build_id"] == "gp-111-20260808-1"
+    assert health.json()["version"] == "1.1.2"
+    assert health.json()["build_id"] == "gp-112-20260808-1"
     assert health.headers["access-control-allow-origin"] == "*"
 
     version = client.get("/version", headers=headers)
     assert version.status_code == 200
-    assert version.json()["version"] == "1.1.1"
-    assert version.json()["build_id"] == "gp-111-20260808-1"
+    assert version.json()["version"] == "1.1.2"
+    assert version.json()["build_id"] == "gp-112-20260808-1"
 
     diagnostics = client.get("/diagnostics", headers=headers)
     assert diagnostics.status_code == 200
