@@ -1,8 +1,8 @@
 {
   "product": "GenericParser",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "package_version": "dynamic:generic_parser.release_identity.VERSION",
-  "build_id": "gp-122-20260808-4",
+  "build_id": "gp-130-20260808-1",
   "identity_source": "src/generic_parser/release_identity.py",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
@@ -13,16 +13,16 @@
   "functional_reference_version": "0.44.4",
   "stable_reference_version": "0.44.6.5",
   "runtime_reference_version": "0.44.6.2",
-  "technical_base": "service-binding+runtime-loaded-public-identity",
+  "technical_base": "service-binding+runtime-loaded-public-identity+vinted-detail-enrichment+multisource-diagnostics",
   "release_date": "2026-08-08",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "release-candidate",
-  "purpose": "remove duplicated public release/build identity from browser assets and load it exclusively from the live Worker health endpoint",
+  "purpose": "enrich working Vinted catalog hits with detail-page image, price, description and condition without changing the proven search path; improve Vinted diagnostics and multi-source totals",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted"],
-    "kleinanzeigen": {"strategy": "proven html search core"},
-    "vinted": {"strategy": "cloudflare service binding primary, anonymous public-web fallback", "binding": "VINTED_BROWSER", "fail_open": true, "access_control_bypass": false}
+    "kleinanzeigen": {"strategy": "proven html search core", "search_path_changed": false},
+    "vinted": {"strategy": "cloudflare service binding catalog search plus detail enrichment, anonymous public-web fallback", "binding": "VINTED_BROWSER", "detail_enrichment": true, "fail_open": true, "access_control_bypass": false}
   },
   "compatibility": {
     "api_contract": "generic-parser-module-v1",
@@ -40,8 +40,10 @@
     "health_contract": "required",
     "live_kleinanzeigen_search": "required",
     "live_vinted_browser_search": "required",
-    "live_multisource_search": "required"
+    "live_vinted_detail_enrichment": "required",
+    "live_multisource_search": "required",
+    "eventlog_runtime_identity": "required"
   },
-  "rollback_plan": {"last_stable_baseline": "1.2.1"},
-  "metadata_schema": 39
+  "rollback_plan": {"last_stable_baseline": "1.2.2"},
+  "metadata_schema": 40
 }
