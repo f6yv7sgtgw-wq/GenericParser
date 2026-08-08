@@ -136,12 +136,16 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
     if vinted_result and vinted_result.get("url"):
         generated_urls.append(vinted_result["url"])
 
+    enrichment = (vinted_result or {}).get("enrichment")
+    if not isinstance(enrichment, dict):
+        enrichment = {}
     source_status = {
         "kleinanzeigen": {
             "enabled": want_ka,
             "status": "ok" if want_ka else "disabled",
             "visible": len(ka_listings),
             "hidden": ka_hidden,
+            "reported_total": ka_summary.get("reported_total"),
         },
         "vinted": {
             "enabled": want_vinted,
@@ -151,6 +155,9 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
             "hidden": vinted_hidden,
             "http_status": (vinted_result or {}).get("http_status"),
             "reason": (vinted_result or {}).get("reason"),
+            "enrichment": enrichment,
+            "catalog_hits": vinted_fetched,
+            "scored": vinted_fetched,
         },
     }
 
@@ -170,7 +177,9 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
         "fetched_listings": fetched,
         "visible_listings": len(combined),
         "hidden_by_filter": hidden,
-        "reported_total": ka_summary.get("reported_total"),
+        # A Kleinanzeigen total is not a total for a combined Kleinanzeigen+Vinted result.
+        # Keep it source-local and suppress the misleading "125 of 66" UI state.
+        "reported_total": None if want_ka and want_vinted else ka_summary.get("reported_total"),
         "sources": source_status,
     }
     result["traffic_light_summary"] = {
@@ -189,12 +198,8 @@ async def search_page(payload: SearchRequest, request: Request) -> dict[str, Any
     return await _multi_source_search(payload, request)
 
 
-async def search_module_page(
-    payload: ModulePageRequest,
-    request: Request,
-) -> ModulePageResponse:
+async def search_module_page(payload: ModulePageRequest, request: Request) -> ModulePageResponse:
     """Öffentliche module-v1-Seitensuche über die aktivierten Quellen."""
-
     debug_options = payload.debug
     if header_enabled(request, "x-genericparser-debug") and not debug_options.enabled:
         debug_options = debug_options.model_copy(update={"enabled": True})
@@ -232,7 +237,6 @@ def validate_module_profile(profile: ModuleSearchProfile) -> dict[str, Any]:
 def run_module_self_tests() -> dict[str, Any]:
     result = run_contract_self_tests()
     adapter_checks: list[dict[str, Any]] = []
-
     evercade = evercade_profile("Interplay Collection 1", market_value=30)
     adapter_checks.append({"name": "evercade_adapter", "ok": evercade.query.startswith("Evercade ") and evercade.market_value == 30})
     snes = snes_pal_profile("Super Metroid", market_value=70)
@@ -244,13 +248,4 @@ def run_module_self_tests() -> dict[str, Any]:
     return result
 
 
-__all__ = [
-    "SearchRequest",
-    "search_page",
-    "search_module_page",
-    "validate_module_profile",
-    "run_module_self_tests",
-    "VERSION",
-    "BUILD_ID",
-    "API_CONTRACT",
-]
+__all__ = ["SearchRequest", "search_page", "search_module_page", "validate_module_profile", "run_module_self_tests", "VERSION", "BUILD_ID", "API_CONTRACT"]
