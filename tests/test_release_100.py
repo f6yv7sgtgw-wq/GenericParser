@@ -41,8 +41,11 @@ def test_public_browser_identity_is_runtime_loaded_not_release_pinned() -> None:
     assert "vintedStrategy: 'service-binding'" in browser
     assert "GP_BUILD_IDENTITY_READY" in controller
     assert "workerContract !== API_CONTRACT" in controller
-    assert "workerVersion !== VERSION" not in controller
-    assert "workerBuild !== BUILD_ID" not in controller
+    # Historical controller source still contains its old exact identity guard.
+    # The active controller must only use that text as a transformation pattern,
+    # never as the live compatibility condition.
+    assert "'if (workerVersion && workerContract !== API_CONTRACT) {'" in controller
+    assert "Deployment inkonsistent: UI ${VERSION}/${BUILD_ID}" not in controller
 
 
 def test_paid_timing_profile_is_active() -> None:
