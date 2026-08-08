@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "src/**"
+      - "pocs/vinted-browser/**"
       - "cloudflare/**"
       - "tests/**"
       - "scripts/**"
@@ -39,8 +40,9 @@ jobs:
         run: |
           node --check cloudflare/public/controller-0450.js
           node --check cloudflare/public/source-colors-110.js
+          node --check pocs/vinted-browser/src/index.js
       - name: Run stable, bridge and Vinted regression tests
-        run: pytest -q tests/test_release_100.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py
+        run: pytest -q tests/test_release_100.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py tests/test_vinted_browser_production.py
       - name: Validate metadata from single release identity
         run: |
           python - <<'PY'
