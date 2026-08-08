@@ -2,7 +2,7 @@
   "product": "GenericParser",
   "version": "1.2.2",
   "package_version": "dynamic:generic_parser.release_identity.VERSION",
-  "build_id": "gp-122-20260808-2",
+  "build_id": "gp-122-20260808-3",
   "identity_source": "src/generic_parser/release_identity.py",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
@@ -13,11 +13,11 @@
   "functional_reference_version": "0.44.4",
   "stable_reference_version": "0.44.6.5",
   "runtime_reference_version": "0.44.6.2",
-  "technical_base": "1.2.2+service-binding+version-neutral-recovery-regressions",
+  "technical_base": "1.2.2+service-binding+version-neutral-recovery-regressions+runner-independent-binding-tests",
   "release_date": "2026-08-08",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "release-candidate",
-  "purpose": "retain the 1.2.2 Vinted service-binding architecture while replacing obsolete 0.44.6.4 implementation-pinning recovery assertions with version-neutral active-runtime safety checks",
+  "purpose": "retain the 1.2.2 Vinted service-binding architecture, version-neutral recovery checks, and runner-independent Vinted service-binding regression tests",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted"],
@@ -39,8 +39,9 @@
     "live_kleinanzeigen_search": "required",
     "live_vinted_browser_search": "required",
     "live_multisource_search": "required",
-    "recovery_regressions": "version-neutral-active-runtime-plus-historical-evidence"
+    "recovery_regressions": "version-neutral-active-runtime-plus-historical-evidence",
+    "service_binding_tests": "runner-independent"
   },
   "rollback_plan": {"last_stable_baseline": "1.2.1"},
-  "metadata_schema": 37
+  "metadata_schema": 38
 }
