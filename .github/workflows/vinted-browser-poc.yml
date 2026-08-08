@@ -25,8 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
-        with:
-          node-version: "22"
+        with: {node-version: "22"}
       - name: Install PoC dependencies
         working-directory: ${{ env.POC_DIR }}
         run: npm install --no-audit --no-fund
@@ -49,71 +48,54 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
-        with:
-          node-version: "22"
+        with: {node-version: "22"}
       - name: Install PoC dependencies
         working-directory: ${{ env.POC_DIR }}
         run: npm install --no-audit --no-fund
       - name: Validate Cloudflare production credentials
-        shell: bash
         run: |
           set -euo pipefail
-          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID fehlt"; exit 1; }
-          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN fehlt"; exit 1; }
-          echo "Cloudflare production credentials available"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          test -n "$CLOUDFLARE_API_TOKEN"
       - name: Deploy isolated Browser Run worker
         id: deploy
         working-directory: ${{ env.POC_DIR }}
-        shell: bash
         run: |
           set -euo pipefail
-          npx wrangler deploy --name genericparser-vinted-poc 2>&1 | tee /tmp/vinted-poc-deploy.log
-          grep -q 'genericparser-vinted-poc' /tmp/vinted-poc-deploy.log || {
-            echo "Wrangler output did not confirm genericparser-vinted-poc"
-            cat /tmp/vinted-poc-deploy.log
-            exit 1
-          }
+          npx wrangler deploy --name genericparser-vinted-poc --var REVISION:${GITHUB_SHA} 2>&1 | tee /tmp/vinted-poc-deploy.log
+          grep -q 'genericparser-vinted-poc' /tmp/vinted-poc-deploy.log
           DEPLOY_URL="$(grep -Eo 'https://[A-Za-z0-9._-]+\.workers\.dev' /tmp/vinted-poc-deploy.log | tail -n1 || true)"
-          if [ -z "$DEPLOY_URL" ]; then
-            DEPLOY_URL="$EXPECTED_POC_URL"
-          fi
+          [ -n "$DEPLOY_URL" ] || DEPLOY_URL="$EXPECTED_POC_URL"
           echo "deploy_url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
-          echo "Using PoC URL: $DEPLOY_URL"
       - name: Wait for PoC health
-        shell: bash
-        env:
-          POC_URL: ${{ steps.deploy.outputs.deploy_url }}
+        env: {POC_URL: "${{ steps.deploy.outputs.deploy_url }}"}
         run: |
           set -euo pipefail
           for i in $(seq 1 30); do
-            code="$(curl -sS -o /tmp/vinted-poc-health.json -w '%{http_code}' --max-time 15 "$POC_URL/health" || true)"
-            body="$(cat /tmp/vinted-poc-health.json 2>/dev/null || true)"
-            echo "health attempt $i: HTTP $code $body"
-            if [ "$code" = "200" ] && printf '%s' "$body" | grep -Eq '"poc"[[:space:]]*:[[:space:]]*"vinted-browser-poc-0\.2\.[0-9]+"'; then
-              echo "PoC health endpoint ready at $POC_URL"
-              exit 0
-            fi
+            code="$(curl -sS -o /tmp/health.json -w '%{http_code}' --max-time 15 "$POC_URL/health" || true)"
+            python - "$code" "$GITHUB_SHA" <<'PY' && exit 0 || true
+          import json,sys
+          code,sha=sys.argv[1:]
+          try: d=json.load(open('/tmp/health.json'))
+          except Exception: raise SystemExit(1)
+          ok=(code=='200' and d.get('component')=='vinted-browser-poc' and d.get('schema')==1 and d.get('status')=='ok' and d.get('revision')==sha)
+          raise SystemExit(0 if ok else 1)
+          PY
             sleep 5
           done
-          echo "PoC health endpoint not ready at $POC_URL/health"
+          cat /tmp/health.json || true
           exit 1
       - name: Probe Vinted Browser Run Quick Action
-        shell: bash
-        env:
-          POC_URL: ${{ steps.deploy.outputs.deploy_url }}
+        env: {POC_URL: "${{ steps.deploy.outputs.deploy_url }}"}
         run: |
           set -euo pipefail
           http_code="$(curl -sS --max-time 60 "$POC_URL/search?q=Evercade" -o /tmp/vinted-poc.json -w '%{http_code}')"
-          echo "PoC endpoint HTTP $http_code"
           cat /tmp/vinted-poc.json
-          test "$http_code" = "200" || { echo "PoC search endpoint returned HTTP $http_code"; exit 1; }
-          python - <<'PY'
-          import json
-          data=json.load(open('/tmp/vinted-poc.json'))
-          print('POC_STATUS=', data.get('status'))
-          print('HTTP_STATUS=', data.get('httpStatus'))
-          print('BROWSER=', data.get('browser'))
-          print('LISTINGS=', len(data.get('listings') or []))
-          if data.get('status') != 'ok' or not data.get('listings'):
-              raise SystemExit('Browser Run Quick Action did not obtain public Vinted listings; see diagnostics above')
+          python - "$http_code" "$GITHUB_SHA" <<'PY'
+          import json,sys
+          code,sha=sys.argv[1:]
+          d=json.load(open('/tmp/vinted-poc.json'))
+          print('status=',d.get('status'),'browser=',d.get('browser'),'listings=',len(d.get('listings') or []))
+          ok=(code=='200' and d.get('component')=='vinted-browser-poc' and d.get('revision')==sha and d.get('status')=='ok' and bool(d.get('listings')))
+          raise SystemExit(0 if ok else 1)
           PY
