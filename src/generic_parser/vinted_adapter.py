@@ -1,9 +1,11 @@
 """Vinted adapter for GenericParser.
 
-The primary strategy parses Vinted's public catalog HTML and structured data.
-It does not automate login, replay cookies, rotate proxies, or bypass access
-controls. The historical JSON catalog endpoint is kept only as a secondary
-fallback when it is directly available.
+The adapter uses Vinted's public web surface only. 1.1.2 establishes a normal
+anonymous browsing session on the public homepage before requesting catalog
+HTML and the existing JSON fallback. It does not automate login, inject stored
+cookies, rotate proxies, solve challenges, or bypass access controls. If Vinted
+still rejects the Worker, the source remains explicitly degraded while
+Kleinanzeigen continues unchanged.
 """
 from __future__ import annotations
 
@@ -108,7 +110,9 @@ def _from_structured_data(soup: BeautifulSoup, query: str) -> list[dict[str, Any
             if isinstance(image, dict):
                 image = image.get("url")
             condition = _condition_text(obj.get("itemCondition") or obj.get("condition"))
-            results[item_id] = _listing(item_id, title, url, query, price=price, image_url=str(image) if image else None, condition=condition)
+            results[item_id] = _listing(item_id, title, url, query, price=price,
+                                        image_url=str(image) if image else None,
+                                        condition=condition)
     return list(results.values())
 
 
@@ -138,7 +142,9 @@ def _from_cards(soup: BeautifulSoup, query: str) -> list[dict[str, Any]]:
         if image is not None:
             image_url = image.get("src") or image.get("data-src") or image.get("data-testid-src")
         condition = _condition_text(text)
-        results[item_id] = _listing(item_id, title, href, query, price=price, image_url=urljoin(VINTED_BASE, str(image_url)) if image_url else None, condition=condition)
+        results[item_id] = _listing(item_id, title, href, query, price=price,
+                                    image_url=urljoin(VINTED_BASE, str(image_url)) if image_url else None,
+                                    condition=condition)
     return list(results.values())
 
 
@@ -159,12 +165,50 @@ def _normalize_api(item: dict[str, Any], query: str) -> dict[str, Any] | None:
     )
 
 
+async def _bootstrap_session(client: httpx.AsyncClient) -> dict[str, Any]:
+    """Establish an ordinary anonymous Vinted web session.
+
+    httpx keeps any Set-Cookie values in the client's in-memory cookie jar for
+    the immediately following catalog/API request. Nothing is persisted or
+    supplied from an authenticated user session.
+    """
+    response = await client.get(
+        f"{VINTED_BASE}/",
+        headers={
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Cache-Control": "no-cache",
+        },
+    )
+    cookie_count = len(client.cookies)
+    if response.status_code in {401, 403, 429}:
+        return {
+            "status": "degraded",
+            "http_status": response.status_code,
+            "reason": "vinted_session_bootstrap_access_limited",
+            "cookie_count": cookie_count,
+        }
+    response.raise_for_status()
+    return {
+        "status": "ok",
+        "http_status": response.status_code,
+        "reason": None,
+        "cookie_count": cookie_count,
+    }
+
+
 async def _fetch_html(client: httpx.AsyncClient, query: str, page: int) -> dict[str, Any]:
     params = {"search_text": query, "order": "newest_first", "page": page + 1}
     url = f"{VINTED_CATALOG_PAGE}?{urlencode(params)}"
-    response = await client.get(url, headers={"Accept": "text/html,application/xhtml+xml"})
+    response = await client.get(
+        url,
+        headers={
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Referer": f"{VINTED_BASE}/",
+        },
+    )
     if response.status_code in {401, 403, 429}:
-        return {"listings": [], "status": "degraded", "http_status": response.status_code, "reason": "vinted_html_access_limited", "url": url, "strategy": "html"}
+        return {"listings": [], "status": "degraded", "http_status": response.status_code,
+                "reason": "vinted_html_access_limited", "url": url, "strategy": "session+html"}
     response.raise_for_status()
     soup = BeautifulSoup(response.text, "html.parser")
     structured = _from_structured_data(soup, query)
@@ -173,48 +217,63 @@ async def _fetch_html(client: httpx.AsyncClient, query: str, page: int) -> dict[
     merged.update({item["id"]: item for item in cards})
     listings = list(merged.values())
     if not listings:
-        return {"listings": [], "status": "degraded", "http_status": response.status_code, "reason": "vinted_html_no_items_parsed", "url": url, "strategy": "html"}
-    return {"listings": listings, "status": "ok", "http_status": response.status_code, "reason": None, "url": url, "strategy": "html"}
+        return {"listings": [], "status": "degraded", "http_status": response.status_code,
+                "reason": "vinted_html_no_items_parsed", "url": url, "strategy": "session+html"}
+    return {"listings": listings, "status": "ok", "http_status": response.status_code,
+            "reason": None, "url": url, "strategy": "session+html"}
 
 
 async def _fetch_api(client: httpx.AsyncClient, query: str, page: int) -> dict[str, Any]:
     params = {"search_text": query, "page": page + 1, "per_page": PAGE_SIZE, "order": "newest_first"}
     url = f"{VINTED_CATALOG_API}?{urlencode(params)}"
-    response = await client.get(url, headers={"Accept": "application/json"})
+    catalog_referer = f"{VINTED_CATALOG_PAGE}?{urlencode({'search_text': query})}"
+    response = await client.get(
+        url,
+        headers={"Accept": "application/json", "Referer": catalog_referer},
+    )
     if response.status_code in {401, 403, 429}:
-        return {"listings": [], "status": "degraded", "http_status": response.status_code, "reason": "vinted_api_access_limited", "url": url, "strategy": "api"}
+        return {"listings": [], "status": "degraded", "http_status": response.status_code,
+                "reason": "vinted_api_access_limited", "url": url, "strategy": "session+api"}
     response.raise_for_status()
     data = response.json()
     raw = data.get("items") if isinstance(data, dict) else []
     listings = [item for value in (raw or []) if (item := _normalize_api(value, query))]
-    return {"listings": listings, "status": "ok" if listings else "degraded", "http_status": response.status_code, "reason": None if listings else "vinted_api_no_items", "url": url, "strategy": "api"}
+    return {"listings": listings, "status": "ok" if listings else "degraded",
+            "http_status": response.status_code, "reason": None if listings else "vinted_api_no_items",
+            "url": url, "strategy": "session+api"}
 
 
 async def search_vinted(query: str, page: int = 0) -> dict[str, Any]:
     headers = {
         "Accept-Language": "de-DE,de;q=0.9,en;q=0.7",
-        "User-Agent": "Mozilla/5.0 (compatible; GenericParser/1.1; +https://github.com/f6yv7sgtgw-wq/GenericParser)",
+        "User-Agent": "Mozilla/5.0 (compatible; GenericParser/1.1.2; +https://github.com/f6yv7sgtgw-wq/GenericParser)",
     }
     try:
         async with httpx.AsyncClient(timeout=15.0, follow_redirects=True, headers=headers) as client:
+            bootstrap = await _bootstrap_session(client)
             html = await _fetch_html(client, query, page)
+            html["bootstrap"] = bootstrap
             if html.get("listings"):
                 count = len(html["listings"])
                 html["complete"] = count < 20
                 html["next_page"] = None if html["complete"] else page + 1
                 return html
+
             api = await _fetch_api(client, query, page)
+            api["bootstrap"] = bootstrap
             if api.get("listings"):
                 count = len(api["listings"])
                 api["complete"] = count < PAGE_SIZE
                 api["next_page"] = None if api["complete"] else page + 1
-                api["reason"] = f"html:{html.get('reason')}; api_fallback_ok"
+                api["reason"] = f"bootstrap:{bootstrap.get('status')}; html:{html.get('reason')}; api_fallback_ok"
                 return api
+
             return {
                 "listings": [], "next_page": None, "complete": True,
-                "status": "degraded", "http_status": api.get("http_status") or html.get("http_status"),
-                "reason": f"html:{html.get('reason')}; api:{api.get('reason')}",
-                "url": html.get("url"), "strategy": "html+api-fallback",
+                "status": "degraded", "http_status": api.get("http_status") or html.get("http_status") or bootstrap.get("http_status"),
+                "reason": f"bootstrap:{bootstrap.get('status')}:{bootstrap.get('reason')}; html:{html.get('reason')}; api:{api.get('reason')}",
+                "url": html.get("url"), "strategy": "session-bootstrap+html+api-fallback",
+                "bootstrap": bootstrap,
             }
     except Exception as exc:
         return {
@@ -222,8 +281,8 @@ async def search_vinted(query: str, page: int = 0) -> dict[str, Any]:
             "status": "degraded", "http_status": None,
             "reason": f"{type(exc).__name__}: {exc}",
             "url": f"{VINTED_CATALOG_PAGE}?{urlencode({'search_text': query, 'page': page + 1})}",
-            "strategy": "html+api-fallback",
+            "strategy": "session-bootstrap+html+api-fallback",
         }
 
 
-__all__ = ["search_vinted", "VINTED_BASE", "VINTED_CATALOG_PAGE", "VINTED_CATALOG_API"]
+__all__ = ["search_vinted", "VINTED_BASE", "VINTED_CATALOG_PAGE", "VINTED_CATALOG_API", "_bootstrap_session"]
