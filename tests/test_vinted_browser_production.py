@@ -57,7 +57,7 @@ def test_search_vinted_prefers_browser_worker_without_public_web_fallback(monkey
 
 def test_browser_failure_remains_fail_open_and_can_fall_back(monkeypatch):
     async def fake_browser(query, page):
-        return {"listings": [], "status": "degraded", "reason": "temporary", "http_status": 502, "strategy": "browser-run-worker"}
+        return {"listings": [], "status": "degraded", "reason": "temporary", "http_status": 502, "strategy": "service-binding"}
 
     async def fake_bootstrap(client):
         return {"status": "ok", "http_status": 200, "reason": None, "cookie_count": 0}
@@ -70,5 +70,5 @@ def test_browser_failure_remains_fail_open_and_can_fall_back(monkeypatch):
     monkeypatch.setattr(vinted, "_fetch_html", fake_html)
     result = asyncio.run(vinted.search_vinted("Evercade", page=0))
     assert result["status"] == "ok"
-    assert result["strategy"] == "browser-run-worker-fallback+session+html"
+    assert result["strategy"] == "service-binding-fallback+session+html"
     assert result["browser_fallback"]["reason"] == "temporary"

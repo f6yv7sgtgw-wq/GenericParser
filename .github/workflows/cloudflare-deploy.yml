@@ -17,10 +17,8 @@ on:
 concurrency:
   group: generic-parser-production
   cancel-in-progress: false
-
 permissions:
   contents: read
-
 env:
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -46,24 +44,22 @@ jobs:
           echo "build=$(uv run python -c 'from generic_parser.release_identity import BUILD_ID; print(BUILD_ID)')" >> "$GITHUB_OUTPUT"
           echo "contract=$(uv run python -c 'from generic_parser.release_identity import API_CONTRACT; print(API_CONTRACT)')" >> "$GITHUB_OUTPUT"
       - name: Run regression tests
-        run: uv run pytest -q tests/test_release_100.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py tests/test_vinted_browser_production.py
+        run: uv run pytest -q tests/test_release_100.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py tests/test_vinted_browser_production.py tests/test_vinted_service_binding_122.py
       - name: Compile active runtime
-        run: |
-          uv run python -m py_compile src/generic_parser/release_identity.py src/generic_parser/cloudflare_worker.py src/generic_parser/cloudflare_v0450.py src/generic_parser/cloudflare_v0452.py src/generic_parser/build_identity_v0450.py src/generic_parser/build_identity_v0452.py src/generic_parser/search_service_v0450.py src/generic_parser/search_service_v111_runtime.py src/generic_parser/vinted_adapter.py scripts/check_deployment.py
+        run: uv run python -m py_compile src/generic_parser/release_identity.py src/generic_parser/cloudflare_worker.py src/generic_parser/cloudflare_v0450.py src/generic_parser/cloudflare_v0452.py src/generic_parser/build_identity_v0450.py src/generic_parser/build_identity_v0452.py src/generic_parser/search_service_v0450.py src/generic_parser/search_service_v111_runtime.py src/generic_parser/vinted_adapter.py scripts/check_deployment.py
       - name: Validate browser controller syntax
         run: |
           node --check cloudflare/public/controller-0450.js
           node --check cloudflare/public/source-colors-110.js
-      - name: Validate release metadata without hard version literals
+      - name: Validate release metadata and service binding
         run: |
           uv run python - <<'PY'
           import json
-          from generic_parser.release_identity import VERSION, BUILD_ID, API_CONTRACT
-          d=json.load(open('VERSION.json'))
-          assert d['version']==VERSION
-          assert d['build_id']==BUILD_ID
-          assert d['api_contract']==API_CONTRACT
-          assert d['identity_source']=='src/generic_parser/release_identity.py'
+          from generic_parser.release_identity import VERSION,BUILD_ID,API_CONTRACT
+          d=json.load(open('VERSION.json')); w=json.load(open('wrangler.jsonc'))
+          assert d['version']==VERSION and d['build_id']==BUILD_ID and d['api_contract']==API_CONTRACT
+          services={x.get('binding'):x.get('service') for x in w.get('services',[])}
+          assert services.get('VINTED_BROWSER')=='genericparser-vinted-poc'
           PY
       - name: Validate production secrets
         run: |
@@ -91,7 +87,7 @@ jobs:
           done
           cat /tmp/health.json || true
           exit 1
-      - name: Verify live Kleinanzeigen plus Vinted multi-source search
+      - name: Verify live Kleinanzeigen plus Vinted service-bound search
         run: |
           set -euo pipefail
           cat > /tmp/search.json <<'JSON'
@@ -104,14 +100,10 @@ jobs:
           try: d=json.load(open('/tmp/result.json'))
           except Exception: raise SystemExit(1)
           status=d.get('source_status') or (d.get('summary') or {}).get('sources') or {}
-          ka=status.get('kleinanzeigen') or {}
-          vi=status.get('vinted') or {}
-          listings=d.get('listings') or []
+          ka=status.get('kleinanzeigen') or {}; vi=status.get('vinted') or {}; listings=d.get('listings') or []
           vinted=[x for x in listings if x.get('source')=='vinted' or str(x.get('id','')).startswith('vinted:')]
-          ok=(sys.argv[1]=='200' and ka.get('enabled') is True and vi.get('enabled') is True and vi.get('status')=='ok' and vi.get('strategy')=='browser-run-worker' and len(vinted)>0)
-          print('kleinanzeigen=',ka)
-          print('vinted=',vi)
-          print('vinted_listings=',len(vinted))
+          ok=(sys.argv[1]=='200' and ka.get('enabled') is True and vi.get('enabled') is True and vi.get('status')=='ok' and vi.get('strategy')=='service-binding' and len(vinted)>0)
+          print('kleinanzeigen=',ka); print('vinted=',vi); print('vinted_listings=',len(vinted))
           raise SystemExit(0 if ok else 1)
           PY
             sleep 10

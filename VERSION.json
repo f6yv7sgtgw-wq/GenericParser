@@ -1,8 +1,8 @@
 {
   "product": "GenericParser",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "package_version": "dynamic:generic_parser.release_identity.VERSION",
-  "build_id": "gp-121-20260808-1",
+  "build_id": "gp-122-20260808-1",
   "identity_source": "src/generic_parser/release_identity.py",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
@@ -13,16 +13,16 @@
   "functional_reference_version": "0.44.4",
   "stable_reference_version": "0.44.6.5",
   "runtime_reference_version": "0.44.6.2",
-  "technical_base": "1.2.0+vinted-browser-production-adapter",
+  "technical_base": "1.2.1+vinted-browser-service-binding",
   "release_date": "2026-08-08",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "release-candidate",
-  "purpose": "promote the proven Vinted Browser Run component into the normal multi-source search path beside Kleinanzeigen, with public-web fallback and source-colored UI cards",
+  "purpose": "connect the production GenericParser Worker to the proven Vinted Browser Run Worker through a Cloudflare service binding instead of a public workers.dev dependency",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted"],
     "kleinanzeigen": {"strategy": "proven html search core"},
-    "vinted": {"strategy": "browser-run worker primary, anonymous public-web fallback", "fail_open": true, "access_control_bypass": false}
+    "vinted": {"strategy": "cloudflare service binding primary, anonymous public-web fallback", "binding": "VINTED_BROWSER", "fail_open": true, "access_control_bypass": false}
   },
   "compatibility": {
     "api_contract": "generic-parser-module-v1",
@@ -40,6 +40,6 @@
     "live_vinted_browser_search": "required",
     "live_multisource_search": "required"
   },
-  "rollback_plan": {"last_stable_baseline": "1.2.0"},
-  "metadata_schema": 35
+  "rollback_plan": {"last_stable_baseline": "1.2.1"},
+  "metadata_schema": 36
 }

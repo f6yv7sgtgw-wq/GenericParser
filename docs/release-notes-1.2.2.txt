@@ -1,0 +1,1 @@
+GenericParser 1.2.2: Vinted production transport moved from public workers.dev URL to Cloudflare Service Binding VINTED_BROWSER. Kleinanzeigen core unchanged. Live deployment gate requires real Vinted listings through strategy=service-binding.
