@@ -58,8 +58,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID fehlt im GitHub-Environment production"; exit 1; }
-          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN fehlt im GitHub-Environment production"; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID fehlt"; exit 1; }
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN fehlt"; exit 1; }
           echo "Cloudflare production credentials available"
       - name: Deploy isolated Browser Run worker
         id: deploy
@@ -89,7 +89,7 @@ jobs:
             code="$(curl -sS -o /tmp/vinted-poc-health.json -w '%{http_code}' --max-time 15 "$POC_URL/health" || true)"
             body="$(cat /tmp/vinted-poc-health.json 2>/dev/null || true)"
             echo "health attempt $i: HTTP $code $body"
-            if [ "$code" = "200" ] && printf '%s' "$body" | grep -q 'vinted-browser-poc-0.1.0'; then
+            if [ "$code" = "200" ] && printf '%s' "$body" | grep -q 'vinted-browser-poc-0.2.0'; then
               echo "PoC health endpoint ready at $POC_URL"
               exit 0
             fi
@@ -97,7 +97,7 @@ jobs:
           done
           echo "PoC health endpoint not ready at $POC_URL/health"
           exit 1
-      - name: Probe Vinted with real Chromium
+      - name: Probe Vinted Browser Run Quick Action
         shell: bash
         env:
           POC_URL: ${{ steps.deploy.outputs.deploy_url }}
@@ -112,9 +112,8 @@ jobs:
           data=json.load(open('/tmp/vinted-poc.json'))
           print('POC_STATUS=', data.get('status'))
           print('HTTP_STATUS=', data.get('httpStatus'))
-          print('CHALLENGE=', (data.get('browser') or {}).get('challengeDetected'))
-          print('ITEM_ANCHORS=', (data.get('browser') or {}).get('itemAnchorCount'))
+          print('BROWSER=', data.get('browser'))
           print('LISTINGS=', len(data.get('listings') or []))
           if data.get('status') != 'ok' or not data.get('listings'):
-              raise SystemExit('Browser PoC did not obtain public Vinted listings; see diagnostics above')
+              raise SystemExit('Browser Run Quick Action did not obtain public Vinted listings; see diagnostics above')
           PY
