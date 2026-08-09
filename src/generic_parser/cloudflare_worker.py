@@ -44,6 +44,7 @@ def _preflight_response(request):
 
 _load_generic_parser_package()
 from generic_parser.cloudflare_v0452 import app  # noqa: E402
+from generic_parser.ebay_adapter import reset_ebay_credentials, set_ebay_credentials  # noqa: E402
 from generic_parser.vinted_adapter import reset_vinted_browser_binding, set_vinted_browser_binding  # noqa: E402
 
 
@@ -51,8 +52,13 @@ class Default(WorkerEntrypoint):
     async def fetch(self, request):
         if str(request.method).upper()=="OPTIONS": return _preflight_response(request)
         binding=getattr(self.env,"VINTED_BROWSER",None)
-        token=set_vinted_browser_binding(binding)
+        vinted_token=set_vinted_browser_binding(binding)
+        ebay_token=set_ebay_credentials(
+            getattr(self.env,"EBAY_CLIENT_ID",None),
+            getattr(self.env,"EBAY_CLIENT_SECRET",None),
+        )
         try:
             return await asgi.fetch(app,request,self.env)
         finally:
-            reset_vinted_browser_binding(token)
+            reset_ebay_credentials(ebay_token)
+            reset_vinted_browser_binding(vinted_token)

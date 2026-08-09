@@ -217,7 +217,8 @@ def test_capabilities_advertise_background_endpoint_for_module_clients():
     response = TestClient(app).get("/api/module/v1/capabilities")
     assert response.status_code == 200
     payload = response.json()
-    assert payload["sources"] == ["kleinanzeigen", "vinted"]
+    assert payload["sources"][:2] == ["kleinanzeigen", "vinted"]
+    assert "ebay" in payload["sources"]
     assert payload["vinted_detail_enrichment"]["background_endpoint"] == "/api/module/v1/vinted/enrich"
     assert payload["vinted_detail_enrichment"]["background_batch_limit"] == 3
     assert payload["vinted_detail_enrichment"]["blocks_search"] is False

@@ -31,7 +31,7 @@ def test_search_header_matches_shared_project_pattern() -> None:
     assert 'class="version-badge"' in html
     assert "Log &amp; Diagnose" in html[:header_end]
     assert 'href="./eventlog.html"' in html[:header_end]
-    assert "Kleinanzeigen &amp; Vinted durchsuchen" in html
+    assert "Kleinanzeigen, Vinted &amp; eBay durchsuchen" in html
     assert "Technische Details anzeigen" not in html
     assert "technical-toggle" not in html
     assert "technical-content" not in html
@@ -110,6 +110,6 @@ def test_runtime_identity_and_base_ui_assets_remain_active() -> None:
     app = read("cloudflare/public/app.js")
     assert "querySelectorAll('[data-version]')" in controller
     assert "querySelectorAll('[data-version]')" in eventlog
-    assert "Kleinanzeigen und Vinted sind verbunden." in controller
+    assert "Kleinanzeigen, Vinted und eBay sind verbunden." in controller
     assert '"./ui-133.css"' in service_worker
     assert "service-worker.js?v=" in app

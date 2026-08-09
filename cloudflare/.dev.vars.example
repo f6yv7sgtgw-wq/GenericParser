@@ -1,2 +1,6 @@
 # Optionaler lokaler Zugriffsschutz
 APP_TOKEN=mein-langes-zufallstoken
+
+# eBay Production Browse API (niemals einchecken)
+EBAY_CLIENT_ID=
+EBAY_CLIENT_SECRET=

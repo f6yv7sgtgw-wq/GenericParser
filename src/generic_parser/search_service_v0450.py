@@ -16,6 +16,7 @@ from .build_identity_v0452 import (
     VERSION,
     WORKER_UNIT,
 )
+from .ebay_adapter import search_ebay
 from .integrations import evercade_profile, snes_pal_profile
 from .module_api import (
     MODULE_CONTRACT,
@@ -28,8 +29,14 @@ from .module_api import (
 )
 from .vinted_adapter import search_vinted
 
-SearchRequest = reference.SearchRequest
+class SearchRequest(reference.SearchRequest):
+    """Active flat request with the additive eBay auction switch."""
+
+    include_ebay_auctions: bool = False
+
+
 _MULTI_SOURCES = {"auto", "multi-source", "all", "both"}
+_DEFAULT_SOURCES = ["kleinanzeigen", "vinted", "ebay"]
 
 
 def identity() -> dict[str, Any]:
@@ -44,8 +51,8 @@ def identity() -> dict[str, Any]:
         "operational_reference": OPERATIONAL_REFERENCE,
         "runtime_reference": RUNTIME_REFERENCE,
         "search_behavior_changed": True,
-        "sources": ["kleinanzeigen", "vinted"],
-        "default_sources": ["kleinanzeigen", "vinted"],
+        "sources": list(_DEFAULT_SOURCES),
+        "default_sources": list(_DEFAULT_SOURCES),
     }
 
 
@@ -62,7 +69,7 @@ def _include_listing(listing: dict[str, Any], payload: SearchRequest) -> bool:
     return True
 
 
-def _decorate_vinted(listing: dict[str, Any], payload: SearchRequest) -> dict[str, Any]:
+def _decorate_marketplace(listing: dict[str, Any], payload: SearchRequest) -> dict[str, Any]:
     evaluation = reference._evaluate(listing, payload)
     listing["traffic_light"] = evaluation
     listing["match"] = {
@@ -78,6 +85,7 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
     source = str(getattr(payload, "source", "auto") or "auto").casefold()
     want_ka = source in _MULTI_SOURCES or source in {"kleinanzeigen", "ka"}
     want_vinted = source in _MULTI_SOURCES or source == "vinted"
+    want_ebay = source in _MULTI_SOURCES or source == "ebay"
     page = int(getattr(payload, "page", 0) or 0)
 
     ka_result: dict[str, Any] | None = None
@@ -95,7 +103,7 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
     if want_vinted:
         vinted_result = await search_vinted(str(payload.query), page=page)
         for raw in vinted_result.get("listings") or []:
-            item = _decorate_vinted(raw, payload)
+            item = _decorate_marketplace(raw, payload)
             color = str((item.get("traffic_light") or {}).get("color") or "yellow")
             if color in vinted_counts:
                 vinted_counts[color] += 1
@@ -103,6 +111,28 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
                 vinted_visible.append(item)
             else:
                 vinted_hidden += 1
+
+    ebay_result: dict[str, Any] | None = None
+    ebay_visible: list[dict[str, Any]] = []
+    ebay_hidden = 0
+    ebay_counts = {"green": 0, "yellow": 0, "red": 0}
+    if want_ebay:
+        ebay_result = await search_ebay(
+            str(payload.query),
+            page=page,
+            include_auctions=bool(getattr(payload, "include_ebay_auctions", False)),
+            sort_by=str(getattr(payload, "sort_by", "relevance") or "relevance"),
+            postal_code=getattr(payload, "postal_code", None),
+        )
+        for raw in ebay_result.get("listings") or []:
+            item = _decorate_marketplace(raw, payload)
+            color = str((item.get("traffic_light") or {}).get("color") or "yellow")
+            if color in ebay_counts:
+                ebay_counts[color] += 1
+            if _include_listing(item, payload):
+                ebay_visible.append(item)
+            else:
+                ebay_hidden += 1
 
     if not ka_result:
         ka_result = {
@@ -119,22 +149,28 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
     ka_pagination = ka_result.get("pagination") if isinstance(ka_result.get("pagination"), dict) else {}
     ka_counts = ka_result.get("traffic_light_summary") if isinstance(ka_result.get("traffic_light_summary"), dict) else {}
 
-    combined = ka_listings + vinted_visible
+    combined = ka_listings + vinted_visible + ebay_visible
     ka_hidden = int(ka_summary.get("hidden_by_filter") or 0)
     ka_fetched = int(ka_summary.get("fetched_listings") or len(ka_listings) + ka_hidden)
     vinted_fetched = len(vinted_visible) + vinted_hidden
-    fetched = ka_fetched + vinted_fetched
-    hidden = ka_hidden + vinted_hidden
+    ebay_fetched = len(ebay_visible) + ebay_hidden
+    fetched = ka_fetched + vinted_fetched + ebay_fetched
+    hidden = ka_hidden + vinted_hidden + ebay_hidden
 
     ka_next = ka_pagination.get("next_page") if want_ka else None
     vi_next = vinted_result.get("next_page") if vinted_result and want_vinted else None
-    next_candidates = [int(value) for value in (ka_next, vi_next) if value is not None]
+    ebay_next = ebay_result.get("next_page") if ebay_result and want_ebay else None
+    next_candidates = [
+        int(value) for value in (ka_next, vi_next, ebay_next) if value is not None
+    ]
     next_page = min(next_candidates) if next_candidates else None
     complete = next_page is None
 
     generated_urls = list(ka_result.get("generated_urls") or [])
     if vinted_result and vinted_result.get("url"):
         generated_urls.append(vinted_result["url"])
+    if ebay_result and ebay_result.get("url"):
+        generated_urls.append(ebay_result["url"])
 
     source_status = {
         "kleinanzeigen": {
@@ -152,7 +188,47 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
             "http_status": (vinted_result or {}).get("http_status"),
             "reason": (vinted_result or {}).get("reason"),
         },
+        "ebay": {
+            "enabled": want_ebay,
+            "status": (ebay_result or {}).get(
+                "status", "disabled" if not want_ebay else "degraded"
+            ),
+            "strategy": (ebay_result or {}).get("strategy"),
+            "marketplace": (ebay_result or {}).get("marketplace"),
+            "visible": len(ebay_visible),
+            "hidden": ebay_hidden,
+            "http_status": (ebay_result or {}).get("http_status"),
+            "reason": (ebay_result or {}).get("reason"),
+            "reported_total": (ebay_result or {}).get("reported_total"),
+            "include_auctions": bool(
+                (ebay_result or {}).get(
+                    "include_auctions",
+                    getattr(payload, "include_ebay_auctions", False),
+                )
+            ),
+            "transient": True,
+        },
     }
+
+    enabled_sources = [
+        name
+        for name, enabled in (
+            ("kleinanzeigen", want_ka),
+            ("vinted", want_vinted),
+            ("ebay", want_ebay),
+        )
+        if enabled
+    ]
+    page_source = (
+        "multi-source"
+        if len(enabled_sources) > 1
+        else (enabled_sources[0] if enabled_sources else source or "none")
+    )
+    reported_total = None
+    if enabled_sources == ["kleinanzeigen"]:
+        reported_total = ka_summary.get("reported_total")
+    elif enabled_sources == ["ebay"]:
+        reported_total = (ebay_result or {}).get("reported_total")
 
     result = dict(ka_result)
     result["listings"] = combined
@@ -161,7 +237,7 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
         "current_page": page,
         "next_page": next_page,
         "complete": complete,
-        "source": "multi-source" if want_ka and want_vinted else ("vinted" if want_vinted else "kleinanzeigen"),
+        "source": page_source,
         "unique_listings": fetched,
         "stop_reason": None if not complete else "all_sources_complete",
     }
@@ -170,11 +246,13 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
         "fetched_listings": fetched,
         "visible_listings": len(combined),
         "hidden_by_filter": hidden,
-        "reported_total": ka_summary.get("reported_total"),
+        "reported_total": reported_total,
         "sources": source_status,
     }
     result["traffic_light_summary"] = {
-        color: int(ka_counts.get(color) or 0) + vinted_counts[color]
+        color: int(ka_counts.get(color) or 0)
+        + vinted_counts[color]
+        + ebay_counts[color]
         for color in ("green", "yellow", "red")
     }
     result["source_status"] = source_status
@@ -185,7 +263,7 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
 
 
 async def search_page(payload: SearchRequest, request: Request) -> dict[str, Any]:
-    """Kompatibilitätsroute: auto searches Kleinanzeigen and Vinted."""
+    """Compatibility route: auto searches Kleinanzeigen, Vinted and eBay."""
     return await _multi_source_search(payload, request)
 
 
@@ -211,7 +289,12 @@ async def search_module_page(
     result["worker"] = {**(result.get("worker") or {}), **identity()}
     response = module_response_from_legacy(result, payload, trace)
     for listing in response.listings:
-        listing.source = "vinted" if listing.id.startswith("vinted:") else "kleinanzeigen"
+        if listing.id.startswith("vinted:"):
+            listing.source = "vinted"
+        elif listing.id.startswith("ebay:"):
+            listing.source = "ebay"
+        else:
+            listing.source = "kleinanzeigen"
     return response
 
 
@@ -225,7 +308,7 @@ def validate_module_profile(profile: ModuleSearchProfile) -> dict[str, Any]:
         "legacy_payload": validated.model_dump(mode="json", exclude_none=True),
         "empty_fields_ignored": True,
         "reference_request_validated": True,
-        "default_sources": ["kleinanzeigen", "vinted"],
+        "default_sources": list(_DEFAULT_SOURCES),
     }
 
 
@@ -237,7 +320,12 @@ def run_module_self_tests() -> dict[str, Any]:
     adapter_checks.append({"name": "evercade_adapter", "ok": evercade.query.startswith("Evercade ") and evercade.market_value == 30})
     snes = snes_pal_profile("Super Metroid", market_value=70)
     adapter_checks.append({"name": "snes_adapter", "ok": "PAL" in snes.required_terms and "NTSC" in snes.excluded_terms})
-    adapter_checks.append({"name": "multi_source_default", "ok": identity()["default_sources"] == ["kleinanzeigen", "vinted"]})
+    adapter_checks.append(
+        {
+            "name": "multi_source_default",
+            "ok": identity()["default_sources"] == _DEFAULT_SOURCES,
+        }
+    )
     result["checks"].extend(adapter_checks)
     result["ok"] = bool(result["ok"] and all(item["ok"] for item in adapter_checks))
     result["deployment"] = identity()

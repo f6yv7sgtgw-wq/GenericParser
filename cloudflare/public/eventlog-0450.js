@@ -87,6 +87,7 @@
         `<span>Eventlog ${esc(I.version)}/${esc(I.buildId)} · Worker ${esc(worker.version || '?')}/${esc(worker.build_id || '?')}</span>`,
         `<span>Modulvertrag: ${esc(worker.module_contract || worker.api_contract || '?')}</span>`,
         `<span>Vinted: Service Binding + entkoppelte 3er-Detail-Batches</span>`,
+        `<span>eBay: offizielle Browse API · EBAY_DE · keine Persistenz</span>`,
         `<span>Debug-Logs: standardmäßig ${worker.debug_logging?.enabled_by_default ? 'an' : 'aus'}</span>`
       ].join('');
     } catch (error) {

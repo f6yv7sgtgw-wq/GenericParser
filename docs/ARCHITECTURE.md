@@ -1,100 +1,64 @@
-# Architektur
+# GenericParser Architektur
 
-## 1. Zielbild
+## Zielbild
 
-GenericParser ist eine eigenständige Python-Bibliothek für Kleinanzeigen. Sie soll von mehreren Anwendungen eingebunden werden können, ohne deren Fachlogik zu kennen.
+GenericParser exposes one stable, project-independent contract to Evercade, SNES PAL and future clients. Search profiles enter through `generic-parser-module-v1`; normalized listings, pagination, matching and traffic-light results leave through the same boundary.
 
-Die erste produktive Nutzung erfolgt in:
-
-- Evercade
-- SNES-PAL-Sammlung
-
-Beide Projekte konfigurieren Suchprofile und verarbeiten Treffer. GenericParser übernimmt Suche, Parsing, Normalisierung, Matching, Bewertung und technische Persistenz.
-
-## 2. Grundsatz: generische Domäne, eine Quelle
-
-Das interne Datenmodell bleibt quellenneutral, damit spätere Erweiterungen möglich sind. Trotzdem wird zunächst ausschließlich ein Kleinanzeigen-Adapter implementiert und getestet.
-
-Es wird ausdrücklich keine vorzeitige Mehrquellen-Abstraktion gebaut. Erst nach einer stabilen Version 1.0 wird geprüft, welche Schnittstellen sich tatsächlich für eBay, Vinted oder andere Quellen eignen.
-
-## 3. Verantwortlichkeiten
-
-### GenericParser
-
-- Such-URLs aus einem Suchprofil erzeugen
-- Location-ID ermitteln, speichern und verifizieren
-- Kleinanzeigen-Ergebnislisten sequenziell abrufen
-- Anzeigenkarten robust extrahieren
-- Preise, Datum, Ort und Entfernung normalisieren
-- Titel und Beschreibung vereinheitlichen
-- technische Zustände und Parse-Fehler melden
-- später Produktkandidaten matchen und bewerten
-- später Duplikate, Preisänderungen und Alerts dauerhaft speichern
-
-### Evercade und SNES
-
-- Produktkataloge und Sammlungsstatus verwalten
-- Suchprofile aus fehlenden oder überwachten Spielen erzeugen
-- Preislimits und Richtwerte bereitstellen
-- Treffer darstellen oder Benachrichtigungen auslösen
-- Nutzerfeedback verwalten
-
-## 4. Öffentliche Bibliotheksschnittstelle
-
-```python
-from generic_parser import GenericParser, KleinanzeigenAdapter, KleinanzeigenHttpClient
-
-with KleinanzeigenHttpClient() as http:
-    parser = GenericParser(source=KleinanzeigenAdapter(http=http))
-    listings = parser.search(profile)
-```
-
-Der Adapter erfüllt das `ListingSource`-Protokoll und liefert ausschließlich normalisierte `Listing`-Objekte.
-
-## 5. Kleinanzeigen-Listenadapter seit 0.2a
-
-Der Adapter besteht aus vier getrennten Bausteinen:
-
-- `KleinanzeigenUrlBuilder` für Keyword- und Kategorie-URLs
-- `KleinanzeigenHttpClient` für sequenzielle, gedrosselte Abrufe
-- `KleinanzeigenPageParser` für robuste Kartenextraktion und Diagnosezustände
-- `KleinanzeigenAdapter` als Implementierung des öffentlichen `ListingSource`-Ports
-
-Netzwerk und Parsing sind getrennt. Tests können deshalb Mock-Antworten und gespeicherte HTML-Fixtures nutzen.
-
-## 6. Diagnose-Webinterface seit 0.2b
-
-Das Webinterface ist eine dünne FastAPI-Schicht über dem Parserkern. Es enthält keine eigene Parsinglogik. Die Oberfläche unterstützt drei Testmodi:
-
-- gespeicherte Paket-Fixtures
-- manuell eingefügtes HTML
-- kontrollierte Live-Suche über den Kleinanzeigen-HTTP-Client
-
-Live-Suchen sind innerhalb einer Instanz serialisiert. Die API erzeugt ausschließlich Kleinanzeigen-URLs über den `KleinanzeigenUrlBuilder`; frei wählbare Remote-URLs werden nicht abgerufen. Gespeicherte Fixtures werden in einem konfigurierbaren Datenverzeichnis abgelegt.
-
-Die Weboberfläche ist ein Diagnosewerkzeug. Produktentscheidungen, Datenbankzustände und Hintergrundplanung bleiben späteren Komponenten vorbehalten.
-
-## 7. Integrationsprinzip
-
-GenericParser darf Evercade oder SNES nicht importieren. Die Abhängigkeit zeigt ausschließlich in die andere Richtung:
+## Production topology
 
 ```text
-Evercade ---------> GenericParser
-SNES-PAL-Sammlung -> GenericParser
+Evercade / SNES / generic client
+              ↓
+generic-parser-module-v1
+              ↓
+Cloudflare Python Worker + PWA
+              ↓
+Kleinanzeigen core │ Vinted Service Binding │ eBay Browse API
 ```
 
-Treffer werden als Datenobjekte zurückgegeben. Darstellung und Benachrichtigung bleiben in den aufrufenden Projekten.
+The active Worker orchestrates three independent sources:
 
-## 8. Späterer Hintergrundbetrieb
+- **Kleinanzeigen** keeps the proven 0.44.4 functional search core and its established work-packet behavior.
+- **Vinted** uses the private `VINTED_BROWSER` Cloudflare Service Binding for catalog and bounded detail access. At most three detail pages run in the catalog request; remaining details use serial client-driven batches of three.
+- **eBay** uses application OAuth and the official Production Browse API on `EBAY_DE`. It returns 25 results per page, defaults to fixed price and can include auctions only when requested.
 
-Ab der Persistenz- und Betriebsphase wird GenericParser als zentraler Worker mit kleiner API betrieben. Evercade und SNES teilen sich dann denselben Kleinanzeigen-Zugriff, dieselbe Datenbank und dasselbe Rate-Limit-Budget.
+Each source reports its own status. A Vinted or eBay failure is fail-open and does not discard successful results from another source.
 
-## 9. Stand 0.2c – Cloudflare Mobile
+## Contract and compatibility
 
-Die Cloud-Version ist eine zusätzliche, bewusst begrenzte Laufzeit:
+The public module version remains `generic-parser-module-v1`. Runtime filenames retain historical version numbers because they are compatibility bridges, not public release identity. `src/generic_parser/release_identity.py` is the single source for release version, build and contract.
+
+The 1.4 eBay fields are additive. Existing clients can continue to consume the shared listing fields. Clients that understand eBay can additionally use `item_price`, `shipping_cost`, `total_price`, `buying_options`, `listing_format`, `auction`, `bid_count`, `item_end_date` and `transient`.
+
+## eBay price invariant
+
+Generic matching and the traffic light use the established `price` field. For eBay, `price` is deliberately set only when the delivered or pickup total is trustworthy:
 
 ```text
-Smartphone → PWA / Workers Static Assets → FastAPI Python Worker → Kleinanzeigen
+known shipping:  price = total_price = item_price + shipping_cost
+pickup only:     price = total_price = item_price
+unknown shipping: price = total_price = null; item_price remains visible
 ```
 
-Der Worker führt pro Anfrage nur eine Keyword-Suche aus. Netzwerkzugriff erfolgt asynchron; der HTML-Parser baut nur die relevanten Anzeigenkarten auf. Die PWA enthält keine Parserlogik und speichert lediglich ein optionales Zugriffstoken im lokalen Browser. Hintergrundläufe, Persistenz und Benachrichtigungen bleiben der späteren Worker-Phase vorbehalten.
+This prevents unknown shipping from being scored as zero-cost shipping.
+
+## Secrets and data lifetime
+
+`EBAY_CLIENT_ID` and `EBAY_CLIENT_SECRET` are request-scoped Cloudflare bindings. OAuth access tokens are cached only in Worker isolate memory until shortly before expiry. Error messages are sanitized and never include credentials or tokens.
+
+eBay listing payloads are transient. The Worker has no listing database, and the bundled PWA filters eBay rows out before serializing search state to IndexedDB. This is an explicit 1.4 behavior and not a later cleanup step.
+
+## Vinted deferred details
+
+Vinted detail enrichment remains separate from catalog pagination. The browser renders catalog results immediately, then sends incomplete Vinted items to `/api/vinted/enrich` in serial batches of at most three. Returned details are merged and rescored. Starting a new search or stopping the current one cancels the pending client queue.
+
+## Deployment and verification
+
+Pull requests compile the runtime, check browser JavaScript and run stable-core, Vinted and eBay regressions. The production workflow deploys both Workers and then validates:
+
+1. exact live release identity and eBay secret bindings;
+2. Kleinanzeigen, Vinted Service Binding and official eBay Browse results in one search;
+3. `EBAY_DE`, fixed-price default and conservative total-price mapping;
+4. the existing deferred Vinted detail batch.
+
+Release metadata remains a candidate until this deployment workflow succeeds. Stable release metadata records the accepted production commit and workflow run and keeps the previous stable version as rollback target.

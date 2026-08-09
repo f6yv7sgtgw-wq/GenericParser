@@ -4,6 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
+| 1.4.0 RC | `gp-140-20260809-1` | ausstehend | Offizielle eBay Browse API auf `EBAY_DE`, Festpreisstandard, bekannte Versand-Gesamtsumme und flüchtige eBay-Treffer; Production-Zugriffsgate grün |
 | 1.3.4 | `gp-134-20260809-1` | `47a74efa13f63b0908688cc96872e013f23e56bf` | Dichtes Mehrspaltenraster, kleine Karten mit Bild und Text nebeneinander, Startseiten-Symbol entfernt; Produktions-Live-Gates grün |
 | 1.3.3 | `gp-133-20260809-1` | `88df0a4f91fd813a685e26b429e3c549bb9ce5b3` | GUI-Rework im Evercade/SNES-Stil, Log-Navigation im Kopf und kompakte aufklappbare Vinted-Beschreibungen; Produktions-Live-Gates grün |
 | 1.3.2 | `gp-132-20260809-1` | `cece9c4723eca97fb38627493628468b21e5fb86` | Entkoppelte Vinted-Hintergrundanreicherung in seriellen 3er-Batches, Live-Updates und erneutes Scoring; Produktions-Live-Gates grün |
@@ -47,6 +48,24 @@ Status:                     Stable; Produktions-Live-Gates grün
 Produktions-Commit:         47a74efa13f63b0908688cc96872e013f23e56bf
 Deploy-Workflow:            31311244612 (success)
 Vinted-Browser-Gate:        31311244612 (im Deploy-Workflow, success)
+```
+
+## Aktueller Release Candidate
+
+```text
+Version:                    1.4.0
+Build-ID:                   gp-140-20260809-1
+Standardquellen:            Kleinanzeigen, Vinted, eBay
+eBay-Transport:             offizielle Production Browse API
+eBay-Marktplatz:            EBAY_DE
+eBay-Festpreis:             standardmäßig an
+eBay-Auktionen:             standardmäßig aus, explizit aktivierbar
+eBay-Gesamtpreis:           Artikel + bekannte Versandkosten
+Unbekannte Versandkosten:   price/total_price bleiben leer
+eBay-Persistenz:            keine
+Production-Zugriffsgate:    31336200661 (success)
+Produktionsabnahme:         ausstehend
+Rollback-Ziel:              1.3.4 / gp-134-20260809-1
 ```
 
 ## Release-Download

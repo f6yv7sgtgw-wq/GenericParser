@@ -45,6 +45,7 @@ class ModuleSearchProfile(BaseModel):
     radius_km: int | None = Field(default=None, ge=0)
     accept_bundles: bool = False
     accept_incomplete: bool = False
+    include_ebay_auctions: bool = False
     include_review: bool = True
     include_rejected: bool = True
     sort_by: Literal["relevance", "date", "price_asc", "price_desc"] = "relevance"
@@ -104,6 +105,7 @@ class ModuleSearchProfile(BaseModel):
             "source": source,
             "accept_bundles": self.accept_bundles,
             "accept_incomplete": self.accept_incomplete,
+            "include_ebay_auctions": self.include_ebay_auctions,
             "include_review": self.include_review,
             "include_rejected": self.include_rejected,
             "sort_by": self.sort_by,
@@ -149,11 +151,23 @@ class ModuleListing(BaseModel):
     image_url: str | None = None
     price: float | None = None
     price_raw: str | None = None
+    item_price: float | None = None
+    shipping_cost: float | None = None
+    total_price: float | None = None
+    currency: str | None = None
+    shipping_available: bool | None = None
     description: str | None = None
     postal_code: str | None = None
     place: str | None = None
     source: str = "kleinanzeigen"
     source_label: str | None = None
+    buying_options: list[str] = Field(default_factory=list)
+    listing_format: str | None = None
+    auction: bool = False
+    bid_count: int | None = None
+    item_end_date: str | None = None
+    seller: dict[str, Any] = Field(default_factory=dict)
+    transient: bool = False
     detail_enrichment: dict[str, Any] = Field(default_factory=dict)
     match: dict[str, Any] = Field(default_factory=dict)
     traffic_light: dict[str, Any] = Field(default_factory=dict)
@@ -244,11 +258,35 @@ def module_response_from_legacy(
                 image_url=raw.get("image_url"),
                 price=raw.get("price"),
                 price_raw=raw.get("price_raw"),
+                item_price=raw.get("item_price"),
+                shipping_cost=raw.get("shipping_cost"),
+                total_price=raw.get("total_price"),
+                currency=raw.get("currency"),
+                shipping_available=raw.get("shipping_available"),
                 description=raw.get("description"),
                 postal_code=raw.get("postal_code"),
                 place=raw.get("place"),
                 source=str(raw.get("source") or "kleinanzeigen"),
                 source_label=(str(raw.get("source_label")) if raw.get("source_label") else None),
+                buying_options=(
+                    [str(value) for value in raw.get("buying_options")]
+                    if isinstance(raw.get("buying_options"), list)
+                    else []
+                ),
+                listing_format=(
+                    str(raw.get("listing_format")) if raw.get("listing_format") else None
+                ),
+                auction=bool(raw.get("auction", False)),
+                bid_count=(
+                    int(raw.get("bid_count"))
+                    if raw.get("bid_count") is not None
+                    else None
+                ),
+                item_end_date=(
+                    str(raw.get("item_end_date")) if raw.get("item_end_date") else None
+                ),
+                seller=raw.get("seller") if isinstance(raw.get("seller"), dict) else {},
+                transient=bool(raw.get("transient", False)),
                 detail_enrichment=(
                     raw.get("detail_enrichment")
                     if isinstance(raw.get("detail_enrichment"), dict)
