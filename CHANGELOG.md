@@ -13,6 +13,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Reine Hashtag-Zeilen und lange angehängte Hashtag-Ketten aus Vinted-Beschreibungen ausgeblendet; ausschließlich aus Hashtags bestehende Beschreibungen erscheinen nicht mehr als leere Langkarten.
 - Aufgeklappte Beschreibungen bleiben bei nachgeladenen Vinted-Hintergrunddetails erhalten.
 - Hauptsuche, Matching, Scoring, Pagination, Vinted-3er-Batches, Modulvertrag und Worker-Endpunkte unverändert belassen.
+- Produktionsabnahme erfolgreich: Worker-Identität, responsive UI-Verträge, Kleinanzeigen-plus-Vinted-Suche und entkoppelter Vinted-Detail-Batch liefen auf Commit `88df0a4f91fd813a685e26b429e3c549bb9ce5b3` im Workflow `31306994225` grün durch.
 - Rollback-Ziel: 1.3.2 / `gp-132-20260809-1` / `cece9c4723eca97fb38627493628468b21e5fb86`.
 
 ## 1.3.2 – 2026-08-09 – Entkoppelte Vinted-Detailanreicherung

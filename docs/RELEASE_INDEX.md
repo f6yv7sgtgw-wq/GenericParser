@@ -4,7 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 1.3.3 | `gp-133-20260809-1` | ausstehend | GUI-Rework im Evercade/SNES-Stil, Log-Navigation im Kopf und kompakte aufklappbare Vinted-Beschreibungen |
+| 1.3.3 | `gp-133-20260809-1` | `88df0a4f91fd813a685e26b429e3c549bb9ce5b3` | GUI-Rework im Evercade/SNES-Stil, Log-Navigation im Kopf und kompakte aufklappbare Vinted-Beschreibungen; Produktions-Live-Gates grün |
 | 1.3.2 | `gp-132-20260809-1` | `cece9c4723eca97fb38627493628468b21e5fb86` | Entkoppelte Vinted-Hintergrundanreicherung in seriellen 3er-Batches, Live-Updates und erneutes Scoring; Produktions-Live-Gates grün |
 | 1.3.1 | `gp-131-20260809-1` | `506bdd234304e215ca77ae58f217f6217c5a206c` | Timeout-sichere Vinted-Detailanreicherung: höchstens drei Detailseiten je Katalogrequest |
 | 1.3.0 | `gp-130-20260808-1` | `070fc93276bccf9d3a7b77e5e94da86d6669e3e3` | Erste Vinted-Detailanreicherung; wegen etwa 49 Sekunden blockierendem Live-Request durch 1.3.1 ersetzt |
@@ -17,7 +17,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 | 0.42.7 | `gp-0427-20260803-1` | `119a05985d11017940b775bb2c6cc7bc6acd992a` | 7er-Arbeitspakete für Cloudflare Worker |
 | 0.41.1 | `gp-0411-20260802-1` | `4c9eac9e52a34c52a021ff5d74c2d87ad0c5351d` | Deployment-Handshake |
 
-## Aktueller Release Candidate
+## Aktueller Stable Release
 
 ```text
 Version:                    1.3.3
@@ -39,18 +39,24 @@ Hashtag-Blöcke:             ausgeblendet
 Log-Navigation:             im Seitenkopf
 Debug-Logs:                 standardmäßig aus
 Modultests:                 standardmäßig aus, ohne Kleinanzeigen-Abruf
-Status:                     Release candidate; Produktions-Live-Gates ausstehend
-Produktions-Commit:         ausstehend
-Deploy-Workflow:            ausstehend
-Vinted-Browser-Workflow:    ausstehend
+Status:                     Stable; Produktions-Live-Gates grün
+Produktions-Commit:         88df0a4f91fd813a685e26b429e3c549bb9ce5b3
+Deploy-Workflow:            31306994225 (success)
+Vinted-Browser-Gate:        31306994225 (im Deploy-Workflow, success)
 ```
 
 ## Release-Download
 
-Nach der Produktionsabnahme wird der 1.3.3-Abschluss-Commit hier festgehalten. Der aktuelle Hauptbranch bleibt über folgenden Download erreichbar:
+Der Hauptbranch enthält den veröffentlichten Stand einschließlich der nachgelagerten Abnahme- und Release-Metadaten:
 
 ```text
 https://github.com/f6yv7sgtgw-wq/GenericParser/archive/refs/heads/main.zip
+```
+
+Der exakte abgenommene 1.3.3-Produktionsstand ist dauerhaft über den Commit abrufbar:
+
+```text
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/88df0a4f91fd813a685e26b429e3c549bb9ce5b3.zip
 ```
 
 Stabile Rückfallreferenz 1.3.2:

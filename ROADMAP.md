@@ -37,7 +37,7 @@ Stable guarantees:
 - 1.3.2: serial background batches of three, in-place card updates and rescoring without blocking catalog pagination.
 - 1.3.3: Evercade/SNES-aligned browser UI, header-level Log and Diagnose navigation, and compact expandable Vinted descriptions without hashtag-only blocks.
 
-Current status: **1.3.3 release candidate**. The 1.3.2 runtime remains the stable rollback target while the responsive GUI and production live gates are verified.
+Current status: **1.3.3 stable and production-accepted**. Responsive GUI contracts, live identity, multi-source search and deferred Vinted enrichment passed on 2026-08-09; 1.3.2 remains the rollback target.
 
 ## 1.4 – Title and cartridge normalization
 
