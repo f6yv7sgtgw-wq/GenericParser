@@ -98,6 +98,9 @@ def test_deployment_gate_requires_secrets_and_live_ebay_results():
     workflow = read(".github/workflows/cloudflare-deploy.yml")
     assert "EBAY_CLIENT_ID" in workflow
     assert "EBAY_CLIENT_SECRET" in workflow
+    assert "pywrangler secret put EBAY_CLIENT_ID" in workflow
+    assert "pywrangler secret put EBAY_CLIENT_SECRET" in workflow
+    assert "printf '%s\\n'" in workflow
     assert "official-browse-api" in workflow
     assert "ebay_listings" in workflow
     assert "total_price" in workflow

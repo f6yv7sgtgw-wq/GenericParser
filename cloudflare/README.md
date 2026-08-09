@@ -33,7 +33,7 @@ uv run --group cloudflare pywrangler login
 uv run --group cloudflare pywrangler deploy
 ```
 
-Der GitHub-Produktionsworkflow verlangt zusätzlich `EBAY_CLIENT_ID` und `EBAY_CLIENT_SECRET` als GitHub Environment Secrets. Er schreibt diese Werte nicht nach Cloudflare, sondern prüft, dass die separat eingerichteten Worker-Secrets im Live-Worker sichtbar und nutzbar sind.
+Der GitHub-Produktionsworkflow verlangt zusätzlich `EBAY_CLIENT_ID` und `EBAY_CLIENT_SECRET` als GitHub Environment Secrets. Er überträgt beide Werte ausschließlich über stdin in den verschlüsselten Cloudflare-Secret-Speicher und prüft anschließend, dass die Bindings im Live-Worker sichtbar und nutzbar sind. Die Werte werden weder als normale Wrangler-Variablen gesetzt noch in Logs ausgegeben.
 
 ## Zugriff schützen
 
