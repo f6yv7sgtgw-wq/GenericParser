@@ -4,16 +4,16 @@ Stable reusable Kleinanzeigen parser module and browser UI for **Evercade**, **S
 
 ## Current release
 
-- **Version:** `1.3.3`
-- **Build:** `gp-133-20260809-1`
-- **Status:** Stable; production, multi-source, deferred-detail and GUI gates passed
+- **Version:** `1.3.4`
+- **Build:** `gp-134-20260809-1`
+- **Status:** Release candidate; production acceptance pending
 - **Worker profile:** Cloudflare Workers Paid
 - **Module contract:** `generic-parser-module-v1`
 - **Search runtime:** `0.45.0`
 - **Functional search core:** `0.44.4`
 - **Operational reference:** `0.44.6.5`
 
-GenericParser 1.3.3 is a browser-interface release on top of the production-proven 1.3.2 runtime. The UI now follows the current Evercade/SNES visual system, keeps Log and Diagnose in the header, and renders long Vinted descriptions as compact four-line previews with an explicit expand action. Search, matching, scoring, pagination and Vinted background enrichment are unchanged.
+GenericParser 1.3.4 is a focused browser-interface refinement on top of the production-proven 1.3.3 release. Results use a dense multi-column grid, each card keeps its thumbnail and text side by side, and the decorative SNES-style mark is removed from the search-page header. Search, matching, scoring, pagination, four-line Vinted descriptions and background enrichment are unchanged.
 
 ## Architecture
 
@@ -113,7 +113,10 @@ Debug logging and network-free module self-tests remain opt-in and are disabled 
 - Shared dark visual language with the Evercade and SNES projects.
 - `Log & Diagnose` is available directly in the top header.
 - The former visible technical-details expander is removed; diagnostics continue to be recorded in the dedicated log page.
-- Result cards use responsive image, source, traffic-light, condition and action regions without horizontal scrolling.
+- Search results use a dense responsive grid: three or more cards fit across normal desktop widths and four to five fit on wider displays.
+- Every result card keeps a small square thumbnail and its text side by side, including on phone layouts.
+- The decorative four-dot project mark is removed from the search-page header.
+- Result cards retain source, traffic-light, condition and action regions without horizontal scrolling.
 - Descriptions are clamped to four lines by default and remain expandable.
 - Hashtag-only lines and trailing hashtag blocks are omitted from card text.
 
@@ -134,6 +137,6 @@ A stable release requires:
 
 ## Versioning
 
-From 1.0 onward GenericParser uses semantic versioning. Search-core changes are explicit functional changes; infrastructure changes must not silently change matching, ranking, extraction or pagination. 1.3.3 changes only browser presentation and keeps the 1.3.2 source and transport behavior intact.
+From 1.0 onward GenericParser uses semantic versioning. Search-core changes are explicit functional changes; infrastructure changes must not silently change matching, ranking, extraction or pagination. 1.3.4 changes only browser presentation and keeps the 1.3.3 source and transport behavior intact.
 
-Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.3.3.md`](docs/API_1.3.3.md), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.3.3.md`](docs/releases/1.3.3.md).
+Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.3.4.md`](docs/API_1.3.4.md), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.3.4.md`](docs/releases/1.3.4.md).
