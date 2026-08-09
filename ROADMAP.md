@@ -36,7 +36,7 @@ Stable guarantees:
 - 1.3.1: stable critical-path limit of three detail pages per catalog request;
 - 1.3.2: serial background batches of three, in-place card updates and rescoring without blocking catalog pagination.
 
-Current status: **1.3.2 release candidate**. Production acceptance requires the live background-enrichment gate.
+Current status: **1.3.2 stable and production-accepted**. The live identity, multi-source search and deferred background-enrichment gates passed on 2026-08-09.
 
 ## 1.4 – Title and cartridge normalization
 
