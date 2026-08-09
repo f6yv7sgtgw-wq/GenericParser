@@ -48,7 +48,7 @@ Current status: **1.3.4 stable and production-accepted**. Dense responsive UI co
 - score only a trustworthy total when shipping is known;
 - keep OAuth tokens in memory and never persist eBay listing data.
 
-Current status: **1.4.0 release candidate**. Production API access passed through the one-shot gate; deployment and the combined three-source live gate are pending.
+Current status: **1.4.0 stable and production-accepted**. The one-shot access gate and the regular deployment workflow both passed; live verification covered all three sources, eBay fixed-price and total-price invariants, and the existing deferred Vinted detail path. 1.3.4 remains the rollback target.
 
 ## 1.5 – Product classification
 

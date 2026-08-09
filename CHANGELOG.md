@@ -12,7 +12,9 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - eBay-Treffer aus IndexedDB-Exporten ausgeschlossen und serverseitig nicht persistiert.
 - Bestehenden Kleinanzeigen-Kern, Vinted Service Binding, begrenzte Detailanreicherung und Modulvertrag beibehalten.
 - Einmaliger Production-Zugriffstest erfolgreich: OAuth und Browse Search auf `EBAY_DE` antworteten im Workflow `31336200661` mit HTTP 200.
-- Produktionsdeployment und kombinierte Drei-Quellen-Abnahme stehen für den Release Candidate noch aus.
+- GitHub-Secrets im Deployment ausschließlich über stdin in verschlüsselte Cloudflare Worker Secrets synchronisiert; keine Ausgabe und keine normalen Wrangler-Variablen.
+- Produktionsabnahme erfolgreich: Workflow `31337634699` bestätigte auf Commit `7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c` die Live-Identität, Secret-Bindings, 7 Kleinanzeigen-, 25 Vinted- und 25 eBay-Treffer, 25 konsistente bekannte eBay-Gesamtsummen, ausschließlich Festpreisangebote im Standardlauf sowie einen vollständigen Vinted-Detailbatch mit 3 von 3 Treffern.
+- Rollback-Ziel: 1.3.4 / `gp-134-20260809-1` / Commit `47a74efa13f63b0908688cc96872e013f23e56bf`.
 
 ## 1.3.4 – 2026-08-09 – Dichtes Ergebnisraster
 

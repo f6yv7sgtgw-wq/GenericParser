@@ -6,14 +6,14 @@ Reusable multi-source marketplace parser and browser UI for **Evercade**, **SNES
 
 - **Version:** `1.4.0`
 - **Build:** `gp-140-20260809-1`
-- **Status:** Release candidate; eBay Production access gate passed, deployment acceptance pending
+- **Status:** Stable; production identity, three-source, eBay pricing and Vinted detail gates passed
 - **Worker profile:** Cloudflare Workers Paid
 - **Module contract:** `generic-parser-module-v1`
 - **Search runtime:** `0.45.0`
 - **Functional search core:** `0.44.4`
 - **Operational reference:** `0.44.6.5`
 
-GenericParser 1.4.0 adds eBay Germany through the official Production Browse API as the third default source. Fixed-price listings remain the default; auctions are explicit opt-in. eBay results separate item price, shipping and trustworthy total, remain transient, and fail open without changing successful Kleinanzeigen or Vinted results.
+GenericParser 1.4.0 adds eBay Germany through the official Production Browse API as the third default source. Fixed-price listings remain the default; auctions are explicit opt-in. eBay results separate item price, shipping and trustworthy total, remain transient, and fail open without changing successful Kleinanzeigen or Vinted results. Production acceptance passed on commit `7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c` in workflow `31337634699`.
 
 ## Architecture
 
