@@ -11,7 +11,7 @@ on:
       manifest:
         description: Release manifest path
         required: true
-        default: .github/releases/1.3.3.json
+        default: .github/releases/1.3.4.json
 
 permissions:
   contents: write
