@@ -12,7 +12,7 @@ import json
 import re
 from contextvars import ContextVar
 from typing import Any
-from urllib.parse import urlencode, urljoin
+from urllib.parse import urlencode, urljoin, urlparse
 
 import httpx
 from bs4 import BeautifulSoup
@@ -22,6 +22,7 @@ VINTED_CATALOG_PAGE = f"{VINTED_BASE}/catalog"
 VINTED_CATALOG_API = f"{VINTED_BASE}/api/v2/catalog/items"
 VINTED_BROWSER_ORIGIN = "https://vinted-browser.internal"
 PAGE_SIZE = 96
+DETAIL_BATCH_LIMIT = 3
 _ITEM_RE = re.compile(r"/items/(\d+)")
 _PRICE_RE = re.compile(r"(\d{1,6}(?:[.,]\d{1,2})?)\s*€")
 _VINTED_BROWSER_BINDING: ContextVar[Any | None] = ContextVar("vinted_browser_binding", default=None)
@@ -243,6 +244,109 @@ async def _fetch_browser_worker(query: str, page: int) -> dict[str, Any]:
         return {"listings": [], "status": "degraded", "http_status": None, "reason": f"service-binding:{type(exc).__name__}: {exc}", "url": url, "strategy": "service-binding"}
 
 
+def _validated_detail_rows(listings: list[dict[str, Any]]) -> list[tuple[dict[str, Any], str]]:
+    if not listings:
+        raise ValueError("at least one Vinted listing is required")
+    if len(listings) > DETAIL_BATCH_LIMIT:
+        raise ValueError(f"Vinted detail batch exceeds limit {DETAIL_BATCH_LIMIT}")
+
+    validated: list[tuple[dict[str, Any], str]] = []
+    seen: set[str] = set()
+    for listing in listings:
+        if not isinstance(listing, dict):
+            raise ValueError("Vinted detail rows must be objects")
+        listing_id = str(listing.get("id") or "")
+        url = str(listing.get("url") or "")
+        parsed = urlparse(url)
+        match = re.fullmatch(r"/items/(\d+)(?:-[^/?#]+)?/?", parsed.path)
+        if (
+            parsed.scheme != "https"
+            or (parsed.hostname or "").casefold() not in {"vinted.de", "www.vinted.de"}
+            or parsed.port is not None
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.query
+            or parsed.fragment
+            or not match
+        ):
+            raise ValueError("only canonical https://www.vinted.de/items/... URLs may be enriched")
+        canonical_id = f"vinted:{match.group(1)}"
+        if listing_id != canonical_id:
+            raise ValueError("Vinted listing id does not match its item URL")
+        if canonical_id in seen:
+            continue
+        seen.add(canonical_id)
+        validated.append((listing, f"{VINTED_BASE}{parsed.path}"))
+    if not validated:
+        raise ValueError("Vinted detail batch contains no unique listings")
+    return validated
+
+
+async def enrich_vinted_details(listings: list[dict[str, Any]]) -> dict[str, Any]:
+    """Load one fail-open background batch through the private service binding.
+
+    The Browser Run component accepts at most three canonical Vinted item URLs.
+    It opens those three detail pages in parallel, while callers serialize the
+    batches so catalog pagination never waits for the remaining detail work.
+    """
+
+    validated = _validated_detail_rows(listings)
+    binding = _VINTED_BROWSER_BINDING.get()
+    params = urlencode([("item", url) for _, url in validated])
+    url = f"{VINTED_BROWSER_ORIGIN}/enrich?{params}"
+    if binding is None:
+        return {
+            "listings": [],
+            "status": "degraded",
+            "http_status": None,
+            "reason": "vinted_service_binding_unavailable",
+            "url": url,
+            "strategy": "service-binding-deferred-detail",
+        }
+    try:
+        status, data = await _binding_json_response(binding, url)
+        if status != 200 or data.get("status") != "ok":
+            return {
+                "listings": [],
+                "status": "degraded",
+                "http_status": status,
+                "reason": data.get("reason") or "vinted_deferred_detail_unavailable",
+                "url": url,
+                "strategy": "service-binding-deferred-detail",
+                "enrichment": data.get("enrichment"),
+            }
+        originals = {str(item.get("id")): item for item, _ in validated}
+        normalized = []
+        for raw in data.get("listings") or []:
+            raw_id = str(raw.get("id") or "") if isinstance(raw, dict) else ""
+            original = originals.get(raw_id) or {}
+            query = str(original.get("source_query") or "")
+            item = _normalize_browser_item(raw, query) if isinstance(raw, dict) else None
+            if item is not None:
+                normalized.append(item)
+        return {
+            "listings": normalized,
+            "status": "ok" if normalized else "degraded",
+            "http_status": status,
+            "reason": None if normalized else "vinted_deferred_detail_no_items",
+            "url": url,
+            "strategy": "service-binding-deferred-detail",
+            "component": data.get("component"),
+            "revision": data.get("revision"),
+            "elapsed_ms": data.get("elapsedMs"),
+            "enrichment": data.get("enrichment") if isinstance(data.get("enrichment"), dict) else {},
+        }
+    except Exception as exc:
+        return {
+            "listings": [],
+            "status": "degraded",
+            "http_status": None,
+            "reason": f"service-binding:{type(exc).__name__}: {exc}",
+            "url": url,
+            "strategy": "service-binding-deferred-detail",
+        }
+
+
 async def _bootstrap_session(client):
     response = await client.get(f"{VINTED_BASE}/", headers={"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "Cache-Control": "no-cache"})
     cookie_count = len(client.cookies)
@@ -285,7 +389,7 @@ async def search_vinted(query: str, page: int = 0) -> dict[str, Any]:
         return browser
     headers = {"Accept-Language": "de-DE,de;q=0.9,en;q=0.7", "User-Agent": "Mozilla/5.0 (compatible; GenericParser; +https://github.com/f6yv7sgtgw-wq/GenericParser)"}
     try:
-        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True, headers=headers) as client:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True, headers=headers, trust_env=False) as client:
             bootstrap = await _bootstrap_session(client)
             html = await _fetch_html(client, query, page)
             html["bootstrap"] = bootstrap
@@ -310,4 +414,4 @@ async def search_vinted(query: str, page: int = 0) -> dict[str, Any]:
         return {"listings": [], "next_page": None, "complete": True, "status": "degraded", "http_status": browser.get("http_status"), "reason": f"binding:{browser.get('reason')}; fallback:{type(exc).__name__}: {exc}", "url": browser.get("url"), "strategy": "service-binding+public-web-fallback"}
 
 
-__all__ = ["search_vinted", "VINTED_BASE", "VINTED_CATALOG_PAGE", "VINTED_CATALOG_API", "set_vinted_browser_binding", "reset_vinted_browser_binding", "_bootstrap_session", "_fetch_browser_worker"]
+__all__ = ["search_vinted", "enrich_vinted_details", "DETAIL_BATCH_LIMIT", "VINTED_BASE", "VINTED_CATALOG_PAGE", "VINTED_CATALOG_API", "set_vinted_browser_binding", "reset_vinted_browser_binding", "_bootstrap_session", "_fetch_browser_worker"]

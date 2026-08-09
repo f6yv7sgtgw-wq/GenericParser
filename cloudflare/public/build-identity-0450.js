@@ -13,6 +13,7 @@
     sources: ['kleinanzeigen', 'vinted'],
     defaultSources: ['kleinanzeigen', 'vinted'],
     vintedStrategy: 'service-binding',
+    vintedBackgroundEnrichment: {enabled: true, endpoint: './api/vinted/enrich', batchSize: 3, serialBatches: true, blocksSearch: false},
     autoResume: {enabled: true, quietPeriodMs: 1, healthIntervalMs: 1, maxHealthChecks: 4, maxAutoResumes: 1},
     debug: {enabledByDefault: false, storageKey: 'generic-parser-debug', includePayload: false},
     tests: {enabledByDefault: false, storageKey: 'generic-parser-tests', endpoint: './api/module/v1/self-test?enabled=true', networkUsed: false}

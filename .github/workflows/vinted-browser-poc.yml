@@ -78,7 +78,7 @@ jobs:
           code,sha=sys.argv[1:]
           try: d=json.load(open('/tmp/health.json'))
           except Exception: raise SystemExit(1)
-          ok=(code=='200' and d.get('component')=='vinted-browser-poc' and d.get('schema')==2 and d.get('status')=='ok' and d.get('revision')==sha and d.get('detailEnrichment') is True)
+          ok=(code=='200' and d.get('component')=='vinted-browser-poc' and d.get('schema')==2 and d.get('status')=='ok' and d.get('revision')==sha and d.get('detailEnrichment') is True and d.get('deferredDetailEnrichment') is True and d.get('detailBatchLimit')==3)
           raise SystemExit(0 if ok else 1)
           PY
             sleep 5
@@ -99,5 +99,29 @@ jobs:
           enriched=int(e.get('images') or 0)+int(e.get('prices') or 0)+int(e.get('descriptions') or 0)
           print('status=',d.get('status'),'browser=',d.get('browser'),'listings=',len(listings),'enrichment=',e)
           ok=(code=='200' and d.get('component')=='vinted-browser-poc' and d.get('revision')==sha and d.get('status')=='ok' and bool(listings) and int(e.get('requested') or 0)>0 and enriched>0)
+          raise SystemExit(0 if ok else 1)
+          PY
+      - name: Probe deferred three-item detail endpoint
+        env: {POC_URL: "${{ steps.deploy.outputs.deploy_url }}"}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,urllib.parse
+          d=json.load(open('/tmp/vinted-poc.json'))
+          rows=[x for x in d.get('listings',[]) if x.get('url')]
+          deferred=[x for x in rows if x.get('detail_status')=='skipped_budget']
+          urls=[x.get('url') for x in (deferred or rows)[:3]]
+          if not urls: raise SystemExit('no item URLs returned by catalog probe')
+          open('/tmp/vinted-detail-url.txt','w').write('/enrich?'+urllib.parse.urlencode([('item',x) for x in urls]))
+          PY
+          detail_path="$(cat /tmp/vinted-detail-url.txt)"
+          http_code="$(curl -sS --max-time 60 "$POC_URL$detail_path" -o /tmp/vinted-detail.json -w '%{http_code}')"
+          cat /tmp/vinted-detail.json
+          python - "$http_code" "$GITHUB_SHA" <<'PY'
+          import json,sys
+          code,sha=sys.argv[1:]
+          d=json.load(open('/tmp/vinted-detail.json')); rows=d.get('listings') or []
+          complete=[x for x in rows if x.get('image_url') and x.get('price') is not None and x.get('description')]
+          ok=(code=='200' and d.get('component')=='vinted-browser-poc' and d.get('revision')==sha and d.get('status')=='ok' and d.get('mode')=='deferred-detail-batch' and d.get('detailBatchLimit')==3 and len(complete)>0)
           raise SystemExit(0 if ok else 1)
           PY

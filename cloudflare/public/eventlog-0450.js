@@ -41,6 +41,13 @@
     vinted_catalog: ['Vinted-Katalog durchsucht', 'Vinted-Katalogtreffer wurden geladen.'],
     vinted_detail: ['Vinted-Details angereichert', 'Bilder, Preise, Beschreibungen und Zustand wurden aus Detailseiten ergänzt.'],
     vinted_scoring: ['Vinted-Treffer bewertet', 'Angereicherte Vinted-Treffer wurden durch Matching und Scoring verarbeitet.'],
+    vinted_background_ready: ['Vinted-Hintergrundanreicherung bereit', 'Entkoppelte Detail-Batches blockieren die Hauptsuche nicht.'],
+    vinted_background_batch_start: ['Vinted-Hintergrundbatch gestartet', 'Bis zu drei Detailseiten werden parallel verarbeitet.'],
+    vinted_background_batch_end: ['Vinted-Hintergrundbatch abgeschlossen', 'Nachgeladene Daten wurden in die Treffer übernommen.'],
+    vinted_background_retry: ['Vinted-Hintergrundbatch wiederholt', 'Ein temporär fehlgeschlagener Batch wird einmal unmittelbar wiederholt.'],
+    vinted_background_batch_error: ['Vinted-Hintergrundbatch fehlgeschlagen', 'Die Hauptsuche bleibt davon unberührt.'],
+    vinted_background_cancelled: ['Vinted-Hintergrundanreicherung beendet', 'Der Nutzerstopp beendet auch ausstehende Detail-Batches.'],
+    vinted_background_complete: ['Vinted-Hintergrundanreicherung vollständig', 'Alle geplanten Vinted-Detail-Batches wurden abgearbeitet.'],
     auto_resume_scheduled: ['Automatische Fortsetzung geplant', 'Stabile Recovery aus der Referenzimplementierung.'],
     auto_resume_health_failed: ['Worker noch nicht bereit', 'Bereitschaftsprüfung fehlgeschlagen.'],
     auto_resume_health_ready: ['Worker bereit', 'Bereitschaftsprüfung war erfolgreich.'],
@@ -80,7 +87,7 @@
         `<span><strong>${identityOk ? 'Runtime-Identität geladen' : 'Vertragsabweichung'}</strong></span>`,
         `<span>Eventlog ${esc(I.version)}/${esc(I.buildId)} · Worker ${esc(worker.version || '?')}/${esc(worker.build_id || '?')}</span>`,
         `<span>Modulvertrag: ${esc(worker.module_contract || worker.api_contract || '?')}</span>`,
-        `<span>Vinted: Service Binding + Detailanreicherung</span>`,
+        `<span>Vinted: Service Binding + entkoppelte 3er-Detail-Batches</span>`,
         `<span>Debug-Logs: standardmäßig ${worker.debug_logging?.enabled_by_default ? 'an' : 'aus'}</span>`
       ].join('');
     } catch (error) {

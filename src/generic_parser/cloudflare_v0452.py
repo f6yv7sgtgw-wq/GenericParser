@@ -34,9 +34,11 @@ from .build_identity_v0452 import (
 from .cloudflare_v0450 import (
     app as search_app,
     legacy_search as search_legacy,
+    load_service,
     module_search as search_module_v1,
 )
 from .module_api import MODULE_CONTRACT, ModulePageRequest, ModuleSearchProfile
+from .vinted_enrichment import DETAIL_BATCH_LIMIT, enrich_vinted_batch
 
 app = FastAPI(title=f"GenericParser {VERSION}", version=VERSION, docs_url=None, redoc_url=None)
 
@@ -87,6 +89,8 @@ def identity() -> dict[str, Any]:
         "search_behavior_changed": False,
         "startup_model": "eager-asgi-0450",
         "evercade_alias_compatibility": True,
+        "vinted_background_enrichment": True,
+        "vinted_detail_batch_limit": DETAIL_BATCH_LIMIT,
     }
 
 
@@ -157,6 +161,8 @@ async def health(request: Request) -> JSONResponse:
             "cors": True,
             "preflight": True,
             "search_ready": True,
+            "vinted_background_enrichment": True,
+            "vinted_detail_batch_limit": DETAIL_BATCH_LIMIT,
         },
     )
 
@@ -185,13 +191,40 @@ async def diagnostics(request: Request) -> JSONResponse:
                 "startup_model": "eager-asgi-0450",
                 "search_behavior_changed": False,
                 "evercade_alias_compatibility": True,
+                "vinted_background_enrichment": True,
+                "vinted_detail_batch_limit": DETAIL_BATCH_LIMIT,
             },
             "routes": {
                 "health": "/health",
                 "version": "/version",
                 "diagnostics": "/diagnostics",
                 "search": ["/search", "/api/search", "/api/module/search", "/api/module/v1/search"],
+                "vinted_detail_enrichment": "/api/vinted/enrich",
             },
+        },
+    )
+
+
+@app.get("/api/module/v1/capabilities")
+async def module_capabilities(request: Request) -> JSONResponse:
+    request_id = request.headers.get("x-request-id") or request.headers.get("cf-ray") or str(uuid.uuid4())
+    return response(
+        request_id,
+        {
+            "contract": MODULE_CONTRACT,
+            "sources": ["kleinanzeigen", "vinted"],
+            "default_sources": ["kleinanzeigen", "vinted"],
+            "integrations": ["evercade", "snes-pal"],
+            "pagination": "one-work-packet-per-request",
+            "vinted_detail_enrichment": {
+                "inline_limit_per_catalog_page": DETAIL_BATCH_LIMIT,
+                "background_endpoint": "/api/module/v1/vinted/enrich",
+                "background_batch_limit": DETAIL_BATCH_LIMIT,
+                "serial_batches": True,
+                "blocks_search": False,
+                "rescoring": True,
+            },
+            "deployment": identity(),
         },
     )
 
@@ -275,6 +308,72 @@ async def module_search_alias(request: Request) -> JSONResponse:
                 "worker": identity(),
             },
             status=422,
+        )
+
+
+@app.post("/api/module/v1/vinted/enrich")
+@app.post("/api/vinted/enrich")
+async def vinted_detail_enrichment(request: Request) -> JSONResponse:
+    """Enrich one non-blocking Vinted detail batch and re-run scoring.
+
+    This endpoint is intentionally separate from every search alias. A client
+    first renders the catalog response and then calls this route serially with
+    at most three already returned Vinted listings.
+    """
+
+    request_id = request.headers.get("x-request-id") or request.headers.get("cf-ray") or str(uuid.uuid4())
+    try:
+        raw = await request.json()
+        if not isinstance(raw, dict):
+            raise ValueError("JSON request body must be an object")
+        listings = raw.get("listings")
+        search = raw.get("search")
+        profile = raw.get("profile")
+        if not isinstance(listings, list):
+            raise ValueError("listings must be an array")
+        service = load_service()
+        if isinstance(search, dict):
+            payload = service.SearchRequest.model_validate(search)
+            request_format = "legacy-search-profile"
+        elif isinstance(profile, dict):
+            module_profile = ModuleSearchProfile.model_validate(profile)
+            payload = service.SearchRequest.model_validate(
+                module_profile.to_legacy_payload(page=int(raw.get("page") or 0), source="vinted")
+            )
+            request_format = "module-profile-v1"
+        else:
+            raise ValueError("search or profile must contain the original search profile")
+        result = await enrich_vinted_batch(listings, payload)
+        result["request_format"] = request_format
+        result["contract"] = MODULE_CONTRACT
+        result["worker"] = identity()
+        return response(request_id, result)
+    except ValueError as exc:
+        return response(
+            request_id,
+            {
+                "status": "error",
+                "detail": str(exc),
+                "error_type": type(exc).__name__,
+                "retryable": False,
+                "detail_batch_limit": DETAIL_BATCH_LIMIT,
+                "worker": identity(),
+            },
+            status=422,
+        )
+    except Exception as exc:
+        return response(
+            request_id,
+            {
+                "status": "error",
+                "detail": "Vinted-Hintergrundanreicherung konnte nicht verarbeitet werden.",
+                "error_type": type(exc).__name__,
+                "error": str(exc),
+                "retryable": False,
+                "detail_batch_limit": DETAIL_BATCH_LIMIT,
+                "worker": identity(),
+            },
+            status=502,
         )
 
 

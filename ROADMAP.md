@@ -17,39 +17,46 @@ Stable guarantees:
 - artificial Free Worker waiting times are disabled on the paid profile;
 - CORS, diagnostics, deployment identity and live verification are release requirements.
 
-## 1.1 – Client integration hardening
+## 1.1 – Multi-source foundation
 
-- complete Evercade Next validation against 1.0.0;
-- complete SNES PAL validation against 1.0.0;
-- remove exact build pinning from clients in favor of module-contract compatibility;
-- common client error schema and diagnostics;
-- regression fixtures for both projects.
+- completed multi-source response and source-specific UI identity;
+- kept contract-based compatibility for Evercade and SNES PAL;
+- prepared Vinted as the second production source.
 
-## 1.2 – Product classification
+## 1.2 – Vinted production transport
 
-- distinguish main product, accessory, replacement part, bundle, wanted ad, rental and service;
-- project-specific classification rules;
-- regression tests based on real Evercade, SNES and generic searches.
+- completed Browser Run catalog access;
+- moved production traffic to private `VINTED_BROWSER` Service Binding;
+- kept anonymous public-web access as fail-open fallback only;
+- removed public Browser Worker URLs from the production adapter.
 
-## 1.3 – Title and cartridge normalization
+## 1.3 – Vinted detail quality
+
+- 1.3.0: detail-page image, price, description and condition; superseded after the live request reached about 49 seconds;
+- 1.3.1: stable critical-path limit of three detail pages per catalog request;
+- 1.3.2: serial background batches of three, in-place card updates and rescoring without blocking catalog pagination.
+
+Current status: **1.3.2 release candidate**. Production acceptance requires the live background-enrichment gate.
+
+## 1.4 – Title and cartridge normalization
 
 - normalize Evercade and SNES PAL titles;
 - spelling variants, numbers and editions;
 - identify individual modules contained in bundles.
 
-## 1.4 – Search profile expansion
+## 1.5 – Search profile expansion
 
 - structured profiles for missing cartridges;
 - consistent transfer of result, traffic-light and offer data;
 - prepare multiple providers behind the same module contract without changing client APIs.
 
-## 1.5 – Deal engine
+## 1.6 – Deal engine
 
 - compare price with market value and maximum price;
 - condition, completeness and shipping;
 - deal classes and total price.
 
-## 1.6 – Server-side search jobs
+## 1.7 – Server-side search jobs
 
 - evaluate queue/workflow/Durable Object architecture;
 - persistent work packets independent from browser lifetime;
@@ -57,7 +64,7 @@ Stable guarantees:
 - result and price history;
 - notifications for Evercade and SNES.
 
-## 1.7 – Operations and quality
+## 1.8 – Operations and quality
 
 - permanent regression suite;
 - reference searches for Evercade and SNES;
