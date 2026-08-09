@@ -20,8 +20,12 @@ def test_release_134_identity_and_rollback_are_consistent() -> None:
     assert BUILD_ID == "gp-134-20260809-1"
     assert metadata["version"] == VERSION
     assert metadata["build_id"] == BUILD_ID
-    assert metadata["status"] == "release-candidate"
-    assert metadata["verification"]["production_acceptance"] == "pending"
+    assert metadata["status"] == "stable"
+    assert metadata["verification"]["production_acceptance"] == "passed"
+    assert metadata["verification"]["production_commit"] == (
+        "47a74efa13f63b0908688cc96872e013f23e56bf"
+    )
+    assert metadata["verification"]["production_workflow_run"] == 31311244612
     assert metadata["verification"]["dense_result_card_grid"] == "required"
     assert metadata["verification"]["side_by_side_card_media"] == "required"
     assert metadata["rollback_plan"] == {

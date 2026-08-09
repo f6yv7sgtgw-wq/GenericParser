@@ -16,7 +16,7 @@
   "technical_base": "service-binding+runtime-loaded-public-identity+bounded-inline-vinted-detail+serial-background-detail-batches+snes-evercade-ui+dense-side-by-side-result-grid",
   "release_date": "2026-08-09",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "release-candidate",
+  "status": "stable",
   "purpose": "reduce result-card footprint with a dense responsive grid, keep listing image and text side by side at every viewport and remove the decorative SNES-style mark from the search header without changing search, scoring or enrichment behavior",
   "worker_plan": "paid",
   "sources": {
@@ -51,7 +51,12 @@
     "search_header_project_mark": "removed",
     "vinted_card_description_clamp": "required",
     "no_horizontal_overflow": "required",
-    "production_acceptance": "pending"
+    "production_acceptance": "passed",
+    "production_commit": "47a74efa13f63b0908688cc96872e013f23e56bf",
+    "production_workflow_run": 31311244612,
+    "vinted_browser_workflow_run": 31311244612,
+    "vinted_browser_gate": "integrated in production workflow",
+    "accepted_at": "2026-08-09T11:38:39Z"
   },
   "rollback_plan": {"last_stable_baseline": "1.3.3", "build_id": "gp-133-20260809-1"},
   "metadata_schema": 44

@@ -4,7 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 1.3.4 | `gp-134-20260809-1` | ausstehend | Dichtes Mehrspaltenraster, kleine Karten mit Bild und Text nebeneinander, Startseiten-Symbol entfernt; Produktionsabnahme ausstehend |
+| 1.3.4 | `gp-134-20260809-1` | `47a74efa13f63b0908688cc96872e013f23e56bf` | Dichtes Mehrspaltenraster, kleine Karten mit Bild und Text nebeneinander, Startseiten-Symbol entfernt; Produktions-Live-Gates grün |
 | 1.3.3 | `gp-133-20260809-1` | `88df0a4f91fd813a685e26b429e3c549bb9ce5b3` | GUI-Rework im Evercade/SNES-Stil, Log-Navigation im Kopf und kompakte aufklappbare Vinted-Beschreibungen; Produktions-Live-Gates grün |
 | 1.3.2 | `gp-132-20260809-1` | `cece9c4723eca97fb38627493628468b21e5fb86` | Entkoppelte Vinted-Hintergrundanreicherung in seriellen 3er-Batches, Live-Updates und erneutes Scoring; Produktions-Live-Gates grün |
 | 1.3.1 | `gp-131-20260809-1` | `506bdd234304e215ca77ae58f217f6217c5a206c` | Timeout-sichere Vinted-Detailanreicherung: höchstens drei Detailseiten je Katalogrequest |
@@ -18,7 +18,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 | 0.42.7 | `gp-0427-20260803-1` | `119a05985d11017940b775bb2c6cc7bc6acd992a` | 7er-Arbeitspakete für Cloudflare Worker |
 | 0.41.1 | `gp-0411-20260802-1` | `4c9eac9e52a34c52a021ff5d74c2d87ad0c5351d` | Deployment-Handshake |
 
-## Aktueller Release Candidate
+## Aktueller Stable Release
 
 ```text
 Version:                    1.3.4
@@ -43,10 +43,10 @@ Kartenmedien:               Bild und Text dauerhaft nebeneinander
 Startseiten-Symbol:         entfernt
 Debug-Logs:                 standardmäßig aus
 Modultests:                 standardmäßig aus, ohne Kleinanzeigen-Abruf
-Status:                     Release Candidate; Produktions-Live-Gates ausstehend
-Produktions-Commit:         ausstehend
-Deploy-Workflow:            ausstehend
-Vinted-Browser-Gate:        ausstehend
+Status:                     Stable; Produktions-Live-Gates grün
+Produktions-Commit:         47a74efa13f63b0908688cc96872e013f23e56bf
+Deploy-Workflow:            31311244612 (success)
+Vinted-Browser-Gate:        31311244612 (im Deploy-Workflow, success)
 ```
 
 ## Release-Download
@@ -57,7 +57,13 @@ Der Hauptbranch enthält den veröffentlichten Stand einschließlich der nachgel
 https://github.com/f6yv7sgtgw-wq/GenericParser/archive/refs/heads/main.zip
 ```
 
-Der exakte 1.3.4-Produktionsstand wird nach den Live-Gates ergänzt. Stabile Rückfallreferenz 1.3.3:
+Der exakte abgenommene 1.3.4-Produktionsstand ist dauerhaft über den Commit abrufbar:
+
+```text
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/47a74efa13f63b0908688cc96872e013f23e56bf.zip
+```
+
+Stabile Rückfallreferenz 1.3.3:
 
 ```text
 https://github.com/f6yv7sgtgw-wq/GenericParser/archive/88df0a4f91fd813a685e26b429e3c549bb9ce5b3.zip

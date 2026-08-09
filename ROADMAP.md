@@ -38,7 +38,7 @@ Stable guarantees:
 - 1.3.3: Evercade/SNES-aligned browser UI, header-level Log and Diagnose navigation, and compact expandable Vinted descriptions without hashtag-only blocks.
 - 1.3.4: dense responsive result grid, substantially smaller side-by-side media cards and removal of the decorative search-header mark.
 
-Current status: **1.3.4 release candidate**. Search behavior remains unchanged; production deployment and live acceptance are pending. 1.3.3 remains the rollback target.
+Current status: **1.3.4 stable and production-accepted**. Dense responsive UI contracts, live identity, multi-source search and deferred Vinted enrichment passed on 2026-08-09; 1.3.3 remains the rollback target.
 
 ## 1.4 – Title and cartridge normalization
 
