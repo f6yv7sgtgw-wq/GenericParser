@@ -80,8 +80,13 @@ def test_search_runtime_bridge_preserves_reference_identity() -> None:
     assert "from . import search_service_v0444 as reference" in service
     assert "from .vinted_adapter import search_vinted" in service
     assert "from .search_service_v0450 import" in bridge
-    assert '"reported_total": None if want_ka and want_vinted' in service
-    assert '"enrichment": enrichment' in service
+    # 1.3 must not modify the protected orchestration service. Vinted detail
+    # enrichment and multi-source display corrections live behind/in front of it.
+    main_service = read("src/generic_parser/search_service_v0450.py")
+    assert service == main_service
+    controller = read("cloudflare/public/controller-0450.js")
+    assert "detail_enrichment" in controller
+    assert "reported_total" in controller
     loaded = load_service()
     assert loaded.VERSION == "0.45.0"
     assert loaded.API_CONTRACT == API_CONTRACT
