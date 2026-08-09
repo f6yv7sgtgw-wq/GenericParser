@@ -116,3 +116,20 @@ def test_roadmap_and_api_document_the_inserted_ebay_release():
     assert "include_ebay_auctions" in api
     assert "item_price" in api and "shipping_cost" in api and "total_price" in api
     assert "No eBay listing persistence" in release
+
+
+def test_stable_release_manifest_targets_the_accepted_metadata_commit():
+    metadata = json.loads(read("VERSION.json"))
+    manifest = json.loads(read(".github/releases/1.4.0.json"))
+    publisher = read(".github/workflows/publish-release.yml")
+    assert metadata["status"] == "stable"
+    assert metadata["verification"]["production_acceptance"] == "passed"
+    assert manifest == {
+        "version": "1.4.0",
+        "tag": "v1.4.0",
+        "target_commit": "979446ab2168ec4b884c3e07e5f03cd01ad53972",
+        "title": "GenericParser 1.4.0",
+        "notes_file": "docs/releases/1.4.0.md",
+        "asset_name": "GenericParser-1.4.0-gp-140-20260809-1.zip",
+    }
+    assert "default: .github/releases/1.4.0.json" in publisher
