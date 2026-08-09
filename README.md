@@ -6,7 +6,7 @@ Stable reusable Kleinanzeigen parser module and browser UI for **Evercade**, **S
 
 - **Version:** `1.3.2`
 - **Build:** `gp-132-20260809-1`
-- **Status:** Release candidate; production acceptance is workflow- and live-gated
+- **Status:** Stable; production and deferred-detail live gates passed
 - **Worker profile:** Cloudflare Workers Paid
 - **Module contract:** `generic-parser-module-v1`
 - **Search runtime:** `0.45.0`

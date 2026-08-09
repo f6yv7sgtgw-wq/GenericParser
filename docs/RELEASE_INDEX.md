@@ -4,7 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 1.3.2 | `gp-132-20260809-1` | wird nach Veröffentlichung eingetragen | Entkoppelte Vinted-Hintergrundanreicherung in seriellen 3er-Batches, Live-Updates und erneutes Scoring |
+| 1.3.2 | `gp-132-20260809-1` | `cece9c4723eca97fb38627493628468b21e5fb86` | Entkoppelte Vinted-Hintergrundanreicherung in seriellen 3er-Batches, Live-Updates und erneutes Scoring; Produktions-Live-Gates grün |
 | 1.3.1 | `gp-131-20260809-1` | `506bdd234304e215ca77ae58f217f6217c5a206c` | Timeout-sichere Vinted-Detailanreicherung: höchstens drei Detailseiten je Katalogrequest |
 | 1.3.0 | `gp-130-20260808-1` | `070fc93276bccf9d3a7b77e5e94da86d6669e3e3` | Erste Vinted-Detailanreicherung; wegen etwa 49 Sekunden blockierendem Live-Request durch 1.3.1 ersetzt |
 | 1.2.2 Build 4 | `gp-122-20260808-4` | `b1a6603bb6a1888c6de5fca30e1453430fc8e5d5` | Runtime-geladene öffentliche Identität und produktives Vinted Service Binding |
@@ -16,7 +16,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 | 0.42.7 | `gp-0427-20260803-1` | `119a05985d11017940b775bb2c6cc7bc6acd992a` | 7er-Arbeitspakete für Cloudflare Worker |
 | 0.41.1 | `gp-0411-20260802-1` | `4c9eac9e52a34c52a021ff5d74c2d87ad0c5351d` | Deployment-Handshake |
 
-## Aktueller Release-Kandidat
+## Aktueller Stable Release
 
 ```text
 Version:                    1.3.2
@@ -35,15 +35,24 @@ Vinted Hintergrund-Batch:  maximal 3, seriell je Client
 Hauptsuche blockiert:       nein
 Debug-Logs:                 standardmäßig aus
 Modultests:                 standardmäßig aus, ohne Kleinanzeigen-Abruf
-Status:                     Release Candidate bis Live-Gate grün
+Status:                     Stable; Produktions-Live-Gates grün
+Produktions-Commit:         cece9c4723eca97fb38627493628468b21e5fb86
+Deploy-Workflow:            31303233791 (success)
+Vinted-Browser-Workflow:    31303233798 (success)
 ```
 
 ## Release-Download
 
-Exakter 1.3.2-Code-Release wird nach Veröffentlichung mit dem Abschluss-Commit ergänzt. Bis dahin enthält der Hauptbranch den jeweils neuesten veröffentlichten Stand:
+Der Abschluss-Commit des veröffentlichten 1.3.2-Code-Release ist festgehalten. Der Hauptbranch enthält zusätzlich reine Dokumentations- und Workflow-Pflege nach der Produktionsabnahme:
 
 ```text
 https://github.com/f6yv7sgtgw-wq/GenericParser/archive/refs/heads/main.zip
+```
+
+Der exakte abgenommene Produktionsstand ist dauerhaft über den Commit abrufbar:
+
+```text
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/cece9c4723eca97fb38627493628468b21e5fb86.zip
 ```
 
 ## Pflegevorgabe ab 1.0

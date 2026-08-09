@@ -14,6 +14,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Sichtbare Vinted-Detailfortschrittsanzeige und vollständige Batch-Ereignisse im Eventlog ergänzt.
 - Modulantworten erhalten `description`, `source_label` und `detail_enrichment` jetzt ausdrücklich.
 - Kleinanzeigen-Suchkern, Pagination, Paid-Worker-Zeitprofil, Modulvertrag sowie Evercade-/SNES-Adapter unverändert belassen.
+- Produktionsabnahme erfolgreich: Worker-Identität, Kleinanzeigen-plus-Vinted-Suche und entkoppelter Vinted-Detail-Batch liefen auf Commit `cece9c4723eca97fb38627493628468b21e5fb86` grün durch.
 - Rollback-Ziel: 1.3.1 / `gp-131-20260809-1` / `506bdd234304e215ca77ae58f217f6217c5a206c`.
 
 ## 1.3.1 – 2026-08-09 – Begrenzte Vinted-Detailanreicherung
