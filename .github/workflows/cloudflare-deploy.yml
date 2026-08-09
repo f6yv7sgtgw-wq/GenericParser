@@ -44,13 +44,15 @@ jobs:
           echo "build=$(uv run python -c 'from generic_parser.release_identity import BUILD_ID; print(BUILD_ID)')" >> "$GITHUB_OUTPUT"
           echo "contract=$(uv run python -c 'from generic_parser.release_identity import API_CONTRACT; print(API_CONTRACT)')" >> "$GITHUB_OUTPUT"
       - name: Run regression tests
-        run: uv run pytest -q tests/test_release_100.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py tests/test_vinted_browser_production.py tests/test_vinted_service_binding_122.py
+        run: uv run pytest -q tests/test_release_100.py tests/test_release_132.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py tests/test_vinted_browser_production.py tests/test_vinted_service_binding_122.py
       - name: Compile active runtime
-        run: uv run python -m py_compile src/generic_parser/release_identity.py src/generic_parser/cloudflare_worker.py src/generic_parser/cloudflare_v0450.py src/generic_parser/cloudflare_v0452.py src/generic_parser/build_identity_v0450.py src/generic_parser/build_identity_v0452.py src/generic_parser/search_service_v0450.py src/generic_parser/search_service_v111_runtime.py src/generic_parser/vinted_adapter.py scripts/check_deployment.py
+        run: uv run python -m py_compile src/generic_parser/release_identity.py src/generic_parser/cloudflare_worker.py src/generic_parser/cloudflare_v0450.py src/generic_parser/cloudflare_v0452.py src/generic_parser/build_identity_v0450.py src/generic_parser/build_identity_v0452.py src/generic_parser/search_service_v0450.py src/generic_parser/search_service_v111_runtime.py src/generic_parser/vinted_adapter.py src/generic_parser/vinted_enrichment.py scripts/check_deployment.py
       - name: Validate browser controller syntax
         run: |
           node --check cloudflare/public/controller-0450.js
+          node --check cloudflare/public/vinted-background-132.js
           node --check cloudflare/public/source-colors-110.js
+          node --check pocs/vinted-browser/src/index.js
       - name: Validate release metadata and service binding
         run: |
           uv run python - <<'PY'
@@ -65,6 +67,11 @@ jobs:
         run: |
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$CLOUDFLARE_API_TOKEN"
+      - name: Deploy Vinted Browser component
+        working-directory: pocs/vinted-browser
+        run: |
+          npm install --no-audit --no-fund
+          npx wrangler deploy --name genericparser-vinted-poc --var REVISION:${GITHUB_SHA}
       - name: Deploy Python Worker
         run: uv run --group cloudflare pywrangler deploy
       - name: Verify live release identity
@@ -110,3 +117,25 @@ jobs:
           done
           cat /tmp/result.json || true
           exit 1
+      - name: Verify live deferred Vinted detail batch
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          source=json.load(open('/tmp/result.json'))
+          vinted=[x for x in source.get('listings',[]) if x.get('source')=='vinted' and x.get('url')]
+          missing=[x for x in vinted if not (x.get('image_url') and x.get('price') is not None and x.get('description'))]
+          listings=(missing or vinted)[:3]
+          if not listings: raise SystemExit('no Vinted listings available for deferred detail gate')
+          search={"mode":"live","query":"Evercade","page":0,"source":"vinted","include_review":True,"include_rejected":True}
+          json.dump({"search":search,"listings":listings},open('/tmp/enrich-request.json','w'))
+          PY
+          code="$(curl -sS -o /tmp/enrich-result.json -w '%{http_code}' --max-time 60 -H 'Content-Type: application/json' -d @/tmp/enrich-request.json "$DEPLOYMENT_URL/api/vinted/enrich" || true)"
+          python - "$code" <<'PY'
+          import json,sys
+          d=json.load(open('/tmp/enrich-result.json')); rows=d.get('listings') or []
+          complete=[x for x in rows if x.get('image_url') and x.get('price') is not None and x.get('description')]
+          ok=(sys.argv[1]=='200' and d.get('status')=='ok' and d.get('strategy')=='service-binding-deferred-detail' and d.get('detail_batch_limit')==3 and len(rows)>0 and len(complete)>0)
+          print('requested=',d.get('requested'),'complete=',len(complete),'partial=',d.get('partial'),'failed=',d.get('failed'))
+          raise SystemExit(0 if ok else 1)
+          PY

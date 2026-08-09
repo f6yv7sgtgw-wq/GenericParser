@@ -149,9 +149,12 @@ class ModuleListing(BaseModel):
     image_url: str | None = None
     price: float | None = None
     price_raw: str | None = None
+    description: str | None = None
     postal_code: str | None = None
     place: str | None = None
     source: str = "kleinanzeigen"
+    source_label: str | None = None
+    detail_enrichment: dict[str, Any] = Field(default_factory=dict)
     match: dict[str, Any] = Field(default_factory=dict)
     traffic_light: dict[str, Any] = Field(default_factory=dict)
     result_info: dict[str, Any] = Field(default_factory=dict)
@@ -241,9 +244,16 @@ def module_response_from_legacy(
                 image_url=raw.get("image_url"),
                 price=raw.get("price"),
                 price_raw=raw.get("price_raw"),
+                description=raw.get("description"),
                 postal_code=raw.get("postal_code"),
                 place=raw.get("place"),
-                source="kleinanzeigen",
+                source=str(raw.get("source") or "kleinanzeigen"),
+                source_label=(str(raw.get("source_label")) if raw.get("source_label") else None),
+                detail_enrichment=(
+                    raw.get("detail_enrichment")
+                    if isinstance(raw.get("detail_enrichment"), dict)
+                    else {}
+                ),
                 match=raw.get("match") if isinstance(raw.get("match"), dict) else {},
                 traffic_light=(
                     raw.get("traffic_light")

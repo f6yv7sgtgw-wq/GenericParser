@@ -56,7 +56,7 @@ def test_eventlog_uses_runtime_identity_without_release_pin() -> None:
     assert "document.title = `GenericParser Eventlog ${I.version}`" in script
     assert VERSION not in script
     assert BUILD_ID not in script
-    assert "Service Binding + Detailanreicherung" in script
+    assert "Service Binding + entkoppelte 3er-Detail-Batches" in script
 
 
 def test_paid_timing_profile_is_active() -> None:

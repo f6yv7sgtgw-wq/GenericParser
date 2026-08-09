@@ -19,6 +19,7 @@
         [/const BUILD_ID = '[^']+';/, `const BUILD_ID = '${I.buildId}';`],
         [/const API_CONTRACT = '[^']+';/, `const API_CONTRACT = '${I.apiContract}';`],
         [/const LOG_KEY = '[^']+';/, `const LOG_KEY = '${I.eventLogKey}';`],
+        [/const MAX_LOG = \d+;/, 'const MAX_LOG = 800;'],
         [/const COOLDOWN_MS = \d+;/, 'const COOLDOWN_MS = 0;'],
         [/if \(workerVersion && \(workerVersion !== VERSION \|\| workerBuild !== BUILD_ID \|\| workerContract !== API_CONTRACT\)\) \{/, 'if (workerVersion && workerContract !== API_CONTRACT) {']
       ];
@@ -72,7 +73,7 @@
               withImage,
               withPrice,
               withDescription,
-              failed:vinted.filter(item => item?.detail_enrichment?.status === 'failed').length
+              failed:vinted.filter(item => ['failed','error','blocked','empty','background_error'].includes(item?.detail_enrichment?.status)).length
             });
           }
           return data;
@@ -101,7 +102,7 @@
       const connection = document.getElementById('connection');
       if (connection) { connection.classList.remove('offline'); connection.innerHTML = '<span></span> Bereit'; }
       const state = document.getElementById('worker-state-text');
-      if (state) { state.className='compact-status done'; state.innerHTML=`<strong>GenericParser ${I.version}</strong><span>Kleinanzeigen + Vinted · Service Binding · Paid Worker · Modulvertrag v1</span>`; }
+      if (state) { state.className='compact-status done'; state.innerHTML=`<strong>GenericParser ${I.version}</strong><span>Kleinanzeigen + Vinted · Service Binding · Vinted-Details in Hintergrund-Batches · Paid Worker</span>`; }
       window.GP_CONTROLLER_IDENTITY = {
         version:I.version,
         buildId:I.buildId,
@@ -119,6 +120,7 @@
         sources:I.sources,
         runtimeBridge:I.runtimeBridge || null,
         vintedStrategy:I.vintedStrategy,
+        vintedBackgroundEnrichment:I.vintedBackgroundEnrichment,
         workerPlan:I.workerPlan,
         protectionDelays:false,
         autoResume:true

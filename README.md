@@ -2,18 +2,18 @@
 
 Stable reusable Kleinanzeigen parser module and browser UI for **Evercade**, **SNES PAL Sammlung** and future projects.
 
-## Stable release
+## Current release
 
-- **Version:** `1.0.0`
-- **Build:** `gp-100-20260808-1`
-- **Status:** Stable
+- **Version:** `1.3.2`
+- **Build:** `gp-132-20260809-1`
+- **Status:** Release candidate; production acceptance is workflow- and live-gated
 - **Worker profile:** Cloudflare Workers Paid
 - **Module contract:** `generic-parser-module-v1`
 - **Search runtime:** `0.45.0`
 - **Functional search core:** `0.44.4`
 - **Operational reference:** `0.44.6.5`
 
-GenericParser 1.0.0 promotes the proven 0.45.2 Build 7 Paid Worker baseline. The search core, matching, extraction, pagination and traffic-light evaluation are not rewritten for 1.0.
+GenericParser 1.3.2 preserves the timeout-safe 1.3.1 search request. Vinted still enriches at most three detail pages inside each catalog request; all remaining item details are then loaded through separate serial background batches of three. Catalog pagination never awaits the background queue.
 
 ## Architecture
 
@@ -24,7 +24,9 @@ generic-parser-module-v1
         ↓
 GenericParser Worker
         ↓
-Kleinanzeigen search runtime
+Kleinanzeigen runtime + private Vinted Service Binding
+        ↓
+Immediate catalog response + deferred Vinted detail batches
 ```
 
 ## Public endpoints
@@ -38,7 +40,11 @@ Kleinanzeigen search runtime
 - `POST /api/module/search`
 - `POST /api/search`
 - `POST /search`
+- `POST /api/vinted/enrich`
+- `POST /api/module/v1/vinted/enrich`
 - `GET /api/module/v1/self-test?enabled=true`
+
+The two enrichment paths are additive support endpoints. They accept at most three already returned Vinted listings, validate canonical item URLs, load those three detail pages in parallel and return updated listings with matching and traffic-light scoring recalculated. The bundled browser uses them automatically; module-v1 clients may use the canonical module path.
 
 ## Paid Worker profile
 
@@ -50,7 +56,7 @@ Free-Worker protection waits are disabled:
 - auto-resume quiet period: effectively immediate
 - recovery health interval: effectively immediate
 
-The proven seven-result work-packet structure remains unchanged; only artificial waiting between requests was removed.
+The proven seven-result Kleinanzeigen work-packet structure remains unchanged. Vinted background work uses serial three-item batches with no artificial delay and never blocks the primary search request.
 
 ## Module contract
 
@@ -91,6 +97,17 @@ snes = snes_pal_profile("Super Metroid", market_value=70)
 
 Debug logging and network-free module self-tests remain opt-in and are disabled by default. Production diagnostics cover version/build identity, API contract, routing, CORS/preflight and endpoint availability.
 
+## Vinted detail behavior
+
+- Inline critical path: maximum 3 detail pages per Vinted catalog page.
+- Deferred path: maximum 3 detail pages per request, parallel within the batch.
+- Client queue: one deferred batch at a time.
+- Detail timeout: 6 seconds per Browser Run navigation.
+- Merge: image, price, description and condition update the existing card.
+- Scoring: updated price and condition are re-evaluated.
+- Failure model: fail-open; catalog results remain available.
+- Access policy: no login, CAPTCHA, rate-limit or access-control bypass.
+
 ## Release quality gate
 
 A stable release requires:
@@ -103,10 +120,11 @@ A stable release requires:
 6. browser CORS/preflight validation;
 7. live Evercade module packet;
 8. live legacy `/api/search` packet;
-9. exact-source ZIP artifact.
+9. live deferred Vinted detail batch without catalog-path regression;
+10. exact-source ZIP artifact.
 
 ## Versioning
 
-From 1.0 onward GenericParser uses semantic versioning. Search-core changes are explicit functional changes; infrastructure changes must not silently change matching, ranking, extraction or pagination.
+From 1.0 onward GenericParser uses semantic versioning. Search-core changes are explicit functional changes; infrastructure changes must not silently change matching, ranking, extraction or pagination. 1.3.2 is an additive Vinted data-quality and orchestration release; the Kleinanzeigen reference core is unchanged.
 
-Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.0.0.md`](docs/releases/1.0.0.md).
+Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.3.2.md`](docs/API_1.3.2.md), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.3.2.md`](docs/releases/1.3.2.md).

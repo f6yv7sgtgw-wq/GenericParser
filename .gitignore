@@ -6,6 +6,9 @@ venv/
 build/
 dist/
 *.egg-info/
+.venv-workers/
+python_modules/
+pylock.toml
 .coverage
 htmlcov/
 *.db

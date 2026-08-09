@@ -2,6 +2,33 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.3.2 – 2026-08-09 – Entkoppelte Vinted-Detailanreicherung
+
+- Den stabilen 1.3.1-Katalogpfad und dessen Limit von drei Inline-Detailseiten unverändert beibehalten.
+- Fehlende Vinted-Details nach der Katalogantwort in seriellen Hintergrund-Batches mit je höchstens drei parallelen Detailseiten ergänzt.
+- Additive Endpunkte `/api/vinted/enrich` und `/api/module/v1/vinted/enrich` eingeführt.
+- Ausschließlich kanonische Vinted-HTTPS-Item-URLs mit passender Listing-ID für Detailabrufe zugelassen.
+- Nachgeladene Bilder, Preise, Beschreibungen und Zustände in bestehende Treffer gemischt.
+- Preisabhängiges Matching und Ampelbewertung nach jedem Detail-Batch erneut ausgeführt.
+- Browser-Warteschlange bei Nutzerstopp oder neuer Suche sauber beendet; Hauptsuche wartet nie auf Hintergrund-Batches.
+- Sichtbare Vinted-Detailfortschrittsanzeige und vollständige Batch-Ereignisse im Eventlog ergänzt.
+- Modulantworten erhalten `description`, `source_label` und `detail_enrichment` jetzt ausdrücklich.
+- Kleinanzeigen-Suchkern, Pagination, Paid-Worker-Zeitprofil, Modulvertrag sowie Evercade-/SNES-Adapter unverändert belassen.
+- Rollback-Ziel: 1.3.1 / `gp-131-20260809-1` / `506bdd234304e215ca77ae58f217f6217c5a206c`.
+
+## 1.3.1 – 2026-08-09 – Begrenzte Vinted-Detailanreicherung
+
+- Vinted-Katalogabruf auf 15 Sekunden und Detailnavigation auf 6 Sekunden begrenzt.
+- Pro Katalogseite höchstens drei Detailseiten parallel geöffnet.
+- Übrige Treffer als `skipped_budget` ohne Blockade der Seitensuche zurückgegeben.
+- Live bestätigt: 10 Requests, 162 Ergebnisse, vollständiger Abschluss ohne 49-Sekunden-Abbruch.
+
+## 1.3.0 – 2026-08-09 – Vinted-Detaildaten
+
+- Bild, Preis, Beschreibung und Zustand aus Vinted-Detailseiten ergänzt.
+- Multi-Source-Diagnose und Vinted-Scoring erweitert.
+- Live-Regression: vollständige Inline-Anreicherung blockierte den Hauptrequest bis zum Abbruch nach rund 49 Sekunden; durch 1.3.1 ersetzt.
+
 ## 1.0.0 – 2026-08-08 – Stable
 
 - Den funktionierenden GenericParser 0.45.2 Build 7 Paid Worker als erste stabile Produktionsversion freigegeben.
