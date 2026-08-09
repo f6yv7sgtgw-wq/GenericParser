@@ -80,6 +80,12 @@ jobs:
         run: |
           npm install --no-audit --no-fund
           npx wrangler deploy --name genericparser-vinted-poc --var REVISION:${GITHUB_SHA}
+      - name: Sync encrypted eBay secrets to production Worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$EBAY_CLIENT_ID" | uv run --group cloudflare pywrangler secret put EBAY_CLIENT_ID
+          printf '%s\n' "$EBAY_CLIENT_SECRET" | uv run --group cloudflare pywrangler secret put EBAY_CLIENT_SECRET
       - name: Deploy Python Worker
         run: uv run --group cloudflare pywrangler deploy
       - name: Verify live release identity and eBay secret bindings
