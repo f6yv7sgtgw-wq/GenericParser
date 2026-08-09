@@ -4,7 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 1.4.0 RC | `gp-140-20260809-1` | ausstehend | Offizielle eBay Browse API auf `EBAY_DE`, Festpreisstandard, bekannte Versand-Gesamtsumme und flüchtige eBay-Treffer; Production-Zugriffsgate grün |
+| 1.4.0 | `gp-140-20260809-1` | `7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c` | Offizielle eBay Browse API auf `EBAY_DE`, Festpreisstandard, bekannte Versand-Gesamtsumme und flüchtige eBay-Treffer; Produktions-Live-Gates grün |
 | 1.3.4 | `gp-134-20260809-1` | `47a74efa13f63b0908688cc96872e013f23e56bf` | Dichtes Mehrspaltenraster, kleine Karten mit Bild und Text nebeneinander, Startseiten-Symbol entfernt; Produktions-Live-Gates grün |
 | 1.3.3 | `gp-133-20260809-1` | `88df0a4f91fd813a685e26b429e3c549bb9ce5b3` | GUI-Rework im Evercade/SNES-Stil, Log-Navigation im Kopf und kompakte aufklappbare Vinted-Beschreibungen; Produktions-Live-Gates grün |
 | 1.3.2 | `gp-132-20260809-1` | `cece9c4723eca97fb38627493628468b21e5fb86` | Entkoppelte Vinted-Hintergrundanreicherung in seriellen 3er-Batches, Live-Updates und erneutes Scoring; Produktions-Live-Gates grün |
@@ -22,9 +22,9 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 ## Aktueller Stable Release
 
 ```text
-Version:                    1.3.4
-Paketversion:               1.3.4
-Build-ID:                   gp-134-20260809-1
+Version:                    1.4.0
+Paketversion:               1.4.0
+Build-ID:                   gp-140-20260809-1
 Modulvertrag:               generic-parser-module-v1
 Worker-Profil:              Paid
 Fachlicher Referenzkern:    0.44.4
@@ -36,6 +36,13 @@ Retry-Wartezeiten:          0 ms
 Vinted Inline-Details:      maximal 3 je Katalogrequest
 Vinted Hintergrund-Batch:  maximal 3, seriell je Client
 Hauptsuche blockiert:       nein
+eBay-Transport:             offizielle Production Browse API
+eBay-Marktplatz:            EBAY_DE
+eBay-Festpreis:             standardmäßig an
+eBay-Auktionen:             standardmäßig aus, explizit aktivierbar
+eBay-Gesamtpreis:           Artikel + bekannte Versandkosten
+Unbekannte Versandkosten:   price/total_price bleiben leer
+eBay-Persistenz:            keine
 Vinted-Beschreibung:        4 Zeilen, aufklappbar
 Hashtag-Blöcke:             ausgeblendet
 Log-Navigation:             im Seitenkopf
@@ -45,27 +52,19 @@ Startseiten-Symbol:         entfernt
 Debug-Logs:                 standardmäßig aus
 Modultests:                 standardmäßig aus, ohne Kleinanzeigen-Abruf
 Status:                     Stable; Produktions-Live-Gates grün
-Produktions-Commit:         47a74efa13f63b0908688cc96872e013f23e56bf
-Deploy-Workflow:            31311244612 (success)
-Vinted-Browser-Gate:        31311244612 (im Deploy-Workflow, success)
+Produktions-Commit:         7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c
+Deploy-Workflow:            31337634699 (success)
+eBay-Production-Gate:       31337634699 (im Deploy-Workflow, success)
+Vinted-Browser-Gate:        31337634699 (im Deploy-Workflow, success)
 ```
 
-## Aktueller Release Candidate
+## Rückfallreferenz
 
 ```text
-Version:                    1.4.0
-Build-ID:                   gp-140-20260809-1
-Standardquellen:            Kleinanzeigen, Vinted, eBay
-eBay-Transport:             offizielle Production Browse API
-eBay-Marktplatz:            EBAY_DE
-eBay-Festpreis:             standardmäßig an
-eBay-Auktionen:             standardmäßig aus, explizit aktivierbar
-eBay-Gesamtpreis:           Artikel + bekannte Versandkosten
-Unbekannte Versandkosten:   price/total_price bleiben leer
-eBay-Persistenz:            keine
-Production-Zugriffsgate:    31336200661 (success)
-Produktionsabnahme:         ausstehend
-Rollback-Ziel:              1.3.4 / gp-134-20260809-1
+Version:                    1.3.4
+Build-ID:                   gp-134-20260809-1
+Commit:                     47a74efa13f63b0908688cc96872e013f23e56bf
+Deploy-Workflow:            31311244612 (success)
 ```
 
 ## Release-Download
@@ -76,16 +75,16 @@ Der Hauptbranch enthält den veröffentlichten Stand einschließlich der nachgel
 https://github.com/f6yv7sgtgw-wq/GenericParser/archive/refs/heads/main.zip
 ```
 
-Der exakte abgenommene 1.3.4-Produktionsstand ist dauerhaft über den Commit abrufbar:
+Der exakte abgenommene 1.4.0-Produktionsstand ist dauerhaft über den Commit abrufbar:
+
+```text
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c.zip
+```
+
+Stabile Rückfallreferenz 1.3.4:
 
 ```text
 https://github.com/f6yv7sgtgw-wq/GenericParser/archive/47a74efa13f63b0908688cc96872e013f23e56bf.zip
-```
-
-Stabile Rückfallreferenz 1.3.3:
-
-```text
-https://github.com/f6yv7sgtgw-wq/GenericParser/archive/88df0a4f91fd813a685e26b429e3c549bb9ce5b3.zip
 ```
 
 ## Pflegevorgabe ab 1.0
