@@ -11,7 +11,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Dekoratives Vier-Punkte-Symbol im linken Kopf der Startseite entfernt.
 - Vierzeilige Vinted-Beschreibung, Aufklappen, Hashtag-Bereinigung, Log-Navigation und übrige 1.3.3-Oberfläche beibehalten.
 - Suchkern, Matching, Ampel, Pagination, Vinted-3er-Batches, Modulvertrag und Worker-Endpunkte unverändert belassen.
-- Produktionsabnahme ausstehend; Rückfallziel bleibt 1.3.3 / `gp-133-20260809-1`.
+- Produktionsabnahme erfolgreich: Worker-Identität, dichtes responsives Kartenraster, Kleinanzeigen-plus-Vinted-Suche und entkoppelter Vinted-Detail-Batch liefen auf Commit `47a74efa13f63b0908688cc96872e013f23e56bf` im Workflow `31311244612` grün durch; Rückfallziel bleibt 1.3.3 / `gp-133-20260809-1`.
 
 ## 1.3.3 – 2026-08-09 – GUI-Rework und kompakte Vinted-Karten
 
