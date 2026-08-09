@@ -1,0 +1,116 @@
+name: Publish GenericParser release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/releases/*.json"
+      - ".github/workflows/publish-release.yml"
+  workflow_dispatch:
+    inputs:
+      manifest:
+        description: Release manifest path
+        required: true
+        default: .github/releases/1.3.2.json
+
+permissions:
+  contents: write
+
+concurrency:
+  group: generic-parser-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Select and validate release manifest
+        id: release
+        env:
+          DISPATCH_MANIFEST: ${{ inputs.manifest }}
+        run: |
+          set -euo pipefail
+          manifest="${DISPATCH_MANIFEST:-}"
+          if [ -z "$manifest" ]; then
+            manifest="$(git diff-tree --no-commit-id --name-only -r "$GITHUB_SHA" -- '.github/releases/*.json' | head -n 1)"
+          fi
+          test -n "$manifest"
+          test -f "$manifest"
+          python - "$manifest" >> "$GITHUB_OUTPUT" <<'PY'
+          import json, pathlib, re, sys
+
+          path = pathlib.Path(sys.argv[1])
+          data = json.loads(path.read_text(encoding="utf-8"))
+          required = ("version", "tag", "target_commit", "title", "notes_file", "asset_name")
+          missing = [key for key in required if not str(data.get(key) or "").strip()]
+          if missing:
+              raise SystemExit(f"missing release fields: {', '.join(missing)}")
+          if not re.fullmatch(r"\d+\.\d+\.\d+", data["version"]):
+              raise SystemExit("version must use semantic x.y.z format")
+          if data["tag"] != f"v{data['version']}":
+              raise SystemExit("tag must equal v<version>")
+          if not re.fullmatch(r"[0-9a-f]{40}", data["target_commit"]):
+              raise SystemExit("target_commit must be a full commit SHA")
+          notes = pathlib.Path(data["notes_file"])
+          if not notes.is_file():
+              raise SystemExit("notes_file does not exist")
+          for key in required:
+              print(f"{key}={data[key]}")
+          print(f"manifest={path.as_posix()}")
+          PY
+      - name: Build exact source archive
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+          TARGET_COMMIT: ${{ steps.release.outputs.target_commit }}
+          ASSET_NAME: ${{ steps.release.outputs.asset_name }}
+        run: |
+          set -euo pipefail
+          git cat-file -e "${TARGET_COMMIT}^{commit}"
+          git archive --format=zip --prefix="GenericParser-${VERSION}/" --output="$ASSET_NAME" "$TARGET_COMMIT"
+          sha256sum "$ASSET_NAME" > "${ASSET_NAME}.sha256"
+          unzip -t "$ASSET_NAME"
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+          TARGET_COMMIT: ${{ steps.release.outputs.target_commit }}
+          TITLE: ${{ steps.release.outputs.title }}
+          NOTES_FILE: ${{ steps.release.outputs.notes_file }}
+          ASSET_NAME: ${{ steps.release.outputs.asset_name }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ASSET_NAME" "${ASSET_NAME}.sha256" --clobber
+          else
+            gh release create "$TAG" \
+              --target "$TARGET_COMMIT" \
+              --title "$TITLE" \
+              --notes-file "$NOTES_FILE" \
+              "$ASSET_NAME" \
+              "${ASSET_NAME}.sha256"
+          fi
+      - name: Verify published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+          TARGET_COMMIT: ${{ steps.release.outputs.target_commit }}
+          ASSET_NAME: ${{ steps.release.outputs.asset_name }}
+        run: |
+          set -euo pipefail
+          release="$(gh release view "$TAG" --json tagName,targetCommitish,isDraft,isPrerelease,assets,url)"
+          python - "$TARGET_COMMIT" "$ASSET_NAME" "$release" <<'PY'
+          import json, sys
+
+          target, asset, raw = sys.argv[1:]
+          data = json.loads(raw)
+          names = {item["name"] for item in data.get("assets") or []}
+          assert data["targetCommitish"] == target
+          assert data["isDraft"] is False
+          assert data["isPrerelease"] is False
+          assert asset in names
+          assert f"{asset}.sha256" in names
+          print(data["url"])
+          PY
