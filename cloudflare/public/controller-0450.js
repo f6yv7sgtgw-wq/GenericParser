@@ -34,7 +34,47 @@
         requestPage = async function(payload) {
           const data = await originalRequestPage(payload);
           const status = data?.source_status || data?.summary?.sources;
-          if (status && window.gpEventLog) window.gpEventLog('source_status','Quellenstatus aktualisiert',{query:payload?.query,page:payload?.page,sourceStatus:status});
+          const listings = Array.isArray(data?.listings) ? data.listings : [];
+          const vinted = listings.filter(item => item?.source === 'vinted' || String(item?.id || '').startsWith('vinted:'));
+          const enriched = vinted.filter(item => {
+            const fields = item?.detail_enrichment?.fields;
+            return item?.image_url || item?.price != null || item?.description || (Array.isArray(fields) && fields.length > 0);
+          });
+          const withImage = vinted.filter(item => !!item?.image_url).length;
+          const withPrice = vinted.filter(item => item?.price != null).length;
+          const withDescription = vinted.filter(item => !!item?.description).length;
+
+          // The legacy reported_total belongs to Kleinanzeigen only. In a combined
+          // response it must not be displayed as the total for both sources.
+          const multiSource = status?.kleinanzeigen?.enabled === true && status?.vinted?.enabled === true;
+          if (multiSource && data?.summary && typeof data.summary === 'object') {
+            data.summary.reported_total = null;
+          }
+
+          if (status && window.gpEventLog) {
+            window.gpEventLog('source_status','Quellenstatus aktualisiert',{
+              query:payload?.query,
+              page:payload?.page,
+              sourceStatus:status,
+              vintedCatalogHits:vinted.length,
+              vintedEnriched:enriched.length,
+              vintedWithImage:withImage,
+              vintedWithPrice:withPrice,
+              vintedWithDescription:withDescription
+            });
+          }
+          if (vinted.length && window.gpEventLog) {
+            window.gpEventLog('vinted_detail_enrichment','Vinted Detailanreicherung abgeschlossen',{
+              query:payload?.query,
+              page:payload?.page,
+              catalogHits:vinted.length,
+              enriched:enriched.length,
+              withImage,
+              withPrice,
+              withDescription,
+              failed:vinted.filter(item => item?.detail_enrichment?.status === 'failed').length
+            });
+          }
           return data;
         };
       } catch {}
