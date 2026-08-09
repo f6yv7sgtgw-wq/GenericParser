@@ -40,25 +40,41 @@ Stable guarantees:
 
 Current status: **1.3.4 stable and production-accepted**. Dense responsive UI contracts, live identity, multi-source search and deferred Vinted enrichment passed on 2026-08-09; 1.3.3 remains the rollback target.
 
-## 1.4 – Title and cartridge normalization
+## 1.4 – eBay production integration
+
+- use the official eBay Browse API on marketplace `EBAY_DE`;
+- add eBay as the third default, fail-open source;
+- default to fixed-price listings and make auctions an explicit opt-in;
+- score only a trustworthy total when shipping is known;
+- keep OAuth tokens in memory and never persist eBay listing data.
+
+Current status: **1.4.0 release candidate**. Production API access passed through the one-shot gate; deployment and the combined three-source live gate are pending.
+
+## 1.5 – Product classification
+
+- distinguish product, accessory, parts, lot and unrelated offers;
+- make classifier evidence visible to callers;
+- retain deterministic fail-open behavior for uncertain offers.
+
+## 1.6 – Title and cartridge normalization
 
 - normalize Evercade and SNES PAL titles;
 - spelling variants, numbers and editions;
 - identify individual modules contained in bundles.
 
-## 1.5 – Search profile expansion
+## 1.7 – Search profile expansion
 
 - structured profiles for missing cartridges;
 - consistent transfer of result, traffic-light and offer data;
 - prepare multiple providers behind the same module contract without changing client APIs.
 
-## 1.6 – Deal engine
+## 1.8 – Deal engine
 
 - compare price with market value and maximum price;
 - condition, completeness and shipping;
 - deal classes and total price.
 
-## 1.7 – Server-side search jobs
+## 1.9 – Server-side search jobs
 
 - evaluate queue/workflow/Durable Object architecture;
 - persistent work packets independent from browser lifetime;
@@ -66,7 +82,7 @@ Current status: **1.3.4 stable and production-accepted**. Dense responsive UI co
 - result and price history;
 - notifications for Evercade and SNES.
 
-## 1.8 – Operations and quality
+## 1.10 – Operations and quality
 
 - permanent regression suite;
 - reference searches for Evercade and SNES;

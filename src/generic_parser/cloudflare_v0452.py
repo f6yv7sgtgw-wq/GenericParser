@@ -37,6 +37,7 @@ from .cloudflare_v0450 import (
     load_service,
     module_search as search_module_v1,
 )
+from .ebay_adapter import EBAY_MARKETPLACE, ebay_credentials_configured
 from .module_api import MODULE_CONTRACT, ModulePageRequest, ModuleSearchProfile
 from .vinted_enrichment import DETAIL_BATCH_LIMIT, enrich_vinted_batch
 
@@ -86,11 +87,15 @@ def identity() -> dict[str, Any]:
         "operational_reference": OPERATIONAL_REFERENCE,
         "runtime_reference": RUNTIME_REFERENCE,
         "technical_base": TECHNICAL_BASE,
-        "search_behavior_changed": False,
+        "search_behavior_changed": True,
         "startup_model": "eager-asgi-0450",
         "evercade_alias_compatibility": True,
         "vinted_background_enrichment": True,
         "vinted_detail_batch_limit": DETAIL_BATCH_LIMIT,
+        "ebay_browse_api": True,
+        "ebay_marketplace": EBAY_MARKETPLACE,
+        "ebay_credentials_configured": ebay_credentials_configured(),
+        "ebay_persistence": False,
     }
 
 
@@ -163,6 +168,10 @@ async def health(request: Request) -> JSONResponse:
             "search_ready": True,
             "vinted_background_enrichment": True,
             "vinted_detail_batch_limit": DETAIL_BATCH_LIMIT,
+            "ebay_browse_api": True,
+            "ebay_marketplace": EBAY_MARKETPLACE,
+            "ebay_credentials_configured": ebay_credentials_configured(),
+            "ebay_persistence": False,
         },
     )
 
@@ -189,10 +198,14 @@ async def diagnostics(request: Request) -> JSONResponse:
                 "module_contract": MODULE_CONTRACT,
                 "search_runtime": SEARCH_RUNTIME,
                 "startup_model": "eager-asgi-0450",
-                "search_behavior_changed": False,
+                "search_behavior_changed": True,
                 "evercade_alias_compatibility": True,
                 "vinted_background_enrichment": True,
                 "vinted_detail_batch_limit": DETAIL_BATCH_LIMIT,
+                "ebay_browse_api": True,
+                "ebay_marketplace": EBAY_MARKETPLACE,
+                "ebay_credentials_configured": ebay_credentials_configured(),
+                "ebay_persistence": False,
             },
             "routes": {
                 "health": "/health",
@@ -212,8 +225,8 @@ async def module_capabilities(request: Request) -> JSONResponse:
         request_id,
         {
             "contract": MODULE_CONTRACT,
-            "sources": ["kleinanzeigen", "vinted"],
-            "default_sources": ["kleinanzeigen", "vinted"],
+            "sources": ["kleinanzeigen", "vinted", "ebay"],
+            "default_sources": ["kleinanzeigen", "vinted", "ebay"],
             "integrations": ["evercade", "snes-pal"],
             "pagination": "one-work-packet-per-request",
             "vinted_detail_enrichment": {
@@ -223,6 +236,15 @@ async def module_capabilities(request: Request) -> JSONResponse:
                 "serial_batches": True,
                 "blocks_search": False,
                 "rescoring": True,
+            },
+            "ebay": {
+                "strategy": "official-browse-api",
+                "marketplace": EBAY_MARKETPLACE,
+                "fixed_price_default": True,
+                "auctions_optional": True,
+                "auctions_enabled_by_default": False,
+                "price_semantics": "total-including-known-shipping",
+                "persistence": False,
             },
             "deployment": identity(),
         },
@@ -262,6 +284,7 @@ def _legacy_evercade_to_module(raw: dict[str, Any]) -> ModulePageRequest:
         "radius_km": raw.get("radius_km"),
         "accept_bundles": bool(raw.get("accept_bundles", False)),
         "accept_incomplete": bool(raw.get("accept_incomplete", False)),
+        "include_ebay_auctions": bool(raw.get("include_ebay_auctions", False)),
         "include_review": bool(raw.get("include_review", True)),
         "include_rejected": bool(raw.get("include_rejected", True)),
         "sort_by": raw.get("sort_by") or "relevance",

@@ -1,0 +1,14 @@
+.listing.source-ebay {
+  border-color: rgba(255, 103, 96, .54);
+  background: linear-gradient(135deg, rgba(171, 57, 53, .2), rgba(7, 17, 31, .94));
+}
+
+.source-ebay .source-badge {
+  color: #ffc0bc;
+  background: rgba(255, 103, 96, .16);
+  border: 1px solid rgba(255, 103, 96, .45);
+}
+
+@media (max-width: 520px) {
+  .listing.source-ebay { background-size: 100% 100%; }
+}

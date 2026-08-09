@@ -1,13 +1,24 @@
-# Cloudflare Mobile Worker – 0.2c
+# GenericParser 1.4 Cloudflare Worker
 
-Diese Variante stellt GenericParser als mobile PWA auf Cloudflare Workers bereit. Das Smartphone öffnet nur die Web-App; der Cloudflare Worker ruft genau eine Kleinanzeigen-Ergebnisliste ab und parst maximal 20 Treffer.
+Der Paid Worker stellt die PWA und den Vertrag `generic-parser-module-v1` bereit. Eine Standardsuche kombiniert den bewährten Kleinanzeigen-Kern, das private Vinted Service Binding und eBay Deutschland über die offizielle Production Browse API.
 
 ## Voraussetzungen
 
 - Cloudflare-Konto
-- Node.js und Wrangler 4.64 oder neuer
-- `uv` 0.29.8 oder neuer
-- `workers-py` 1.72 oder neuer
+- Node.js 22
+- `uv`
+- eBay Production App ID und Cert ID
+
+## Lokale Secrets
+
+`cloudflare/.dev.vars.example` nach `cloudflare/.dev.vars` kopieren und die beiden eBay-Werte nur lokal eintragen:
+
+```dotenv
+EBAY_CLIENT_ID=
+EBAY_CLIENT_SECRET=
+```
+
+`.dev.vars` wird nicht eingecheckt. Für Produktion werden dieselben Namen als verschlüsselte Cloudflare Worker Secrets gesetzt. OAuth-Tokens bleiben nur bis zu ihrem Ablauf im Worker-Speicher; eBay-Treffer werden weder serverseitig noch in der Browser-IndexedDB persistiert.
 
 ## Lokal testen
 
@@ -22,7 +33,7 @@ uv run --group cloudflare pywrangler login
 uv run --group cloudflare pywrangler deploy
 ```
 
-Nach dem Deployment zeigt Pywrangler die `workers.dev`-URL an. Diese URL kann auf iPhone oder Android zum Home-Bildschirm hinzugefügt werden.
+Der GitHub-Produktionsworkflow verlangt zusätzlich `EBAY_CLIENT_ID` und `EBAY_CLIENT_SECRET` als GitHub Environment Secrets. Er schreibt diese Werte nicht nach Cloudflare, sondern prüft, dass die separat eingerichteten Worker-Secrets im Live-Worker sichtbar und nutzbar sind.
 
 ## Zugriff schützen
 
@@ -36,10 +47,11 @@ Das gleiche Token wird im mobilen Interface unter „Ort, Radius und Zugriff“ 
 
 ## Worker-Grenzen
 
-- eine Kleinanzeigen-Seite je Suche
-- maximal 20 zurückgegebene Anzeigen
-- keine Persistenz und kein Hintergrundlauf
-- keine Detailseiten
-- Blockierungen werden als HTTP 429 gemeldet
+- Kleinanzeigen bleibt auf dem bestätigten 0.44.4-Suchkern.
+- Vinted nutzt das private `VINTED_BROWSER` Service Binding und höchstens drei Inline-Details; weitere Details laufen clientseitig in seriellen 3er-Batches.
+- eBay nutzt `EBAY_DE`, 25 Browse-Treffer pro Seite und standardmäßig nur Festpreisangebote.
+- Reine eBay-Auktionen werden nur mit `include_ebay_auctions: true` zurückgegeben.
+- Bei unbekanntem Versand bleiben `shipping_cost`, `total_price` und der bewertete `price` leer.
+- Fehler einer Quelle werden als degradierter Quellenstatus zurückgegeben; andere Quellen bleiben verfügbar.
 
-Die Begrenzungen sind absichtlich gewählt, um CPU-Zeit, Subrequests und das Risiko unnötiger Plattformzugriffe gering zu halten.
+Das Deployment-Gate prüft Release-Identität, alle drei Quellen, eBay-Markt und Transport, Festpreisstandard, Preissemantik sowie den vorhandenen Vinted-Detailpfad.

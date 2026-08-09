@@ -22,6 +22,8 @@ permissions:
 env:
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
+  EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
   DEPLOYMENT_URL: https://genericparser.f6yv7sgtgw.workers.dev
 
 jobs:
@@ -44,9 +46,9 @@ jobs:
           echo "build=$(uv run python -c 'from generic_parser.release_identity import BUILD_ID; print(BUILD_ID)')" >> "$GITHUB_OUTPUT"
           echo "contract=$(uv run python -c 'from generic_parser.release_identity import API_CONTRACT; print(API_CONTRACT)')" >> "$GITHUB_OUTPUT"
       - name: Run regression tests
-        run: uv run pytest -q tests/test_release_100.py tests/test_release_132.py tests/test_release_133.py tests/test_release_134.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py tests/test_vinted_browser_production.py tests/test_vinted_service_binding_122.py
+        run: uv run pytest -q tests/test_release_100.py tests/test_release_132.py tests/test_release_133.py tests/test_release_134.py tests/test_release_140.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py tests/test_vinted_browser_production.py tests/test_vinted_service_binding_122.py tests/test_ebay_adapter.py tests/test_ebay_multi_source.py
       - name: Compile active runtime
-        run: uv run python -m py_compile src/generic_parser/release_identity.py src/generic_parser/cloudflare_worker.py src/generic_parser/cloudflare_v0450.py src/generic_parser/cloudflare_v0452.py src/generic_parser/build_identity_v0450.py src/generic_parser/build_identity_v0452.py src/generic_parser/search_service_v0450.py src/generic_parser/search_service_v111_runtime.py src/generic_parser/vinted_adapter.py src/generic_parser/vinted_enrichment.py scripts/check_deployment.py
+        run: uv run python -m py_compile src/generic_parser/release_identity.py src/generic_parser/cloudflare_worker.py src/generic_parser/cloudflare_v0450.py src/generic_parser/cloudflare_v0452.py src/generic_parser/build_identity_v0450.py src/generic_parser/build_identity_v0452.py src/generic_parser/search_service_v0450.py src/generic_parser/search_service_v111_runtime.py src/generic_parser/vinted_adapter.py src/generic_parser/vinted_enrichment.py src/generic_parser/ebay_adapter.py scripts/check_deployment.py
       - name: Validate browser controller syntax
         run: |
           node --check cloudflare/public/controller-0450.js
@@ -55,6 +57,7 @@ jobs:
           node --check cloudflare/public/service-worker.js
           node --check cloudflare/public/vinted-background-132.js
           node --check cloudflare/public/source-colors-110.js
+          node --check cloudflare/public/source-colors-140.js
           node --check pocs/vinted-browser/src/index.js
       - name: Validate release metadata and service binding
         run: |
@@ -70,6 +73,8 @@ jobs:
         run: |
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$EBAY_CLIENT_ID"
+          test -n "$EBAY_CLIENT_SECRET"
       - name: Deploy Vinted Browser component
         working-directory: pocs/vinted-browser
         run: |
@@ -77,7 +82,7 @@ jobs:
           npx wrangler deploy --name genericparser-vinted-poc --var REVISION:${GITHUB_SHA}
       - name: Deploy Python Worker
         run: uv run --group cloudflare pywrangler deploy
-      - name: Verify live release identity
+      - name: Verify live release identity and eBay secret bindings
         env:
           EXPECTED_VERSION: ${{ steps.release.outputs.version }}
           EXPECTED_BUILD: ${{ steps.release.outputs.build }}
@@ -90,14 +95,14 @@ jobs:
           import json,os,sys
           try: d=json.load(open('/tmp/health.json'))
           except Exception: raise SystemExit(1)
-          ok=(sys.argv[1]=='200' and d.get('version')==os.environ['EXPECTED_VERSION'] and d.get('build_id')==os.environ['EXPECTED_BUILD'] and d.get('api_contract')==os.environ['EXPECTED_CONTRACT'])
+          ok=(sys.argv[1]=='200' and d.get('version')==os.environ['EXPECTED_VERSION'] and d.get('build_id')==os.environ['EXPECTED_BUILD'] and d.get('api_contract')==os.environ['EXPECTED_CONTRACT'] and d.get('ebay_credentials_configured') is True)
           raise SystemExit(0 if ok else 1)
           PY
             sleep 10
           done
           cat /tmp/health.json || true
           exit 1
-      - name: Verify live Kleinanzeigen plus Vinted service-bound search
+      - name: Verify live Kleinanzeigen, Vinted and official eBay Browse search
         run: |
           set -euo pipefail
           cat > /tmp/search.json <<'JSON'
@@ -110,10 +115,16 @@ jobs:
           try: d=json.load(open('/tmp/result.json'))
           except Exception: raise SystemExit(1)
           status=d.get('source_status') or (d.get('summary') or {}).get('sources') or {}
-          ka=status.get('kleinanzeigen') or {}; vi=status.get('vinted') or {}; listings=d.get('listings') or []
+          ka=status.get('kleinanzeigen') or {}; vi=status.get('vinted') or {}; eb=status.get('ebay') or {}; listings=d.get('listings') or []
           vinted=[x for x in listings if x.get('source')=='vinted' or str(x.get('id','')).startswith('vinted:')]
-          ok=(sys.argv[1]=='200' and ka.get('enabled') is True and vi.get('enabled') is True and vi.get('status')=='ok' and vi.get('strategy')=='service-binding' and len(vinted)>0)
-          print('kleinanzeigen=',ka); print('vinted=',vi); print('vinted_listings=',len(vinted))
+          ebay_listings=[x for x in listings if x.get('source')=='ebay' or str(x.get('id','')).startswith('ebay:')]
+          priced=[x for x in ebay_listings if x.get('item_price') is not None]
+          totals=[x for x in ebay_listings if x.get('total_price') is not None]
+          totals_valid=all(x.get('price')==x.get('total_price') for x in totals)
+          fixed_price_only=all(x.get('auction') is False for x in ebay_listings)
+          ok=(sys.argv[1]=='200' and ka.get('enabled') is True and vi.get('enabled') is True and vi.get('status')=='ok' and vi.get('strategy')=='service-binding' and len(vinted)>0 and eb.get('enabled') is True and eb.get('status')=='ok' and eb.get('strategy')=='official-browse-api' and eb.get('marketplace')=='EBAY_DE' and eb.get('include_auctions') is False and len(ebay_listings)>0 and len(priced)>0 and totals_valid and fixed_price_only)
+          print('kleinanzeigen=',ka); print('vinted=',vi); print('ebay=',eb)
+          print('vinted_listings=',len(vinted)); print('ebay_listings=',len(ebay_listings),'known_totals=',len(totals))
           raise SystemExit(0 if ok else 1)
           PY
             sleep 10

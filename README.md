@@ -1,19 +1,19 @@
 # GenericParser
 
-Stable reusable Kleinanzeigen parser module and browser UI for **Evercade**, **SNES PAL Sammlung** and future projects.
+Reusable multi-source marketplace parser and browser UI for **Evercade**, **SNES PAL Sammlung** and future projects.
 
 ## Current release
 
-- **Version:** `1.3.4`
-- **Build:** `gp-134-20260809-1`
-- **Status:** Stable; production, multi-source, deferred-detail and GUI gates passed
+- **Version:** `1.4.0`
+- **Build:** `gp-140-20260809-1`
+- **Status:** Release candidate; eBay Production access gate passed, deployment acceptance pending
 - **Worker profile:** Cloudflare Workers Paid
 - **Module contract:** `generic-parser-module-v1`
 - **Search runtime:** `0.45.0`
 - **Functional search core:** `0.44.4`
 - **Operational reference:** `0.44.6.5`
 
-GenericParser 1.3.4 is a focused browser-interface refinement on top of the production-proven 1.3.3 release. Results use a dense multi-column grid, each card keeps its thumbnail and text side by side, and the decorative SNES-style mark is removed from the search-page header. Search, matching, scoring, pagination, four-line Vinted descriptions and background enrichment are unchanged.
+GenericParser 1.4.0 adds eBay Germany through the official Production Browse API as the third default source. Fixed-price listings remain the default; auctions are explicit opt-in. eBay results separate item price, shipping and trustworthy total, remain transient, and fail open without changing successful Kleinanzeigen or Vinted results.
 
 ## Architecture
 
@@ -24,9 +24,9 @@ generic-parser-module-v1
         ↓
 GenericParser Worker
         ↓
-Kleinanzeigen runtime + private Vinted Service Binding
+Kleinanzeigen runtime + private Vinted Service Binding + eBay Browse API
         ↓
-Immediate catalog response + deferred Vinted detail batches
+Immediate catalog response + deferred Vinted detail batches + transient eBay results
 ```
 
 ## Public endpoints
@@ -44,7 +44,7 @@ Immediate catalog response + deferred Vinted detail batches
 - `POST /api/module/v1/vinted/enrich`
 - `GET /api/module/v1/self-test?enabled=true`
 
-The two enrichment paths are additive support endpoints. They accept at most three already returned Vinted listings, validate canonical item URLs, load those three detail pages in parallel and return updated listings with matching and traffic-light scoring recalculated. The bundled browser uses them automatically; module-v1 clients may use the canonical module path.
+The two enrichment paths remain Vinted-only additive support endpoints. They accept at most three already returned Vinted listings, validate canonical item URLs, load those three detail pages in parallel and return updated listings with matching and traffic-light scoring recalculated. The bundled browser uses them automatically; module-v1 clients may use the canonical module path.
 
 ## Paid Worker profile
 
@@ -74,7 +74,8 @@ Example module request:
     "max_price": 35,
     "market_value": 30,
     "accept_bundles": false,
-    "accept_incomplete": false
+    "accept_incomplete": false,
+    "include_ebay_auctions": false
   },
   "page": 0,
   "source": "auto",
@@ -108,6 +109,19 @@ Debug logging and network-free module self-tests remain opt-in and are disabled 
 - Failure model: fail-open; catalog results remain available.
 - Access policy: no login, CAPTCHA, rate-limit or access-control bypass.
 
+## eBay behavior
+
+- Transport: official eBay Production Browse API.
+- Marketplace and delivery country: `EBAY_DE` / `DE`.
+- Result page size: 25.
+- Fixed-price offers are enabled by default; auction-only offers require `include_ebay_auctions: true`.
+- `item_price` always remains distinct from `shipping_cost` and `total_price`.
+- Matching uses `price = total_price` only when shipping is known or the offer is pickup-only.
+- Unknown shipping is shown as open and is never treated as free.
+- OAuth tokens live only in Worker memory until expiry.
+- eBay listings are not stored server-side and are excluded from browser IndexedDB persistence.
+- OAuth/Browse failures degrade only eBay; other source results remain available.
+
 ## Browser interface
 
 - Shared dark visual language with the Evercade and SNES projects.
@@ -132,11 +146,13 @@ A stable release requires:
 6. browser CORS/preflight validation;
 7. live Evercade module packet;
 8. live legacy `/api/search` packet;
-9. live deferred Vinted detail batch without catalog-path regression;
-10. exact-source ZIP artifact.
+9. live three-source packet with official eBay transport and fixed-price default;
+10. eBay known-shipping total-price validation;
+11. live deferred Vinted detail batch without catalog-path regression;
+12. exact-source ZIP artifact.
 
 ## Versioning
 
-From 1.0 onward GenericParser uses semantic versioning. Search-core changes are explicit functional changes; infrastructure changes must not silently change matching, ranking, extraction or pagination. 1.3.4 changes only browser presentation and keeps the 1.3.3 source and transport behavior intact.
+From 1.0 onward GenericParser uses semantic versioning. Search-core changes are explicit functional changes; infrastructure changes must not silently change matching, ranking, extraction or pagination. 1.4.0 changes multi-source orchestration by adding eBay while retaining the established Kleinanzeigen core and Vinted transport.
 
-Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.3.4.md`](docs/API_1.3.4.md), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.3.4.md`](docs/releases/1.3.4.md).
+Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.4.0.md`](docs/API_1.4.0.md), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.4.0.md`](docs/releases/1.4.0.md).

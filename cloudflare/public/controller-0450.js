@@ -46,7 +46,8 @@
 
           // The legacy reported_total belongs to Kleinanzeigen only. In a combined
           // response it must not be displayed as the total for both sources.
-          const multiSource = status?.kleinanzeigen?.enabled === true && status?.vinted?.enabled === true;
+          const enabledSourceCount = ['kleinanzeigen','vinted','ebay'].filter(name => status?.[name]?.enabled === true).length;
+          const multiSource = enabledSourceCount > 1;
           if (multiSource && data?.summary && typeof data.summary === 'object') {
             data.summary.reported_total = null;
           }
@@ -101,7 +102,7 @@
       const connection = document.getElementById('connection');
       if (connection) { connection.classList.remove('offline'); connection.innerHTML = '<span></span> Bereit'; }
       const state = document.getElementById('worker-state-text');
-      if (state) { state.className='compact-status done'; state.innerHTML='<strong>Bereit</strong><span>Kleinanzeigen und Vinted sind verbunden.</span>'; }
+      if (state) { state.className='compact-status done'; state.innerHTML='<strong>Bereit</strong><span>Kleinanzeigen, Vinted und eBay sind verbunden.</span>'; }
       window.GP_CONTROLLER_IDENTITY = {
         version:I.version,
         buildId:I.buildId,
@@ -113,10 +114,13 @@
         operationalReference:I.operationalReference || null,
         runtimeReference:I.runtimeReference || null,
         searchCoreChanged:false,
+        sourceOrchestrationChanged:true,
         controllerFlowChanged:false,
         exactVersionMatchRequired:false,
         contractMatchRequired:true,
         sources:I.sources,
+        ebayStrategy:I.ebayStrategy,
+        ebayPersistence:false,
         runtimeBridge:I.runtimeBridge || null,
         vintedStrategy:I.vintedStrategy,
         vintedBackgroundEnrichment:I.vintedBackgroundEnrichment,

@@ -2,6 +2,18 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.4.0 – 2026-08-09 – eBay Production Browse API
+
+- eBay Deutschland über die offizielle Browse API als dritte Standardquelle ergänzt.
+- Application-OAuth per `client_credentials` mit ausschließlich im Worker-Speicher gehaltenem Token-Cache umgesetzt.
+- Festpreisangebote bleiben Standard; reine Auktionen sind nur über `include_ebay_auctions` aktivierbar.
+- Artikelpreis, Versandkosten und Gesamtpreis getrennt normalisiert. Der bestehende Bewertungswert `price` wird nur gesetzt, wenn der Gesamtpreis einschließlich Versand verlässlich bekannt ist.
+- Unbekannte Versandkosten in API und Browser sichtbar gelassen, statt einen irreführend niedrigen Gesamtpreis zu bewerten.
+- eBay-Treffer aus IndexedDB-Exporten ausgeschlossen und serverseitig nicht persistiert.
+- Bestehenden Kleinanzeigen-Kern, Vinted Service Binding, begrenzte Detailanreicherung und Modulvertrag beibehalten.
+- Einmaliger Production-Zugriffstest erfolgreich: OAuth und Browse Search auf `EBAY_DE` antworteten im Workflow `31336200661` mit HTTP 200.
+- Produktionsdeployment und kombinierte Drei-Quellen-Abnahme stehen für den Release Candidate noch aus.
+
 ## 1.3.4 – 2026-08-09 – Dichtes Ergebnisraster
 
 - Trefferkarten erheblich verkleinert und in ein responsives Mehrspaltenraster überführt.
