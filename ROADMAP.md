@@ -35,8 +35,9 @@ Stable guarantees:
 - 1.3.0: detail-page image, price, description and condition; superseded after the live request reached about 49 seconds;
 - 1.3.1: stable critical-path limit of three detail pages per catalog request;
 - 1.3.2: serial background batches of three, in-place card updates and rescoring without blocking catalog pagination.
+- 1.3.3: Evercade/SNES-aligned browser UI, header-level Log and Diagnose navigation, and compact expandable Vinted descriptions without hashtag-only blocks.
 
-Current status: **1.3.2 stable and production-accepted**. The live identity, multi-source search and deferred background-enrichment gates passed on 2026-08-09.
+Current status: **1.3.3 release candidate**. The 1.3.2 runtime remains the stable rollback target while the responsive GUI and production live gates are verified.
 
 ## 1.4 – Title and cartridge normalization
 

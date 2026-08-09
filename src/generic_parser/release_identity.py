@@ -5,18 +5,18 @@ identity must be imported from here. Do not duplicate VERSION/BUILD_ID in
 workflows, tests, browser assets or transport wrappers.
 """
 
-VERSION = "1.3.2"
-BUILD_ID = "gp-132-20260809-1"
+VERSION = "1.3.3"
+BUILD_ID = "gp-133-20260809-1"
 API_CONTRACT = "generic-parser-module-v1"
 MODULE_CONTRACT = API_CONTRACT
 ENTRYPOINT = "generic_parser.cloudflare_worker:Default.fetch"
 BOOTSTRAP_MODULE = "generic_parser.cloudflare_v0452"
 SEARCH_MODULE = "generic_parser.search_service_v111_runtime"
 SEARCH_RUNTIME = "0.45.0+multisource-runtime-bridge"
-WORKER_UNIT = "stable-paid+runtime-bridge+kleinanzeigen+vinted-service-binding+bounded-inline-detail+deferred-detail-batches+evercade-snes+module-v1"
+WORKER_UNIT = "stable-paid+runtime-bridge+kleinanzeigen+vinted-service-binding+bounded-inline-detail+deferred-detail-batches+evercade-snes-ui+module-v1"
 FUNCTIONAL_REFERENCE = "0.44.4"
 OPERATIONAL_REFERENCE = "0.44.6.5"
 RUNTIME_REFERENCE = "0.44.6.2"
-TECHNICAL_BASE = "service-binding+runtime-loaded-public-identity+bounded-inline-vinted-detail+serial-background-detail-batches+multisource-diagnostics"
+TECHNICAL_BASE = "service-binding+runtime-loaded-public-identity+bounded-inline-vinted-detail+serial-background-detail-batches+snes-evercade-ui+compact-vinted-cards"
 RELEASE_DATE = "2026-08-09"
 WORKER_PLAN = "paid"

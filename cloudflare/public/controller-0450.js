@@ -4,8 +4,7 @@
   if (!I?.version || !I?.buildId || !I?.apiContract) throw new Error('Live build identity missing');
   window.GP_HANDSHAKE_READY = true;
   document.title = `GenericParser ${I.version}`;
-  const heroVersion = document.querySelector('.hero h1 span');
-  if (heroVersion) heroVersion.textContent = I.version;
+  document.querySelectorAll('[data-version]').forEach(node => { node.textContent = I.version; });
   const workerChip = document.getElementById('worker-version');
   if (workerChip) workerChip.textContent = I.version;
   const footerBuild = document.querySelector('footer span');
@@ -102,7 +101,7 @@
       const connection = document.getElementById('connection');
       if (connection) { connection.classList.remove('offline'); connection.innerHTML = '<span></span> Bereit'; }
       const state = document.getElementById('worker-state-text');
-      if (state) { state.className='compact-status done'; state.innerHTML=`<strong>GenericParser ${I.version}</strong><span>Kleinanzeigen + Vinted · Service Binding · Vinted-Details in Hintergrund-Batches · Paid Worker</span>`; }
+      if (state) { state.className='compact-status done'; state.innerHTML='<strong>Bereit</strong><span>Kleinanzeigen und Vinted sind verbunden.</span>'; }
       window.GP_CONTROLLER_IDENTITY = {
         version:I.version,
         buildId:I.buildId,

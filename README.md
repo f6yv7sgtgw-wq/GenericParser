@@ -4,16 +4,16 @@ Stable reusable Kleinanzeigen parser module and browser UI for **Evercade**, **S
 
 ## Current release
 
-- **Version:** `1.3.2`
-- **Build:** `gp-132-20260809-1`
-- **Status:** Stable; production and deferred-detail live gates passed
+- **Version:** `1.3.3`
+- **Build:** `gp-133-20260809-1`
+- **Status:** Release candidate; GUI and regression verification in progress
 - **Worker profile:** Cloudflare Workers Paid
 - **Module contract:** `generic-parser-module-v1`
 - **Search runtime:** `0.45.0`
 - **Functional search core:** `0.44.4`
 - **Operational reference:** `0.44.6.5`
 
-GenericParser 1.3.2 preserves the timeout-safe 1.3.1 search request. Vinted still enriches at most three detail pages inside each catalog request; all remaining item details are then loaded through separate serial background batches of three. Catalog pagination never awaits the background queue.
+GenericParser 1.3.3 is a browser-interface release on top of the production-proven 1.3.2 runtime. The UI now follows the current Evercade/SNES visual system, keeps Log and Diagnose in the header, and renders long Vinted descriptions as compact four-line previews with an explicit expand action. Search, matching, scoring, pagination and Vinted background enrichment are unchanged.
 
 ## Architecture
 
@@ -108,6 +108,15 @@ Debug logging and network-free module self-tests remain opt-in and are disabled 
 - Failure model: fail-open; catalog results remain available.
 - Access policy: no login, CAPTCHA, rate-limit or access-control bypass.
 
+## Browser interface
+
+- Shared dark visual language with the Evercade and SNES projects.
+- `Log & Diagnose` is available directly in the top header.
+- The former visible technical-details expander is removed; diagnostics continue to be recorded in the dedicated log page.
+- Result cards use responsive image, source, traffic-light, condition and action regions without horizontal scrolling.
+- Descriptions are clamped to four lines by default and remain expandable.
+- Hashtag-only lines and trailing hashtag blocks are omitted from card text.
+
 ## Release quality gate
 
 A stable release requires:
@@ -125,6 +134,6 @@ A stable release requires:
 
 ## Versioning
 
-From 1.0 onward GenericParser uses semantic versioning. Search-core changes are explicit functional changes; infrastructure changes must not silently change matching, ranking, extraction or pagination. 1.3.2 is an additive Vinted data-quality and orchestration release; the Kleinanzeigen reference core is unchanged.
+From 1.0 onward GenericParser uses semantic versioning. Search-core changes are explicit functional changes; infrastructure changes must not silently change matching, ranking, extraction or pagination. 1.3.3 changes only browser presentation and keeps the 1.3.2 source and transport behavior intact.
 
-Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.3.2.md`](docs/API_1.3.2.md), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.3.2.md`](docs/releases/1.3.2.md).
+Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.3.3.md`](docs/API_1.3.3.md), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.3.3.md`](docs/releases/1.3.3.md).

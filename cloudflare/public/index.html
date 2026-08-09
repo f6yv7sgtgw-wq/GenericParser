@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="de">
+<html lang="de" data-page="search">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#07111f">
+  <meta name="theme-color" content="#090a0f">
   <title>GenericParser</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./app.css">
@@ -12,23 +12,37 @@
   <link rel="stylesheet" href="./cards-0440.css">
   <link rel="stylesheet" href="./traffic-light-0443.css">
   <link rel="stylesheet" href="./source-colors-110.css">
+  <link rel="stylesheet" href="./ui-133.css">
 </head>
 <body>
-<main class="app-shell">
-  <header class="hero">
-    <div>
-      <p class="eyebrow">Kleinanzeigen + Vinted · Matching & Scoring · Modul v1 · Paid Worker</p>
-      <h1>GenericParser <span>…</span></h1>
-      <p class="subtitle">Multi-Source-Suche über Kleinanzeigen und Vinted. Die öffentliche Release-Identität wird zur Laufzeit geladen; Kleinanzeigen nutzt weiterhin den stabilen Referenzkern, Vinted den Browser-Run-Zugriff.</p>
+<div class="sticky-shell">
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <div>
+          <div class="title-row"><h1>GenericParser</h1><span class="version-badge">Version <span data-version>…</span></span></div>
+          <p>Kleinanzeigen &amp; Vinted durchsuchen</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a class="header-link" href="./eventlog.html"><span class="wide-label">Log &amp; Diagnose</span><span class="short-label">Log</span></a>
+        <div id="connection" class="connection-status offline"><span></span> Controller lädt</div>
+      </div>
     </div>
-    <div id="connection" class="status offline"><span></span> Controller lädt</div>
   </header>
+</div>
 
+<main class="app-shell">
   <section class="card search-card">
-    <h2>Suchprofil</h2>
-    <label>Profilname<input id="profile-name" autocomplete="off"></label>
-    <label>Suchbegriff<input id="query" autocomplete="off"></label>
-    <div class="details-grid">
+    <div class="section-heading">
+      <div><p class="eyebrow">Neue Suche</p><h2>Suchprofil</h2></div>
+    </div>
+    <div class="primary-fields">
+      <label>Profilname<input id="profile-name" autocomplete="off"></label>
+      <label>Suchbegriff<input id="query" autocomplete="off"></label>
+    </div>
+    <div class="details-grid core-filters">
       <label>Pflichtbegriffe<input id="required-terms"></label>
       <label>Ausschlussbegriffe<input id="excluded-terms"></label>
       <label>Modell-/Schreibvarianten<input id="model-patterns"></label>
@@ -36,33 +50,68 @@
       <label>Maximalpreis €<input id="max-price" inputmode="decimal"></label>
       <label>Richtwert €<input id="market-value" inputmode="decimal"></label>
     </div>
-    <details>
-      <summary>Ort, Umfang, Optionen und Moduldiagnose</summary>
+    <details class="search-options">
+      <summary>Weitere Suchoptionen</summary>
       <div class="details-grid">
-        <label>PLZ<input id="postal-code"></label><label>Location-ID<input id="location-id"></label><label>Radius km<input id="radius-km"></label><label>Max. Rohfunde<input id="max-results"></label>
+        <label>PLZ<input id="postal-code"></label>
+        <label>Location-ID<input id="location-id"></label>
+        <label>Radius km<input id="radius-km"></label>
+        <label>Max. Rohfunde<input id="max-results"></label>
         <label>Sortierung<select id="sort-by"><option value="relevance">Relevanz</option><option value="date">Neueste</option></select></label>
         <label>Suchumfang<select id="search-scope"><option value="500" selected>Bis zum natürlichen Ende</option></select></label>
         <label>Paketpause<select id="page-delay" disabled><option value="0" selected>0 Sekunden · Paid Worker</option></select></label>
       </div>
-      <label><input id="accept-bundles" type="checkbox"> Konvolute akzeptieren</label>
-      <label><input id="accept-incomplete" type="checkbox"> Defekte/unvollständige Treffer akzeptieren</label>
-      <label><input id="include-review" type="checkbox" checked> Prüffälle anzeigen</label>
-      <label><input id="include-rejected" type="checkbox" checked> Abgelehnte Ergebnisse anzeigen</label>
+      <div class="option-checks">
+        <label><input id="accept-bundles" type="checkbox"> Konvolute akzeptieren</label>
+        <label><input id="accept-incomplete" type="checkbox"> Defekte/unvollständige Treffer akzeptieren</label>
+        <label><input id="include-review" type="checkbox" checked> Prüffälle anzeigen</label>
+        <label><input id="include-rejected" type="checkbox" checked> Abgelehnte Ergebnisse anzeigen</label>
+      </div>
       <label>Zugriffstoken<input id="token" type="password"></label>
-      <div class="diagnostic"><span><strong>Optionale Moduldiagnose</strong></span><label><input id="debug-logs" type="checkbox"> Debug-Logs aktivieren</label><label><input id="module-tests" type="checkbox"> Netzwerkfreie Modultests aktivieren</label><button id="run-module-tests" class="secondary" type="button">Modultest ausführen</button><span id="module-debug-status">Debug aus · Modultests aus</span></div>
+      <div class="diagnostic-settings">
+        <strong>Optionale Moduldiagnose</strong>
+        <label><input id="debug-logs" type="checkbox"> Debug-Logs aktivieren</label>
+        <label><input id="module-tests" type="checkbox"> Netzwerkfreie Modultests aktivieren</label>
+        <button id="run-module-tests" class="secondary" type="button">Modultest ausführen</button>
+        <span id="module-debug-status">Debug aus · Modultests aus</span>
+      </div>
     </details>
     <div class="actions">
-      <button id="search-button" class="primary" disabled>Controller lädt …</button><button id="stop-button" class="secondary hidden">Suche stoppen</button><button id="resume-button" class="secondary hidden" disabled>Letzte Suche fortsetzen</button><button id="save-profile" class="secondary">Profil speichern</button><button id="clear-progress" class="secondary">Suchstand löschen</button><button id="demo-button" class="secondary" aria-hidden="true">Demo anzeigen</button><a class="secondary" href="./eventlog.html">Eventlog öffnen</a>
+      <button id="search-button" class="primary" disabled>Controller lädt …</button>
+      <button id="stop-button" class="secondary hidden">Suche stoppen</button>
+      <button id="resume-button" class="secondary hidden" disabled>Letzte Suche fortsetzen</button>
+      <button id="save-profile" class="secondary">Profil speichern</button>
+      <button id="clear-progress" class="secondary">Suchstand löschen</button>
+      <button id="demo-button" class="secondary" aria-hidden="true">Demo anzeigen</button>
     </div>
-    <label>Gespeicherte Profile<select id="profiles"><option value="">– auswählen –</option></select></label>
+    <label class="profile-select">Gespeicherte Profile<select id="profiles"><option value="">– auswählen –</option></select></label>
   </section>
 
-  <section id="worker-state" class="card"><div class="row between"><h2>Status</h2><span id="worker-version" class="chip">…</span></div><div id="worker-state-text" class="compact-status">Suchcontroller wird geladen</div></section>
-  <section id="vinted-detail-state" class="card hidden"><div class="row between"><h2>Vinted-Details</h2><span id="vinted-detail-progress" class="chip">0/0</span></div><div id="vinted-detail-state-text" class="compact-status">Hintergrundanreicherung wartet</div></section>
+  <div class="status-grid">
+    <section id="worker-state" class="card status-card">
+      <div class="row between"><div><p class="eyebrow">Verbindung</p><h2>Status</h2></div><span id="worker-version" class="chip">…</span></div>
+      <div id="worker-state-text" class="compact-status">Suchcontroller wird geladen</div>
+    </section>
+    <section id="vinted-detail-state" class="card status-card hidden">
+      <div class="row between"><div><p class="eyebrow">Hintergrund</p><h2>Vinted-Details</h2></div><span id="vinted-detail-progress" class="chip">0/0</span></div>
+      <div id="vinted-detail-state-text" class="compact-status">Hintergrundanreicherung wartet</div>
+    </section>
+  </div>
+
   <section id="message" class="message hidden"></section>
-  <section class="card technical-shell"><button id="technical-toggle" class="technical-toggle" type="button" aria-expanded="false">Technische Details anzeigen</button><div id="technical-content" class="technical-content"><section id="summary" class="metrics hidden"></section><section id="diagnostics-card" class="card hidden"><h2>Diagnose und Konsistenz</h2><div id="urls" class="urls"></div><div id="diagnostics"></div></section><p><a href="./eventlog.html">Eventlog öffnen</a></p></div></section>
-  <section id="results" class="results"></section><button id="show-more" class="secondary hidden">Weitere Ergebnisse anzeigen</button>
-  <footer><span>GenericParser Mobile · Build …</span><a href="./eventlog.html">Diagnose</a></footer>
+
+  <div class="hidden" aria-hidden="true">
+    <section id="summary" class="metrics hidden"></section>
+    <section id="diagnostics-card" class="card hidden"><h2>Diagnose und Konsistenz</h2><div id="urls" class="urls"></div><div id="diagnostics"></div></section>
+  </div>
+
+  <section class="results-section">
+    <div class="results-heading"><div><p class="eyebrow">Treffer</p><h2>Suchergebnisse</h2></div><span id="results-count" class="badge">0</span></div>
+    <section id="results" class="results" aria-live="polite"></section>
+    <button id="show-more" class="secondary load-more hidden">Weitere Ergebnisse anzeigen</button>
+  </section>
+
+  <footer><span>GenericParser · Build …</span></footer>
 </main>
 <script src="./build-identity-0450.js" defer></script>
 <script src="./app.js" defer></script>
