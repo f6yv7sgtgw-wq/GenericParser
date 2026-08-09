@@ -13,23 +13,11 @@ def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_release_133_identity_and_rollback_are_consistent() -> None:
+def test_release_133_features_remain_active_in_current_release() -> None:
     metadata = json.loads(read("VERSION.json"))
     public = json.loads(read("cloudflare/public/release-identity.json"))
-    assert VERSION == "1.3.3"
-    assert BUILD_ID == "gp-133-20260809-1"
     assert metadata["version"] == VERSION
     assert metadata["build_id"] == BUILD_ID
-    assert metadata["status"] == "stable"
-    assert metadata["verification"]["production_acceptance"] == "passed"
-    assert metadata["verification"]["production_commit"] == (
-        "88df0a4f91fd813a685e26b429e3c549bb9ce5b3"
-    )
-    assert metadata["verification"]["production_workflow_run"] == 31306994225
-    assert metadata["rollback_plan"] == {
-        "last_stable_baseline": "1.3.2",
-        "build_id": "gp-132-20260809-1",
-    }
     assert metadata["sources"]["vinted"]["background_batch_size"] == 3
     assert metadata["sources"]["vinted"]["main_search_blocked"] is False
     assert public["version"] == VERSION
@@ -40,7 +28,6 @@ def test_search_header_matches_shared_project_pattern() -> None:
     html = read("cloudflare/public/index.html")
     header_end = html.index("</header>")
     assert 'class="sticky-shell"' in html
-    assert 'class="brand-mark"' in html
     assert 'class="version-badge"' in html
     assert "Log &amp; Diagnose" in html[:header_end]
     assert 'href="./eventlog.html"' in html[:header_end]
@@ -78,7 +65,6 @@ def test_vinted_cards_are_compact_expandable_and_responsive() -> None:
     assert ".description-shell.is-expanded .description" in css
     assert "overflow-x: hidden" in css
     assert "@media (max-width: 520px)" in css
-    assert ".listing { grid-template-columns: 1fr; }" in css
 
 
 def test_hashtag_only_lines_are_removed_without_losing_prose() -> None:
@@ -117,7 +103,7 @@ def test_hashtag_only_lines_are_removed_without_losing_prose() -> None:
     ]
 
 
-def test_runtime_identity_and_cache_use_the_new_ui_release() -> None:
+def test_runtime_identity_and_base_ui_assets_remain_active() -> None:
     controller = read("cloudflare/public/controller-0450.js")
     eventlog = read("cloudflare/public/eventlog-0450.js")
     service_worker = read("cloudflare/public/service-worker.js")
@@ -125,6 +111,5 @@ def test_runtime_identity_and_cache_use_the_new_ui_release() -> None:
     assert "querySelectorAll('[data-version]')" in controller
     assert "querySelectorAll('[data-version]')" in eventlog
     assert "Kleinanzeigen und Vinted sind verbunden." in controller
-    assert "generic-parser-mobile-gp-133" in service_worker
     assert '"./ui-133.css"' in service_worker
-    assert "service-worker.js?v=gp-133" in app
+    assert "service-worker.js?v=" in app

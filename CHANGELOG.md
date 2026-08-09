@@ -2,6 +2,17 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.3.4 – 2026-08-09 – Dichtes Ergebnisraster
+
+- Trefferkarten erheblich verkleinert und in ein responsives Mehrspaltenraster überführt.
+- Auf üblichen Desktopbreiten mindestens drei, auf breiten Bildschirmen vier bis fünf Karten nebeneinander vorgesehen.
+- Bild und Text innerhalb jeder Karte dauerhaft nebeneinander angeordnet, auch auf Mobilgeräten.
+- Vorschaubild auf eine kleine quadratische Medienfläche reduziert und Abstände, Badges, Preis, Metadaten sowie Aktion proportional verdichtet.
+- Dekoratives Vier-Punkte-Symbol im linken Kopf der Startseite entfernt.
+- Vierzeilige Vinted-Beschreibung, Aufklappen, Hashtag-Bereinigung, Log-Navigation und übrige 1.3.3-Oberfläche beibehalten.
+- Suchkern, Matching, Ampel, Pagination, Vinted-3er-Batches, Modulvertrag und Worker-Endpunkte unverändert belassen.
+- Produktionsabnahme ausstehend; Rückfallziel bleibt 1.3.3 / `gp-133-20260809-1`.
+
 ## 1.3.3 – 2026-08-09 – GUI-Rework und kompakte Vinted-Karten
 
 - Kopfbereich an die aktuellen Evercade- und SNES-Oberflächen angelehnt.
