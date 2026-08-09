@@ -16,16 +16,13 @@ from generic_parser.search_service_v0450 import SearchRequest
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_release_132_identity_and_metadata_are_consistent():
+def test_release_132_background_feature_remains_active_in_current_release():
     metadata = json.loads((ROOT / "VERSION.json").read_text(encoding="utf-8"))
     public = json.loads((ROOT / "cloudflare/public/release-identity.json").read_text(encoding="utf-8"))
-    assert VERSION == "1.3.2"
-    assert BUILD_ID == "gp-132-20260809-1"
     assert metadata["version"] == VERSION
     assert metadata["build_id"] == BUILD_ID
     assert metadata["sources"]["vinted"]["background_batch_size"] == 3
     assert metadata["sources"]["vinted"]["main_search_blocked"] is False
-    assert metadata["rollback_plan"]["last_stable_baseline"] == "1.3.1"
     assert public["version"] == VERSION
     assert public["build_id"] == BUILD_ID
 

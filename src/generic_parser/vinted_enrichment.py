@@ -1,4 +1,4 @@
-"""Deferred Vinted detail enrichment for GenericParser 1.3.2.
+"""Deferred Vinted detail enrichment introduced in GenericParser 1.3.2.
 
 This module is deliberately outside the protected multi-source pagination path.
 It enriches one already returned browser batch, merges the new fields into the

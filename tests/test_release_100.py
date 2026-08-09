@@ -48,7 +48,8 @@ def test_public_browser_identity_is_runtime_loaded_not_release_pinned() -> None:
 def test_eventlog_uses_runtime_identity_without_release_pin() -> None:
     html = read("cloudflare/public/eventlog.html")
     script = read("cloudflare/public/eventlog-0450.js")
-    assert "Eventlog <span>…</span>" in html
+    assert "Log &amp; Diagnose" in html
+    assert "data-version" in html
     assert "Build …" in html
     assert VERSION not in html
     assert BUILD_ID not in html

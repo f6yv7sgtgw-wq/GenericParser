@@ -1,34 +1,45 @@
 <!doctype html>
-<html lang="de">
+<html lang="de" data-page="eventlog">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#07111f">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#090a0f">
   <title>GenericParser Eventlog</title>
   <link rel="stylesheet" href="./app.css">
   <link rel="stylesheet" href="./layout-0409.css">
+  <link rel="stylesheet" href="./ui-133.css">
 </head>
 <body>
-<main class="app-shell">
-  <header class="hero">
-    <div>
-      <p class="eyebrow">GenericParser · Multi-Source-Diagnose</p>
-      <h1>Eventlog <span>…</span></h1>
-      <p class="subtitle">Kleinanzeigen + Vinted auf Paid Worker. Release-Identität und Quellenstatus werden zur Laufzeit geladen; Vinted protokolliert Katalogsuche, entkoppelte Hintergrund-Batches und erneutes Scoring.</p>
+<div class="sticky-shell">
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <div>
+          <div class="title-row"><h1>Log &amp; Diagnose</h1><span class="version-badge">Version <span data-version>…</span></span></div>
+          <p>GenericParser</p>
+        </div>
+      </div>
+      <div class="header-actions"><a class="header-link" href="./">Zur Suche</a></div>
     </div>
   </header>
-  <section class="card">
-    <div class="row between"><h2>Ereignisse</h2><button id="clear-log" class="secondary">Log löschen</button></div>
-    <div class="actions">
+</div>
+
+<main class="app-shell eventlog-shell">
+  <section class="card eventlog-panel">
+    <div class="section-heading">
+      <div><p class="eyebrow">Browseraktivität</p><h2>Ereignisse</h2></div>
+      <button id="clear-log" class="danger-button">Log löschen</button>
+    </div>
+    <div class="eventlog-actions">
       <button id="refresh-log" class="primary">Aktualisieren</button>
       <button id="copy-log" class="secondary">Log kopieren</button>
-      <a class="secondary" href="./">Zur Suche</a>
     </div>
     <div id="version-check" class="diagnostic">Runtime-Identität wird geladen …</div>
     <div id="log-summary" class="diagnostic"></div>
     <div id="event-log"></div>
   </section>
-  <footer><span>GenericParser Mobile · Build …</span><a href="./">Suche</a></footer>
+  <footer><span>GenericParser · Build …</span></footer>
 </main>
 <script src="./build-identity-0450.js" defer></script>
 <script src="./eventlog-0450.js" defer></script>

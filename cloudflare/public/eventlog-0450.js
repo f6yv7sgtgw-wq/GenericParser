@@ -7,8 +7,7 @@
   const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
   document.title = `GenericParser Eventlog ${I.version}`;
-  const heroVersion = document.querySelector('.hero h1 span');
-  if (heroVersion) heroVersion.textContent = I.version;
+  document.querySelectorAll('[data-version]').forEach(node => { node.textContent = I.version; });
   const footer = document.querySelector('footer span');
   if (footer) footer.textContent = `GenericParser Mobile · Build ${I.buildId}`;
 

@@ -2,6 +2,19 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.3.3 – 2026-08-09 – GUI-Rework und kompakte Vinted-Karten
+
+- Kopfbereich an die aktuellen Evercade- und SNES-Oberflächen angelehnt.
+- Versionsbadge und direkter Einstieg zu `Log & Diagnose` in den oberen Seitenkopf verschoben.
+- Erklärende Release-Texte und den sichtbaren Schalter `Technische Details anzeigen` aus der Suchoberfläche entfernt.
+- Suchprofil, Statusbereiche und Aktionen auf ein ruhigeres, responsives Panelraster umgestellt.
+- Ergebnisdarstellung an das SNES-Angebotsraster angelehnt: größere Vorschaubilder, eindeutige Quellen- und Ampelbadges sowie eine primäre Aktion pro Karte.
+- Vinted-Beschreibungen standardmäßig auf vier Zeilen begrenzt und über `Mehr anzeigen` vollständig aufklappbar gemacht.
+- Reine Hashtag-Zeilen und lange angehängte Hashtag-Ketten aus Vinted-Beschreibungen ausgeblendet; ausschließlich aus Hashtags bestehende Beschreibungen erscheinen nicht mehr als leere Langkarten.
+- Aufgeklappte Beschreibungen bleiben bei nachgeladenen Vinted-Hintergrunddetails erhalten.
+- Hauptsuche, Matching, Scoring, Pagination, Vinted-3er-Batches, Modulvertrag und Worker-Endpunkte unverändert belassen.
+- Rollback-Ziel: 1.3.2 / `gp-132-20260809-1` / `cece9c4723eca97fb38627493628468b21e5fb86`.
+
 ## 1.3.2 – 2026-08-09 – Entkoppelte Vinted-Detailanreicherung
 
 - Den stabilen 1.3.1-Katalogpfad und dessen Limit von drei Inline-Detailseiten unverändert beibehalten.
