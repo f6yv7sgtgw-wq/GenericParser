@@ -78,24 +78,26 @@ jobs:
           code,sha=sys.argv[1:]
           try: d=json.load(open('/tmp/health.json'))
           except Exception: raise SystemExit(1)
-          ok=(code=='200' and d.get('component')=='vinted-browser-poc' and d.get('schema')==1 and d.get('status')=='ok' and d.get('revision')==sha)
+          ok=(code=='200' and d.get('component')=='vinted-browser-poc' and d.get('schema')==2 and d.get('status')=='ok' and d.get('revision')==sha and d.get('detailEnrichment') is True)
           raise SystemExit(0 if ok else 1)
           PY
             sleep 5
           done
           cat /tmp/health.json || true
           exit 1
-      - name: Probe Vinted Browser Run Quick Action
+      - name: Probe Vinted catalog plus detail enrichment
         env: {POC_URL: "${{ steps.deploy.outputs.deploy_url }}"}
         run: |
           set -euo pipefail
-          http_code="$(curl -sS --max-time 60 "$POC_URL/search?q=Evercade" -o /tmp/vinted-poc.json -w '%{http_code}')"
+          http_code="$(curl -sS --max-time 120 "$POC_URL/search?q=Evercade" -o /tmp/vinted-poc.json -w '%{http_code}')"
           cat /tmp/vinted-poc.json
           python - "$http_code" "$GITHUB_SHA" <<'PY'
           import json,sys
           code,sha=sys.argv[1:]
           d=json.load(open('/tmp/vinted-poc.json'))
-          print('status=',d.get('status'),'browser=',d.get('browser'),'listings=',len(d.get('listings') or []))
-          ok=(code=='200' and d.get('component')=='vinted-browser-poc' and d.get('revision')==sha and d.get('status')=='ok' and bool(d.get('listings')))
+          listings=d.get('listings') or []; e=d.get('enrichment') or {}
+          enriched=int(e.get('images') or 0)+int(e.get('prices') or 0)+int(e.get('descriptions') or 0)
+          print('status=',d.get('status'),'browser=',d.get('browser'),'listings=',len(listings),'enrichment=',e)
+          ok=(code=='200' and d.get('component')=='vinted-browser-poc' and d.get('revision')==sha and d.get('status')=='ok' and bool(listings) and int(e.get('requested') or 0)>0 and enriched>0)
           raise SystemExit(0 if ok else 1)
           PY

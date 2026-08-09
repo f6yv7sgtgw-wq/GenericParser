@@ -41,11 +41,22 @@ def test_public_browser_identity_is_runtime_loaded_not_release_pinned() -> None:
     assert "vintedStrategy: 'service-binding'" in browser
     assert "GP_BUILD_IDENTITY_READY" in controller
     assert "workerContract !== API_CONTRACT" in controller
-    # Historical controller source still contains its old exact identity guard.
-    # The active controller must only use that text as a transformation pattern,
-    # never as the live compatibility condition.
     assert "'if (workerVersion && workerContract !== API_CONTRACT) {'" in controller
     assert "Deployment inkonsistent: UI ${VERSION}/${BUILD_ID}" not in controller
+
+
+def test_eventlog_uses_runtime_identity_without_release_pin() -> None:
+    html = read("cloudflare/public/eventlog.html")
+    script = read("cloudflare/public/eventlog-0450.js")
+    assert "Eventlog <span>…</span>" in html
+    assert "Build …" in html
+    assert VERSION not in html
+    assert BUILD_ID not in html
+    assert "GP_BUILD_IDENTITY_READY" in script
+    assert "document.title = `GenericParser Eventlog ${I.version}`" in script
+    assert VERSION not in script
+    assert BUILD_ID not in script
+    assert "Service Binding + Detailanreicherung" in script
 
 
 def test_paid_timing_profile_is_active() -> None:
@@ -69,6 +80,13 @@ def test_search_runtime_bridge_preserves_reference_identity() -> None:
     assert "from . import search_service_v0444 as reference" in service
     assert "from .vinted_adapter import search_vinted" in service
     assert "from .search_service_v0450 import" in bridge
+    # 1.3 must not modify the protected orchestration service. Vinted detail
+    # enrichment and multi-source display corrections live behind/in front of it.
+    main_service = read("src/generic_parser/search_service_v0450.py")
+    assert service == main_service
+    controller = read("cloudflare/public/controller-0450.js")
+    assert "detail_enrichment" in controller
+    assert "reported_total" in controller
     loaded = load_service()
     assert loaded.VERSION == "0.45.0"
     assert loaded.API_CONTRACT == API_CONTRACT

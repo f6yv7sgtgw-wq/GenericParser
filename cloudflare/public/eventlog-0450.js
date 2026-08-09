@@ -1,10 +1,16 @@
-(() => {
+(async () => {
   'use strict';
-  const I = window.GP_BUILD_IDENTITY;
-  if (!I) throw new Error('Shared build identity missing');
+  const I = await window.GP_BUILD_IDENTITY_READY;
+  if (!I) throw new Error('Shared runtime identity missing');
   const KEY = I.eventLogKey;
   const LEGACY_KEYS = ['generic-parser-eventlog-04465','generic-parser-eventlog-04462'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+
+  document.title = `GenericParser Eventlog ${I.version}`;
+  const heroVersion = document.querySelector('.hero h1 span');
+  if (heroVersion) heroVersion.textContent = I.version;
+  const footer = document.querySelector('footer span');
+  if (footer) footer.textContent = `GenericParser Mobile · Build ${I.buildId}`;
 
   function readKey(key) {
     try {
@@ -31,7 +37,11 @@
   }
 
   const titles = {
-    auto_resume_scheduled: ['Automatische Fortsetzung geplant', 'Stabile Recovery aus 0.44.6.5.'],
+    source_status: ['Quellenstatus aktualisiert', 'Status der Multi-Source-Suche.'],
+    vinted_catalog: ['Vinted-Katalog durchsucht', 'Vinted-Katalogtreffer wurden geladen.'],
+    vinted_detail: ['Vinted-Details angereichert', 'Bilder, Preise, Beschreibungen und Zustand wurden aus Detailseiten ergänzt.'],
+    vinted_scoring: ['Vinted-Treffer bewertet', 'Angereicherte Vinted-Treffer wurden durch Matching und Scoring verarbeitet.'],
+    auto_resume_scheduled: ['Automatische Fortsetzung geplant', 'Stabile Recovery aus der Referenzimplementierung.'],
     auto_resume_health_failed: ['Worker noch nicht bereit', 'Bereitschaftsprüfung fehlgeschlagen.'],
     auto_resume_health_ready: ['Worker bereit', 'Bereitschaftsprüfung war erfolgreich.'],
     auto_resume_start: ['Automatische Fortsetzung gestartet', 'Gespeicherter Suchstand wird fortgesetzt.'],
@@ -48,12 +58,8 @@
   };
 
   function eventPresentation(event) {
-    if (isHtml503(event)) {
-      return {className:'diagnostic error', title:'Temporärer Abruffehler (HTTP 503)', message:'Cloudflare oder der vorgelagerte Abruf lieferte HTML statt Suchdaten.'};
-    }
-    if (event?.type === 'worker_1101') {
-      return {className:'diagnostic error', title:'Cloudflare-Worker-Ausnahme', message:event.message || 'Worker-Ausnahme vor dem Suchservice.'};
-    }
+    if (isHtml503(event)) return {className:'diagnostic error', title:'Temporärer Abruffehler (HTTP 503)', message:'Cloudflare oder der vorgelagerte Abruf lieferte HTML statt Suchdaten.'};
+    if (event?.type === 'worker_1101') return {className:'diagnostic error', title:'Cloudflare-Worker-Ausnahme', message:event.message || 'Worker-Ausnahme vor dem Suchservice.'};
     if (titles[event?.type]) {
       const [title, fallback] = titles[event.type];
       const error = /error|manual_required/.test(String(event.type)) || event.ok === false;
@@ -66,40 +72,32 @@
     const box = document.getElementById('version-check');
     try {
       const endpoint = new URL('./api/version', location.href);
-      endpoint.searchParams.set('build', I.buildId);
       const response = await fetch(endpoint, {cache:'no-store', headers:{Accept:'application/json'}});
       const worker = await response.json();
-      const identityOk = response.ok && worker.version === I.version && worker.build_id === I.buildId && worker.api_contract === I.apiContract;
+      const identityOk = response.ok && worker.api_contract === I.apiContract;
       box.className = `diagnostic ${identityOk ? 'done' : 'error'}`;
       box.innerHTML = [
-        `<span><strong>${identityOk ? 'Versionen konsistent' : 'Versionsabweichung'}</strong></span>`,
+        `<span><strong>${identityOk ? 'Runtime-Identität geladen' : 'Vertragsabweichung'}</strong></span>`,
         `<span>Eventlog ${esc(I.version)}/${esc(I.buildId)} · Worker ${esc(worker.version || '?')}/${esc(worker.build_id || '?')}</span>`,
         `<span>Modulvertrag: ${esc(worker.module_contract || worker.api_contract || '?')}</span>`,
-        `<span>Suchreferenz: ${esc(worker.operational_reference || '0.44.6.5')} · Kern ${esc(worker.functional_reference || worker.reference_version || '0.44.4')}</span>`,
-        `<span>Debug-Logs: standardmäßig ${worker.debug_logging?.enabled_by_default ? 'an' : 'aus'}</span>`,
-        `<span>Modultests: standardmäßig ${worker.contract_tests?.enabled_by_default ? 'an' : 'aus'} · Netzwerk ${worker.contract_tests?.network_used ? 'ja' : 'nein'}</span>`
+        `<span>Vinted: Service Binding + Detailanreicherung</span>`,
+        `<span>Debug-Logs: standardmäßig ${worker.debug_logging?.enabled_by_default ? 'an' : 'aus'}</span>`
       ].join('');
     } catch (error) {
       box.className = 'diagnostic error';
-      box.textContent = `Versionsprüfung fehlgeschlagen: ${error?.message || error}`;
+      box.textContent = `Runtime-Prüfung fehlgeschlagen: ${error?.message || error}`;
     }
   }
 
   function render() {
     const data = rows().slice().reverse();
     const html503 = data.filter(isHtml503);
-    const auto = data.filter(event => String(event.type || '').startsWith('auto_resume_'));
-    const debug = data.filter(event => String(event.type || '').startsWith('module_debug_'));
-    const tests = data.filter(event => String(event.type || '').startsWith('module_self_test'));
-    const profiles = data.filter(event => String(event.type || '').startsWith('module_profile_'));
+    const sourceEvents = data.filter(event => event.type === 'source_status');
     const legacyCount = data.filter(event => event.uiVersion && event.uiVersion !== I.version).length;
     document.getElementById('log-summary').innerHTML = [
       `<span>${data.length} Ereignisse</span>`,
-      `<span>${debug.length} Debug-Ereignisse</span>`,
-      `<span>${tests.length} Modultests</span>`,
-      `<span>${profiles.length} Profilprüfungen</span>`,
+      `<span>${sourceEvents.length} Quellenstatus-Ereignisse</span>`,
       `<span>${html503.length} HTML-503-Antworten</span>`,
-      `<span>${auto.length} Recovery-Ereignisse</span>`,
       legacyCount ? `<span>${legacyCount} Referenzereignisse übernommen</span>` : '',
       `<span>Build ${esc(I.buildId)}</span>`
     ].join('');
@@ -116,17 +114,12 @@
   }
 
   document.getElementById('refresh-log').onclick = () => { render(); verify(); };
-  document.getElementById('clear-log').onclick = () => {
-    localStorage.removeItem(KEY);
-    LEGACY_KEYS.forEach(key => localStorage.removeItem(key));
-    localStorage.removeItem('generic-parser-auto-resume-0450');
-    render();
-  };
-  document.getElementById('copy-log').onclick = async () => {
-    await navigator.clipboard.writeText(JSON.stringify(rows(), null, 2));
-    document.getElementById('copy-log').textContent = 'Kopiert';
-  };
+  document.getElementById('clear-log').onclick = () => { localStorage.removeItem(KEY); LEGACY_KEYS.forEach(key => localStorage.removeItem(key)); render(); };
+  document.getElementById('copy-log').onclick = async () => { await navigator.clipboard.writeText(JSON.stringify(rows(), null, 2)); document.getElementById('copy-log').textContent = 'Kopiert'; };
   render();
   verify();
   setInterval(render, 3000);
-})();
+})().catch(error => {
+  const box = document.getElementById('version-check');
+  if (box) { box.className = 'diagnostic error'; box.textContent = `Eventlog konnte nicht gestartet werden: ${error?.message || error}`; }
+});
