@@ -47,6 +47,7 @@
     search_stopped: ['Suche pausiert', 'Der gespeicherte Stand kann fortgesetzt werden.'],
     search_error: ['Suchfehler', 'Der Suchlauf wurde mit einem Fehler beendet.'],
     request_error: ['Netzwerkfehler', 'Ein Suchpaket konnte nicht geladen werden.'],
+    transport_retry_wait: ['Verbindung wird wiederhergestellt', 'Das unveränderte Suchpaket wird automatisch erneut gesendet.'],
     vinted_catalog: ['Vinted-Katalog durchsucht', 'Vinted-Katalogtreffer wurden geladen.'],
     vinted_detail: ['Vinted-Details angereichert', 'Bilder, Preise und Zustandsdaten wurden ergänzt.'],
     vinted_detail_enrichment: ['Vinted-Details angereichert', 'Detaildaten wurden in die Treffer übernommen.'],
@@ -129,7 +130,7 @@
   function selectedRows(data) {
     const filter = document.getElementById('log-filter')?.value || 'all';
     if (filter === 'problems') return data.filter(event => eventPresentation(event).kind === 'problem');
-    if (filter === 'search') return data.filter(event => /search|fetch|parse|resume/.test(String(event.type || '')));
+    if (filter === 'search') return data.filter(event => /search|fetch|parse|resume|transport/.test(String(event.type || '')));
     if (filter === 'sources') return data.filter(event => /source|vinted|ebay|kleinanzeigen/.test(String(event.type || '')));
     return data;
   }

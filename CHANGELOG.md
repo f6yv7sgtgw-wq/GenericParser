@@ -2,6 +2,18 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.6.3 – 2026-08-10 – Mobile Transporterholung bei langen Suchläufen
+
+- Safari-Fehler `Load failed` aus dem Hauptsuchpfad als wiederholbare Transportunterbrechung klassifiziert, statt den Lauf nach dem ersten verlorenen API-v2-Paket zu beenden.
+- Dasselbe unveränderte Paket mit demselben Fortsetzungstoken bis zu sechs Mal kurz gestaffelt erneut senden lassen; erfolgreiche Pakete behalten `0 ms` Pause auf dem Paid Worker.
+- Vinted-Hintergrunddetails während der primären Paketfolge zurückgestellt, damit Mobilgeräte nicht gleichzeitig Hauptsuche und Detailstrom transportieren müssen.
+- Fortsetzen auf derselben geöffneten Seite verwendet zuerst den vollständigen Arbeitsspeicherstand und behält dadurch auch flüchtige eBay-Treffer. Die weiterhin verbotene eBay-Suchergebnispersistenz bleibt unverändert.
+- Fehlermeldungen unterscheiden nun wahrheitsgemäß zwischen Treffern, die auf der geöffneten Seite erhalten bleiben, und den dauerhaft gespeicherten Nicht-eBay-Treffern samt Fortsetzungspunkt.
+- Quellenzähler zählen eindeutige `listing_key`-Werte statt rohe, möglicherweise wiederholte Zeilen; Vinted-Detailstatus verwendet durchgehend `vollständig / insgesamt`.
+- Neuen ausführbaren Regressionstest ergänzt: 30 Pakete, einmaliger Safari-Abbruch auf Paket 29, automatische Fortsetzung mit 819 unveränderten In-Memory-Treffern.
+- Modul-v1, API-v2-Schema und Tokenbindung, Marketplace-Adapter, Klassifizierung, Favoriten und das freundliche 1.6-Farbschema bleiben kompatibel.
+- Produktionsabnahme: ausstehend. Rollback-Ziel: 1.6.2 / `gp-162-20260810-1`.
+
 ## 1.6.2 – 2026-08-10 – Robuster Browserstart und neue Log-Oberfläche
 
 - Den Safari-Fehler behoben, bei dem ein einzelnes `Load failed` der Release-Identität die Websuche dauerhaft als „Live-Suche gesperrt“ blockierte.

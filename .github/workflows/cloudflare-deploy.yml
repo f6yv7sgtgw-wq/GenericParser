@@ -69,6 +69,7 @@ jobs:
           node --test tests/js/ui-160.test.mjs
           node --test tests/js/controller-v2-bridge-161.test.mjs
           node --test tests/js/browser-startup-162.test.mjs
+          node --test tests/js/mobile-transport-163.test.mjs
           node --check pocs/ebay-notifications/src/index.js
           node --test pocs/ebay-notifications/test/*.test.js
           node --check pocs/vinted-browser/src/index.js
@@ -204,6 +205,8 @@ jobs:
           print('v2_status=',d.get('status'),'source=',source,'listings=',len(listings),'continuation=',bool(d.get('continuation_token')))
           raise SystemExit(0 if ok else 1)
           PY
+      - name: Verify long mobile module API v2 continuation chain
+        run: uv run python scripts/check_module_v2_long_run.py "$DEPLOYMENT_URL" --query Evercade --max-packets 36 --min-packets 30
       - name: Verify live Kleinanzeigen, Vinted and official eBay Browse search
         run: |
           set -euo pipefail

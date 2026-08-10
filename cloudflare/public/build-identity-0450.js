@@ -5,8 +5,8 @@
   // must never lock the browser search. Live identity verification runs in the
   // background and updates this object in place when it succeeds.
   const identity = {
-    version: '1.6.2',
-    buildId: 'gp-162-20260810-1',
+    version: '1.6.3',
+    buildId: 'gp-163-20260810-1',
     apiContract: 'generic-parser-module-v1',
     moduleContract: 'generic-parser-module-v1',
     supportedModuleContracts: ['generic-parser-module-v1', 'generic-parser-module-v2'],
@@ -32,7 +32,7 @@
     favoritesPage: './favorites.html',
     ebayDeletionEndpoint: 'https://genericparser-ebay-notifications.f6yv7sgtgw.workers.dev/marketplace-account-deletion',
     vintedStrategy: 'service-binding',
-    vintedBackgroundEnrichment: {enabled: true, endpoint: './api/vinted/enrich', batchSize: 3, serialBatches: true, blocksSearch: false},
+    vintedBackgroundEnrichment: {enabled: true, endpoint: './api/vinted/enrich', batchSize: 3, serialBatches: true, blocksSearch: false, yieldsToPrimarySearch: true},
     autoResume: {enabled: true, quietPeriodMs: 1, healthIntervalMs: 1, maxHealthChecks: 4, maxAutoResumes: 1},
     debug: {enabledByDefault: false, storageKey: 'generic-parser-debug', includePayload: false},
     tests: {enabledByDefault: false, storageKey: 'generic-parser-tests', endpoint: './api/module/v1/self-test?enabled=true', networkUsed: false}

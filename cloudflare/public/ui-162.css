@@ -1,4 +1,4 @@
-/* GenericParser 1.6.2: resilient startup and compact diagnostics. */
+/* GenericParser 1.6.3: resilient startup, mobile transport recovery and compact diagnostics. */
 
 .connection-status.degraded > span {
   background: var(--yellow);

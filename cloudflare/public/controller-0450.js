@@ -62,7 +62,9 @@
         [/const LOG_KEY = '[^']+';/, `const LOG_KEY = '${I.eventLogKey}';`],
         [/const MAX_LOG = \d+;/, 'const MAX_LOG = 800;'],
         [/const COOLDOWN_MS = \d+;/, 'const COOLDOWN_MS = 0;'],
-        [/if \(workerVersion && \(workerVersion !== VERSION \|\| workerBuild !== BUILD_ID \|\| workerContract !== API_CONTRACT\)\) \{/, 'if (workerVersion && workerContract !== API_CONTRACT) {']
+        [/if \(workerVersion && \(workerVersion !== VERSION \|\| workerBuild !== BUILD_ID \|\| workerContract !== API_CONTRACT\)\) \{/, 'if (workerVersion && workerContract !== API_CONTRACT) {'],
+        [/const raw = await dbGet\(\);/, 'const memory = activeState && (activeState.paused || activeState.stopped) && activeState.continuationToken ? activeState : null; const raw = memory || await dbGet();'],
+        [/const state = restored\(raw\);/, 'const state = raw === memory ? memory : restored(raw);']
       ];
       for (const [pattern, to] of replacements) {
         if (!pattern.test(source)) throw new Error(`Controller runtime pattern missing: ${pattern}`);
@@ -123,17 +125,34 @@
       } catch {}
       try {
         requestWithBackoff = async function(payload, s) {
+          const waits = [0, 250, 750, 1500, 3000, 5000, 8000];
           let last;
-          for (let i = 0; i < 4; i++) {
+          for (let i = 0; i < waits.length; i++) {
             if (stopRequested) throw new Error('Suche wurde gestoppt.');
-            if (i) s.retries++;
+            if (waits[i]) {
+              s.retries++;
+              s.paused = true;
+              await persist(s);
+              window.gpEventLog?.('transport_retry_wait', 'Unterbrochenes Suchpaket wird erneut gesendet', {
+                page: s.page,
+                attempt: i + 1,
+                waitMs: waits[i],
+                message: last?.message,
+                transport: Boolean(last?.transport)
+              });
+              workerState('Verbindung wird wiederhergestellt', `Suchpaket ${s.page + 1} · Versuch ${i + 1}/${waits.length}`, 'working');
+              await wait(Math.max(waits[i], Number(last?.retryAfter || 0) * 1000));
+              s.paused = false;
+            }
             try { return await requestPage(payload, s); }
             catch (e) {
               last = e;
               if (!e.retryable || [400,401,409,410,422].includes(e.status)) break;
-              workerState('Worker wiederholt sofort', `Seite ${s.page+1} fehlgeschlagen · unmittelbarer Retry ${i+1}/4`, 'working');
+              workerState('Verbindung unterbrochen', `Suchpaket ${s.page + 1} wird automatisch erneut gesendet`, 'working');
             }
           }
+          s.lastErrorTransport = Boolean(last?.transport);
+          s.lastErrorMessage = String(last?.message || last || 'Unbekannter Fehler');
           throw last;
         };
       } catch {}
@@ -179,7 +198,7 @@
       directMode(error);
     });
 })().catch(error => {
-  // Identity diagnostics are fail-open in 1.6.2. The static app controller can
+  // Identity diagnostics remain fail-open in 1.6.3. The static app controller can
   // still submit module-v2 requests and report a real API error if necessary.
   window.GP_HANDSHAKE_READY = true;
   const button = document.getElementById('search-button');

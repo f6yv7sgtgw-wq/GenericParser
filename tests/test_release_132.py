@@ -256,11 +256,12 @@ def test_browser_queue_is_non_blocking_serial_and_visible():
     html = (ROOT / "cloudflare/public/index.html").read_text(encoding="utf-8")
     poc = (ROOT / "pocs/vinted-browser/src/index.js").read_text(encoding="utf-8")
     assert "const BATCH_SIZE = 3" in script
-    assert "queueMicrotask(() => void drain(token))" in script
+    assert "scheduleDrain(generation)" in script
+    assert "window.GP_SEARCH_RUNNING === true" in script
     assert "api/vinted/enrich" in script
     assert "while (queue.length" in script
     assert "mainSearchBlocked: false" in script
-    assert "done + cancelled >= totalQueued" in script
+    assert "attempted + cancelled >= totalQueued" in script
     assert "Vinted-Details nach Stopp beendet" in script
     assert "vinted-detail-state" in html
     assert "vinted-background-132.js" in html

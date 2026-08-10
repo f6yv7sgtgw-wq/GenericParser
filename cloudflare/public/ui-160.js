@@ -366,7 +366,7 @@
     const selected = document.getElementById('search-source')?.value || 'auto';
     for (const source of ['kleinanzeigen', 'vinted', 'ebay']) {
       const enabled = selected === 'auto' || selected === source;
-      sourceState.set(source, {status: enabled ? (active ? 'active' : 'idle') : 'disabled', count: 0});
+      sourceState.set(source, {status: enabled ? (active ? 'active' : 'idle') : 'disabled', count: 0, keys: new Set()});
     }
     renderSourceProgress();
   }
@@ -375,10 +375,16 @@
     const detail = event.detail || {};
     const source = detail.source;
     if (!source || !['kleinanzeigen', 'vinted', 'ebay'].includes(source)) return;
-    const previous = sourceState.get(source) || {count: 0};
+    const previous = sourceState.get(source) || {count: 0, keys: new Set()};
+    const keys = previous.keys instanceof Set ? previous.keys : new Set();
+    const listingKeys = Array.isArray(detail.listingKeys) ? detail.listingKeys : null;
+    if (listingKeys) {
+      for (const key of listingKeys) if (key) keys.add(String(key));
+    }
     sourceState.set(source, {
       status: detail.status || 'ok',
-      count: Number(previous.count || 0) + Number(detail.count || 0)
+      count: listingKeys ? keys.size : Number(previous.count || 0) + Number(detail.count || 0),
+      keys
     });
     renderSourceProgress();
   }
