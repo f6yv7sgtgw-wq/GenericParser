@@ -20,7 +20,14 @@ def test_release_identity_and_rollback_target_are_consistent():
     assert BUILD_ID == "gp-151-20260810-1"
     assert metadata["version"] == public["version"] == VERSION
     assert metadata["build_id"] == public["build_id"] == BUILD_ID
-    assert metadata["status"] in {"release-candidate", "stable"}
+    assert metadata["status"] == "stable"
+    assert metadata["verification"]["production_acceptance"] == "passed"
+    assert metadata["verification"]["production_commit"] == (
+        "20721cc6335c00b6e1f9560c228f5604376f81b3"
+    )
+    assert metadata["verification"]["production_workflow_run"] == 31365503492
+    assert metadata["verification"]["vinted_browser_workflow_run"] == 31365503492
+    assert metadata["verification"]["accepted_at"] == "2026-08-10T07:22:53Z"
     assert metadata["rollback_plan"] == {
         "last_stable_baseline": "1.5.0",
         "build_id": "gp-150-20260810-1",
