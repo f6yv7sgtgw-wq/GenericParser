@@ -65,8 +65,22 @@ jobs:
         run: |
           set -euo pipefail
           while IFS='|' read -r path route; do
-            curl -fsS --max-time 30 "$DEPLOYMENT_URL/$route" -o "/tmp/$(basename "$path")"
-            cmp "$path" "/tmp/$(basename "$path")"
+            remote="/tmp/live-${path//\//_}"
+            matched=false
+            for attempt in $(seq 1 12); do
+              code="$(curl -sS -H 'Cache-Control: no-cache' -o "$remote" -w '%{http_code}' --max-time 30 "$DEPLOYMENT_URL/$route?acceptance=$EXPECTED_BUILD-$attempt" || true)"
+              if [ "$code" = 200 ] && [ -s "$remote" ] && cmp -s "$path" "$remote"; then
+                matched=true
+                break
+              fi
+              sleep 5
+            done
+            if [ "$matched" != true ]; then
+              echo "Live asset mismatch: $path (HTTP $code)"
+              wc -c "$path" "$remote" || true
+              sha256sum "$path" "$remote" || true
+              exit 1
+            fi
           done <<'EOF'
           cloudflare/public/index.html|
           cloudflare/public/build-identity-0450.js|build-identity-0450.js
