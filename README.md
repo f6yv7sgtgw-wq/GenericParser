@@ -8,7 +8,7 @@ remain optional module-v1 compatibility helpers.
 
 - **Version:** `1.6.1`
 - **Build:** `gp-161-20260810-1`
-- **Status:** Release candidate; production acceptance pending
+- **Status:** Stable; production and direct browser-v2 acceptance passed
 - **Worker profile:** Cloudflare Workers Paid
 - **Preferred module contract:** `generic-parser-module-v2`
 - **Compatible module contract:** `generic-parser-module-v1`
@@ -24,8 +24,11 @@ lavender palette. Module-v1, the proven three-source search core,
 classification, fixed-price eBay default, explicit favorites and the signed
 Marketplace Account Deletion endpoint remain compatible.
 
-Production acceptance details are added after the release-candidate deployment
-passes all live gates.
+Production workflow `31419552008` passed on commit
+`0b30f5bf651a3b7a87401ace0dce0540d5b1c882`. A separate direct browser-v2
+continuation test also crossed Kleinanzeigen, Vinted and eBay with one bound
+batch ID, and the live controller, app, palette and service worker matched the
+tested files byte for byte.
 
 ## Architecture
 
