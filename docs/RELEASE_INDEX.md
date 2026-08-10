@@ -4,6 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
+| 1.6.2 | `gp-162-20260810-1` | `9e2a09b71c6d6cea7bca4e13b0ecd2a515758907` | Safari-Startpfad fail-open; dynamische Endpunkte vom Asset-Cache getrennt; Log & Diagnose im aktuellen responsiven Farbschema; Produktions- und direkter Browser-v2-Test grün; Suchkern unverändert |
 | 1.6.1 | `gp-161-20260810-1` | `0b30f5bf651a3b7a87401ace0dce0540d5b1c882` | Browser-Controller reicht API-v2-State korrekt weiter; Speicherräumung fail-open; freundlicheres tiefblaues/teal Farbschema; Produktions-Live-Gates grün; Modul-v1, v2-Schema und Suchkern unverändert |
 | 1.6.0 | `gp-160-20260810-1` | `9a3f5af1775fbf1c95438dbb66daa643908235f3` | Modul-API v2 und neue Websuche; vor Stable-Freigabe wegen inkompatibler Controller-Aufrufsignatur durch 1.6.1 ersetzt |
 | 1.5.1 | `gp-151-20260810-1` | `20721cc6335c00b6e1f9560c228f5604376f81b3` | Manueller Stopp eindeutig pausiert/fortsetzbar; ausgewogenes responsives Filterlayout; 1.5.0-Suchverhalten unverändert; Produktions-Live-Gates grün |
@@ -26,9 +27,9 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 ## Aktueller Stable Release
 
 ```text
-Version:                    1.6.1
-Paketversion:               1.6.1
-Build-ID:                   gp-161-20260810-1
+Version:                    1.6.2
+Paketversion:               1.6.2
+Build-ID:                   gp-162-20260810-1
 Bevorzugter Modulvertrag:   generic-parser-module-v2
 Kompatibler Modulvertrag:   generic-parser-module-v1
 Worker-Profil:              Paid
@@ -59,27 +60,32 @@ Fortsetzung:                signiertes opakes Token, 2 Stunden
 Serverseitige Suchjobs:     nein
 Anzeigentext:               entfernt
 Log-Navigation:             im Seitenkopf
+Browser-Start:              eingebettete Identität, Live-Prüfung im Hintergrund
+Diagnosefehler sperrt Suche: nein
+Log-Oberfläche:             responsiv, API v2 klar von v1-Kompatibilität getrennt
 Ergebnisraster:             3+ Spalten Desktop, 4–5 Spalten Wide Screen
 Kartenmedien:               Bild und Text dauerhaft nebeneinander
 Startseiten-Symbol:         entfernt
 Debug-Logs:                 standardmäßig aus
 Modultests:                 standardmäßig aus, ohne Kleinanzeigen-Abruf
 Status:                     Stable; Produktionsabnahme bestanden
-Produktions-Commit:         0b30f5bf651a3b7a87401ace0dce0540d5b1c882
-Deploy-Workflow:            31419552008 (success)
-eBay-Endpoint-Gate:         31419552008 (success)
-eBay-Browse-Gate:           31419552008 (success)
-Klassifizierungs-Gate:      31419552008 (success)
-Vinted-Browser-Gate:        31419552008 (success)
+Produktions-Commit:         9e2a09b71c6d6cea7bca4e13b0ecd2a515758907
+Deploy-Workflow:            31423346170 (success)
+eBay-Endpoint-Gate:         31423346170 (success)
+eBay-Browse-Gate:           31423346170 (success)
+Klassifizierungs-Gate:      31423346170 (success)
+Vinted-Browser-Gate:        31423346170 (success)
+Direkter Browser-v2-Test:   378 eindeutige Zelda/eBay-Treffer, Stopp fortsetzbar
+Live-Assets:                8/8 bytegenau zum geprüften Commit
 ```
 
 ## Rückfallreferenz
 
 ```text
-Version:                    1.5.1
-Build-ID:                   gp-151-20260810-1
-Commit:                     20721cc6335c00b6e1f9560c228f5604376f81b3
-Deploy-Workflow:            31365503492 (success)
+Version:                    1.6.1
+Build-ID:                   gp-161-20260810-1
+Commit:                     0d0d236baf5d1c5bf7e2d4ccde2a5373f0156c08
+Deploy-Workflow:            31419552008 (success)
 ```
 
 ## Release-Download
@@ -90,16 +96,16 @@ Der Hauptbranch enthält den veröffentlichten Stand einschließlich der nachgel
 https://github.com/f6yv7sgtgw-wq/GenericParser/archive/refs/heads/main.zip
 ```
 
-Der exakte abgenommene 1.6.1-Produktionsstand ist dauerhaft über den Commit abrufbar:
+Der exakte abgenommene 1.6.2-Produktionsstand ist dauerhaft über den Commit abrufbar:
 
 ```text
-https://github.com/f6yv7sgtgw-wq/GenericParser/archive/0b30f5bf651a3b7a87401ace0dce0540d5b1c882.zip
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/9e2a09b71c6d6cea7bca4e13b0ecd2a515758907.zip
 ```
 
-Stabile Rückfallreferenz 1.5.1:
+Stabile Rückfallreferenz 1.6.1:
 
 ```text
-https://github.com/f6yv7sgtgw-wq/GenericParser/archive/20721cc6335c00b6e1f9560c228f5604376f81b3.zip
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/0d0d236baf5d1c5bf7e2d4ccde2a5373f0156c08.zip
 ```
 
 ## Pflegevorgabe ab 1.0

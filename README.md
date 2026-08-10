@@ -8,7 +8,7 @@ remain optional module-v1 compatibility helpers.
 
 - **Version:** `1.6.2`
 - **Build:** `gp-162-20260810-1`
-- **Status:** Release candidate; production acceptance pending
+- **Status:** Stable; production and direct browser acceptance passed
 - **Worker profile:** Cloudflare Workers Paid
 - **Preferred module contract:** `generic-parser-module-v2`
 - **Compatible module contract:** `generic-parser-module-v1`
@@ -28,6 +28,13 @@ an explicit distinction between Websuche API v2 and module-v1 compatibility.
 Module-v1, module-v2 schemas, signed continuation tokens, marketplace
 adapters, classification, fixed-price eBay default, explicit favorites and the
 signed Marketplace Account Deletion endpoint remain compatible.
+
+Production workflow `31423346170` passed on commit
+`9e2a09b71c6d6cea7bca4e13b0ecd2a515758907`. A direct browser search for
+`Zelda` over API v2 loaded 378 unique eBay listings before a controlled stop,
+then exposed a correctly resumable state. Search and Log & Diagnose loaded the
+1.6.2 identity, and the eight active UI/controller/cache assets matched the
+tested commit byte for byte.
 
 ## Architecture
 

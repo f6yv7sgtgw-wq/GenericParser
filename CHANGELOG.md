@@ -11,7 +11,8 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - `Log & Diagnose` auf das freundliche 1.6-Farbschema und ein kompaktes mobiles Layout umgestellt; Ereignisse sind einklappbar und nach Problemen, Suchläufen oder Quellen filterbar.
 - In der Diagnose „Websuche: API v2“ klar von „Kompatibilität: API v1“ getrennt.
 - Suchkern, API-v1/v2-Verträge, Quellenadapter, Klassifizierung, Favoriten, Stopp/Fortsetzen und Paid-Worker-Timing unverändert beibehalten.
-- Rollback-Ziel bis zur Produktionsabnahme: 1.6.1 / `gp-161-20260810-1`.
+- Produktionsabnahme erfolgreich: Workflow `31423346170` bestätigte auf Commit `9e2a09b71c6d6cea7bca4e13b0ecd2a515758907` Identität, API v2, alle drei Marktplätze, eBay-Verträge und Vinted-Detailanreicherung. Der direkte Browserlauf `Zelda` lud 378 eindeutige eBay-Treffer bis zum kontrollierten, korrekt fortsetzbaren Stopp; Startseite und neue Log-Oberfläche meldeten 1.6.2, und acht aktive Browserassets waren bytegenau zum geprüften Commit.
+- Rollback-Ziel: 1.6.1 / `gp-161-20260810-1`.
 
 ## 1.6.1 – 2026-08-10 – Browser-Bridge-Hotfix und freundlicheres Farbschema
 

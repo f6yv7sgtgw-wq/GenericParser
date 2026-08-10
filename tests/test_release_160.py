@@ -128,8 +128,14 @@ def test_release_identity_publishes_v2_additively():
     assert generic_parser.MODULE_CONTRACT_V2 == MODULE_CONTRACT_V2
     assert metadata["version"] == public["version"] == VERSION
     assert metadata["build_id"] == public["build_id"] == BUILD_ID
-    assert metadata["status"] in {"release-candidate", "stable"}
-    assert metadata["verification"]["production_acceptance"] in {"pending", "passed"}
+    assert metadata["status"] == "stable"
+    assert metadata["verification"]["production_acceptance"] == "passed"
+    assert metadata["verification"]["production_commit"] == (
+        "9e2a09b71c6d6cea7bca4e13b0ecd2a515758907"
+    )
+    assert metadata["verification"]["production_workflow_run"] == 31423346170
+    assert metadata["verification"]["vinted_browser_workflow_run"] == 31423346170
+    assert metadata["verification"]["accepted_at"] == "2026-08-10T19:22:54Z"
     assert metadata["compatibility"]["module_v1_unchanged"] is True
     assert metadata["rollback_plan"] == {
         "last_stable_baseline": "1.6.1",
