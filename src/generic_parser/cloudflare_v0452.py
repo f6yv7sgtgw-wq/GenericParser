@@ -1,9 +1,8 @@
-"""GenericParser 0.45.2 transport and compatibility wrapper.
+"""GenericParser transport and compatibility wrapper for release 1.6.
 
-Build 6 preserves the live-proven 0.45.0 FastAPI/search runtime and Build 5
-Worker-edge CORS behavior. It adds only an Evercade compatibility adapter on
-the unversioned /api/module/search alias. The canonical /api/module/v1/search
-contract stays strict and unchanged.
+The wrapper preserves the live-proven 0.45.0 FastAPI/search runtime and the
+strict module-v1 routes. Release 1.6 adds the project-independent module-v2
+packet API; the unversioned Evercade alias remains a compatibility adapter.
 """
 from __future__ import annotations
 
@@ -24,9 +23,11 @@ from .build_identity_v0452 import (
     ENTRYPOINT,
     FUNCTIONAL_REFERENCE,
     OPERATIONAL_REFERENCE,
+    PREFERRED_MODULE_CONTRACT,
     RUNTIME_REFERENCE,
     SEARCH_MODULE,
     SEARCH_RUNTIME,
+    SUPPORTED_MODULE_CONTRACTS,
     TECHNICAL_BASE,
     VERSION,
     WORKER_UNIT,
@@ -39,6 +40,16 @@ from .cloudflare_v0450 import (
 )
 from .ebay_adapter import EBAY_MARKETPLACE, ebay_credentials_configured
 from .module_api import MODULE_CONTRACT, ModulePageRequest, ModuleSearchProfile
+from .module_api_v2 import (
+    MODULE_CONTRACT_V2,
+    ContinuationError,
+    V2BatchRequest,
+    V2SingleRequest,
+    V2ValidateRequest,
+    execute_v2_packet,
+    v2_capabilities,
+    validate_v2_request,
+)
 from .vinted_enrichment import DETAIL_BATCH_LIMIT, enrich_vinted_batch
 
 app = FastAPI(title=f"GenericParser {VERSION}", version=VERSION, docs_url=None, redoc_url=None)
@@ -54,6 +65,7 @@ EXPOSE_HEADERS = [
     "X-GenericParser-Build",
     "X-GenericParser-Contract",
     "X-GenericParser-Module-Contract",
+    "X-GenericParser-Supported-Contracts",
     "X-GenericParser-CORS-Layer",
     "CF-Ray",
 ]
@@ -83,6 +95,8 @@ def identity() -> dict[str, Any]:
         "build_id": BUILD_ID,
         "api_contract": API_CONTRACT,
         "module_contract": MODULE_CONTRACT,
+        "supported_module_contracts": list(SUPPORTED_MODULE_CONTRACTS),
+        "preferred_module_contract": PREFERRED_MODULE_CONTRACT,
         "entrypoint": ENTRYPOINT,
         "bootstrap_module": BOOTSTRAP_MODULE,
         "search_module": SEARCH_MODULE,
@@ -92,7 +106,7 @@ def identity() -> dict[str, Any]:
         "operational_reference": OPERATIONAL_REFERENCE,
         "runtime_reference": RUNTIME_REFERENCE,
         "technical_base": TECHNICAL_BASE,
-        "search_behavior_changed": True,
+        "search_behavior_changed": False,
         "startup_model": "eager-asgi-0450",
         "evercade_alias_compatibility": True,
         "vinted_background_enrichment": True,
@@ -108,6 +122,7 @@ def identity() -> dict[str, Any]:
         "result_filtering": True,
         "traffic_group_sort": "green-yellow-orange-red",
         "favorites": "browser-local-user-selected",
+        "web_ui_api_contract": PREFERRED_MODULE_CONTRACT,
     }
 
 
@@ -118,6 +133,7 @@ def release_headers(request_id: str) -> dict[str, str]:
         "X-GenericParser-Build": BUILD_ID,
         "X-GenericParser-Contract": API_CONTRACT,
         "X-GenericParser-Module-Contract": MODULE_CONTRACT,
+        "X-GenericParser-Supported-Contracts": ",".join(SUPPORTED_MODULE_CONTRACTS),
         "Cache-Control": "no-store",
     }
 
@@ -127,6 +143,12 @@ def response(request_id: str, body: dict[str, Any], status: int = 200) -> JSONRe
     payload.setdefault("request_id", request_id)
     payload.setdefault("timestamp", datetime.now(UTC).isoformat())
     return JSONResponse(status_code=status, content=payload, headers=release_headers(request_id))
+
+
+def v2_response(request_id: str, body: dict[str, Any], status: int = 200) -> JSONResponse:
+    result = response(request_id, body, status=status)
+    result.headers["X-GenericParser-Module-Contract"] = MODULE_CONTRACT_V2
+    return result
 
 
 @app.middleware("http")
@@ -151,7 +173,8 @@ async def request_trace(request: Request, call_next):
             status=500,
         )
     for key, value in release_headers(request_id).items():
-        result.headers[key] = value
+        if key not in result.headers:
+            result.headers[key] = value
     record = {
         "request_id": request_id,
         "timestamp": datetime.now(UTC).isoformat(),
@@ -188,6 +211,8 @@ async def health(request: Request) -> JSONResponse:
             "ebay_deletion_endpoint": EBAY_DELETION_ENDPOINT,
             "product_classification": "product-classification-v1",
             "result_filtering": True,
+            "supported_module_contracts": list(SUPPORTED_MODULE_CONTRACTS),
+            "preferred_module_contract": PREFERRED_MODULE_CONTRACT,
         },
     )
 
@@ -226,12 +251,19 @@ async def diagnostics(request: Request) -> JSONResponse:
                 "ebay_deletion_endpoint": EBAY_DELETION_ENDPOINT,
                 "product_classification": "product-classification-v1",
                 "result_filtering": True,
+                "module_contract_v2": True,
             },
             "routes": {
                 "health": "/health",
                 "version": "/version",
                 "diagnostics": "/diagnostics",
                 "search": ["/search", "/api/search", "/api/module/search", "/api/module/v1/search"],
+                "module_v2": {
+                    "capabilities": "/api/module/v2/capabilities",
+                    "validate": "/api/module/v2/validate",
+                    "search": "/api/module/v2/search",
+                    "batch": "/api/module/v2/batch",
+                },
                 "vinted_detail_enrichment": "/api/vinted/enrich",
                 "favorites": "/favorites.html",
                 "ebay_marketplace_account_deletion": EBAY_DELETION_ENDPOINT,
@@ -294,6 +326,67 @@ async def module_capabilities(request: Request) -> JSONResponse:
             "deployment": identity(),
         },
     )
+
+
+@app.get("/api/module/v2/capabilities")
+async def module_v2_capabilities(request: Request) -> JSONResponse:
+    request_id = request.headers.get("x-request-id") or request.headers.get("cf-ray") or str(uuid.uuid4())
+    return v2_response(request_id, v2_capabilities(identity()))
+
+
+@app.post("/api/module/v2/validate")
+async def module_v2_validate(payload: V2ValidateRequest, request: Request) -> JSONResponse:
+    request_id = request.headers.get("x-request-id") or request.headers.get("cf-ray") or str(uuid.uuid4())
+    return v2_response(request_id, validate_v2_request(payload))
+
+
+async def _module_v2_packet(payload: V2BatchRequest, request: Request) -> JSONResponse:
+    request_id = request.headers.get("x-request-id") or request.headers.get("cf-ray") or str(uuid.uuid4())
+    try:
+        body, status = await execute_v2_packet(
+            payload,
+            request,
+            load_service(),
+            deployment=identity(),
+        )
+        return v2_response(request_id, body, status=status)
+    except ContinuationError as exc:
+        return v2_response(
+            request_id,
+            {
+                "contract": MODULE_CONTRACT_V2,
+                "status": "error",
+                "error_code": exc.error_code,
+                "detail": str(exc),
+                "retryable": False,
+                "deployment": identity(),
+            },
+            status=exc.status_code,
+        )
+    except Exception as exc:
+        return v2_response(
+            request_id,
+            {
+                "contract": MODULE_CONTRACT_V2,
+                "status": "error",
+                "error_code": "PACKET_EXECUTION_FAILED",
+                "detail": "Das Suchpaket konnte nicht verarbeitet werden.",
+                "error_type": type(exc).__name__,
+                "retryable": True,
+                "deployment": identity(),
+            },
+            status=502,
+        )
+
+
+@app.post("/api/module/v2/search")
+async def module_v2_search(payload: V2SingleRequest, request: Request) -> JSONResponse:
+    return await _module_v2_packet(payload.to_batch(), request)
+
+
+@app.post("/api/module/v2/batch")
+async def module_v2_batch(payload: V2BatchRequest, request: Request) -> JSONResponse:
+    return await _module_v2_packet(payload, request)
 
 
 @app.post("/search")

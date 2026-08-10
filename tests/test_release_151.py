@@ -16,21 +16,15 @@ def read(path: str) -> str:
 def test_release_identity_and_rollback_target_are_consistent():
     metadata = json.loads(read("VERSION.json"))
     public = json.loads(read("cloudflare/public/release-identity.json"))
-    assert VERSION == "1.5.1"
-    assert BUILD_ID == "gp-151-20260810-1"
+    assert VERSION == "1.6.0"
+    assert BUILD_ID == "gp-160-20260810-1"
     assert metadata["version"] == public["version"] == VERSION
     assert metadata["build_id"] == public["build_id"] == BUILD_ID
-    assert metadata["status"] == "stable"
-    assert metadata["verification"]["production_acceptance"] == "passed"
-    assert metadata["verification"]["production_commit"] == (
-        "20721cc6335c00b6e1f9560c228f5604376f81b3"
-    )
-    assert metadata["verification"]["production_workflow_run"] == 31365503492
-    assert metadata["verification"]["vinted_browser_workflow_run"] == 31365503492
-    assert metadata["verification"]["accepted_at"] == "2026-08-10T07:22:53Z"
+    assert metadata["status"] in {"release-candidate", "stable"}
+    assert metadata["verification"]["production_acceptance"] in {"pending", "passed"}
     assert metadata["rollback_plan"] == {
-        "last_stable_baseline": "1.5.0",
-        "build_id": "gp-150-20260810-1",
+        "last_stable_baseline": "1.5.1",
+        "build_id": "gp-151-20260810-1",
     }
 
 
@@ -76,7 +70,7 @@ def test_filter_layout_is_balanced_and_responsive_without_changing_filters():
     ):
         assert f'id="{identifier}"' in html
     assert html.index("ui-150.css") < html.index("ui-151.css")
-    assert "Standard: Rot ausgeblendet" in html
+    assert '<option value="without-red" selected>Passend &amp; Prüfen</option>' in html
     assert "repeat(12, minmax(0, 1fr))" in css
     assert ".filter-grid > label:nth-child(-n + 6)" in css
     assert ".filter-grid > label:nth-child(n + 7)" in css
@@ -88,15 +82,16 @@ def test_filter_layout_is_balanced_and_responsive_without_changing_filters():
 def test_current_browser_assets_are_cache_busted():
     service_worker = read("cloudflare/public/service-worker.js")
     app = read("cloudflare/public/app.js")
-    assert 'const CACHE="generic-parser-mobile-gp-151"' in service_worker
+    assert 'const CACHE="generic-parser-mobile-gp-160"' in service_worker
     assert '"./ui-151.css"' in service_worker
-    assert "service-worker.js?v=gp-151" in app
+    assert '"./ui-160.css"' in service_worker
+    assert "service-worker.js?v=gp-160" in app
 
 
 def test_ebay_notification_component_tracks_patch_release():
     component = read("pocs/ebay-notifications/src/index.js")
     package = json.loads(read("pocs/ebay-notifications/package.json"))
-    assert "version: '1.5.1'" in component
+    assert "version: '1.6.0'" in component
     assert package["version"] == VERSION
 
 

@@ -60,31 +60,39 @@ Current status: **1.4.0 stable and production-accepted**. The one-shot access ga
 
 Current status: **1.5.1 stable and production-accepted**. The patch corrects the manual-stop status and refines the responsive filter layout without changing classification, all three sources, favorites or the module contract. Production workflow `31365503492` passed the signed eBay notification contract, live identity, all three marketplace sources and deferred Vinted details; 1.5.0 remains the rollback target.
 
-## 1.6 – Title and cartridge normalization
+## 1.6 – Project-independent API and browser usability
 
-- normalize Evercade and SNES PAL titles;
-- spelling variants, numbers and editions;
-- identify individual modules contained in bundles.
+- add `generic-parser-module-v2` without removing or changing module-v1;
+- process one source page per request and resume with signed, opaque tokens;
+- normalize listing identity, known-total pricing and source status;
+- use the same v2 route in the bundled browser;
+- separate search criteria from result filtering;
+- add term chips, source progress, active filters, recent searches and stronger mobile behavior.
 
-## 1.7 – Search profile expansion
+Current status: **1.6.0 release candidate**. Static contract and UI work is
+complete; production acceptance is pending. 1.5.1 remains the rollback target.
 
-- structured profiles for missing cartridges;
-- consistent transfer of result, traffic-light and offer data;
-- prepare multiple providers behind the same module contract without changing client APIs.
+## 1.7 – Source quality and schema evolution
 
-## 1.8 – Deal engine
+- improve source-neutral condition, delivery and offer-format normalization;
+- version additive listing fields without changing existing v2 meanings;
+- expand deterministic fixtures for spelling, punctuation and marketplace edge cases;
+- keep catalog, collection, valuation and deal decisions in consuming clients.
 
-- compare price with market value and maximum price;
-- condition, completeness and shipping;
-- deal classes and total price.
+## 1.8 – Client integration quality
+
+- publish additional end-to-end examples for browser and embedded consumers;
+- improve observable retry guidance and source degradation diagnostics;
+- add contract conformance fixtures for independent clients;
+- preserve project-neutral requests and responses.
 
 ## 1.9 – Server-side search jobs
 
 - evaluate queue/workflow/Durable Object architecture;
 - persistent work packets independent from browser lifetime;
 - only new or changed offers;
-- result and price history;
-- notifications for Evercade and SNES.
+- optional result and price history with an explicit retention model;
+- client-neutral notification hooks.
 
 ## 1.10 – Operations and quality
 

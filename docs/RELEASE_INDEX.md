@@ -4,6 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
+| 1.6.0 | `gp-160-20260810-1` | ausstehend | Projektunabhängige Modul-API v2 mit signierter Fortsetzung; klarere responsive Websuche mit Term-/Filterchips und Quellenfortschritt; Modul-v1 und Suchkern kompatibel |
 | 1.5.1 | `gp-151-20260810-1` | `20721cc6335c00b6e1f9560c228f5604376f81b3` | Manueller Stopp eindeutig pausiert/fortsetzbar; ausgewogenes responsives Filterlayout; 1.5.0-Suchverhalten unverändert; Produktions-Live-Gates grün |
 | 1.5.0 | `gp-150-20260810-1` | `33931e0dd391c68539ec1965342eff8a40d77070` | Produktklassifizierung, feste Ampelreihenfolge, Ergebnisfilter, kompakte Karten, explizite Browser-Favoriten und signierter eBay-Löschendpunkt; Produktions-Live-Gates grün |
 | 1.4.0 | `gp-140-20260809-1` | `7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c` | Offizielle eBay Browse API auf `EBAY_DE`, Festpreisstandard, bekannte Versand-Gesamtsumme und flüchtige eBay-Treffer; Produktions-Live-Gates grün |
@@ -24,10 +25,11 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 ## Aktueller Stable Release
 
 ```text
-Version:                    1.5.0
-Paketversion:               1.5.0
-Build-ID:                   gp-150-20260810-1
-Modulvertrag:               generic-parser-module-v1
+Version:                    1.6.0
+Paketversion:               1.6.0
+Build-ID:                   gp-160-20260810-1
+Bevorzugter Modulvertrag:   generic-parser-module-v2
+Kompatibler Modulvertrag:   generic-parser-module-v1
 Worker-Profil:              Paid
 Fachlicher Referenzkern:    0.44.4
 Operative Referenz:         0.44.6.5
@@ -49,7 +51,11 @@ Explizite Favoriten:        browserlokal, ohne Verkäufer-/Kontodaten
 eBay-Löschendpunkt:         ECDSA-signiert, Challenge unterstützt
 Produktklassifizierung:     v1, erklärbar und quellenneutral
 Ampelreihenfolge:           Grün, Gelb, Orange, Rot
-Ergebnisfilter:             8 Filtergruppen
+Ergebnisfilter:             12 Filter-/Sortiergruppen plus aktive Chips
+Term-Eingabe:               entfernbare Chips per Komma/Enter/Einfügen
+Quellenfortschritt:         Kleinanzeigen, Vinted und eBay getrennt
+Fortsetzung:                signiertes opakes Token, 2 Stunden
+Serverseitige Suchjobs:     nein
 Anzeigentext:               entfernt
 Log-Navigation:             im Seitenkopf
 Ergebnisraster:             3+ Spalten Desktop, 4–5 Spalten Wide Screen
@@ -57,22 +63,22 @@ Kartenmedien:               Bild und Text dauerhaft nebeneinander
 Startseiten-Symbol:         entfernt
 Debug-Logs:                 standardmäßig aus
 Modultests:                 standardmäßig aus, ohne Kleinanzeigen-Abruf
-Status:                     Stable; Produktions-Live-Gates und eBay-Portalvalidierung grün
-Produktions-Commit:         33931e0dd391c68539ec1965342eff8a40d77070
-Deploy-Workflow:            31361068931, Versuch 2 (success)
-eBay-Endpoint-Gate:         31361068931 (Challenge-Vertrag, success)
-eBay-Browse-Gate:           25 Treffer, HTTP 200, EBAY_DE, Festpreis
-Klassifizierungs-Gate:      57/57 Treffer
-Vinted-Browser-Gate:        3/3 Details vollständig
+Status:                     Release Candidate; Produktionsabnahme ausstehend
+Produktions-Commit:         ausstehend
+Deploy-Workflow:            ausstehend
+eBay-Endpoint-Gate:         ausstehend
+eBay-Browse-Gate:           ausstehend
+Klassifizierungs-Gate:      ausstehend
+Vinted-Browser-Gate:        ausstehend
 ```
 
 ## Rückfallreferenz
 
 ```text
-Version:                    1.4.0
-Build-ID:                   gp-140-20260809-1
-Commit:                     7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c
-Deploy-Workflow:            31337634699 (success)
+Version:                    1.5.1
+Build-ID:                   gp-151-20260810-1
+Commit:                     20721cc6335c00b6e1f9560c228f5604376f81b3
+Deploy-Workflow:            31365503492 (success)
 ```
 
 ## Release-Download
@@ -83,16 +89,16 @@ Der Hauptbranch enthält den veröffentlichten Stand einschließlich der nachgel
 https://github.com/f6yv7sgtgw-wq/GenericParser/archive/refs/heads/main.zip
 ```
 
-Der exakte abgenommene 1.5.0-Produktionsstand ist dauerhaft über den Commit abrufbar:
+Der exakte abgenommene 1.5.1-Produktionsstand ist dauerhaft über den Commit abrufbar:
 
 ```text
-https://github.com/f6yv7sgtgw-wq/GenericParser/archive/33931e0dd391c68539ec1965342eff8a40d77070.zip
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/20721cc6335c00b6e1f9560c228f5604376f81b3.zip
 ```
 
-Stabile Rückfallreferenz 1.4.0:
+Stabile Rückfallreferenz 1.5.1:
 
 ```text
-https://github.com/f6yv7sgtgw-wq/GenericParser/archive/7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c.zip
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/20721cc6335c00b6e1f9560c228f5604376f81b3.zip
 ```
 
 ## Pflegevorgabe ab 1.0

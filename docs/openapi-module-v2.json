@@ -1,0 +1,290 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "GenericParser Module API v2",
+    "version": "1.6.0",
+    "description": "Project-independent, packet-based marketplace search for Kleinanzeigen, Vinted and eBay. Module API v1 remains available."
+  },
+  "servers": [
+    {"url": "https://genericparser.f6yv7sgtgw.workers.dev"}
+  ],
+  "paths": {
+    "/api/module/v2/capabilities": {
+      "get": {
+        "summary": "Read sources and packet capabilities",
+        "responses": {
+          "200": {
+            "description": "Capabilities",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Capabilities"}}}
+          }
+        }
+      }
+    },
+    "/api/module/v2/validate": {
+      "post": {
+        "summary": "Validate and normalize search definitions without network search",
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ValidateRequest"}}}
+        },
+        "responses": {
+          "200": {"description": "Valid normalized definitions"},
+          "422": {"$ref": "#/components/responses/ValidationError"}
+        }
+      }
+    },
+    "/api/module/v2/search": {
+      "post": {
+        "summary": "Process one source page for one search",
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SingleRequest"}}}
+        },
+        "responses": {
+          "200": {"$ref": "#/components/responses/PacketResponse"},
+          "409": {"$ref": "#/components/responses/ContinuationConflict"},
+          "410": {"$ref": "#/components/responses/ContinuationExpired"},
+          "422": {"$ref": "#/components/responses/ValidationError"},
+          "502": {"$ref": "#/components/responses/SourceFailure"}
+        }
+      }
+    },
+    "/api/module/v2/batch": {
+      "post": {
+        "summary": "Process one source page from a batch of up to 100 searches",
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BatchRequest"}}}
+        },
+        "responses": {
+          "200": {"$ref": "#/components/responses/PacketResponse"},
+          "409": {"$ref": "#/components/responses/ContinuationConflict"},
+          "410": {"$ref": "#/components/responses/ContinuationExpired"},
+          "422": {"$ref": "#/components/responses/ValidationError"},
+          "502": {"$ref": "#/components/responses/SourceFailure"}
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Client": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["project_id", "project_version"],
+        "properties": {
+          "project_id": {"type": "string", "minLength": 1, "maxLength": 80},
+          "project_version": {"type": "string", "minLength": 1, "maxLength": 40}
+        }
+      },
+      "Criteria": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "required_terms": {"$ref": "#/components/schemas/Terms"},
+          "excluded_terms": {"$ref": "#/components/schemas/Terms"},
+          "model_patterns": {"$ref": "#/components/schemas/Terms"},
+          "brands": {"$ref": "#/components/schemas/Terms"}
+        }
+      },
+      "Terms": {
+        "description": "Array of terms. The server also accepts a comma-separated string and removes empty or case-insensitive duplicate entries.",
+        "oneOf": [
+          {"type": "array", "items": {"type": "string"}},
+          {"type": "string"}
+        ]
+      },
+      "Filters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "max_price": {"type": ["number", "null"], "minimum": 0},
+          "accept_bundles": {"type": "boolean", "default": false},
+          "accept_incomplete": {"type": "boolean", "default": false},
+          "include_auctions": {"type": "boolean", "default": false},
+          "include_review": {"type": "boolean", "default": true},
+          "include_rejected": {"type": "boolean", "default": true}
+        }
+      },
+      "Location": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "postal_code and radius_km require a verified location_id.",
+        "properties": {
+          "postal_code": {"type": ["string", "null"], "pattern": "^[0-9]{5}$"},
+          "location_id": {"type": ["integer", "null"], "minimum": 1},
+          "radius_km": {"type": ["integer", "null"], "minimum": 0}
+        }
+      },
+      "SearchDefinition": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["search_id", "query"],
+        "properties": {
+          "search_id": {"type": "string", "minLength": 1, "maxLength": 128},
+          "query": {"type": "string", "minLength": 1, "maxLength": 300},
+          "sources": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "uniqueItems": true,
+            "items": {"enum": ["kleinanzeigen", "vinted", "ebay"]},
+            "default": ["kleinanzeigen", "vinted", "ebay"]
+          },
+          "criteria": {"$ref": "#/components/schemas/Criteria"},
+          "filters": {"$ref": "#/components/schemas/Filters"},
+          "location": {"$ref": "#/components/schemas/Location"},
+          "sort_by": {"enum": ["relevance", "date", "price_asc", "price_desc"], "default": "relevance"}
+        }
+      },
+      "DebugOptions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {"type": "boolean", "default": false},
+          "include_payload": {"type": "boolean", "default": false},
+          "include_timings": {"type": "boolean", "default": true},
+          "max_events": {"type": "integer", "minimum": 1, "maximum": 200, "default": 50}
+        }
+      },
+      "SingleRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["batch_id", "client", "search"],
+        "properties": {
+          "contract": {"const": "generic-parser-module-v2", "default": "generic-parser-module-v2"},
+          "batch_id": {"type": "string", "minLength": 1, "maxLength": 128},
+          "client": {"$ref": "#/components/schemas/Client"},
+          "search": {"$ref": "#/components/schemas/SearchDefinition"},
+          "continuation_token": {"type": ["string", "null"]},
+          "debug": {"$ref": "#/components/schemas/DebugOptions"}
+        }
+      },
+      "BatchRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["batch_id", "client", "searches"],
+        "properties": {
+          "contract": {"const": "generic-parser-module-v2", "default": "generic-parser-module-v2"},
+          "batch_id": {"type": "string", "minLength": 1, "maxLength": 128},
+          "client": {"$ref": "#/components/schemas/Client"},
+          "searches": {"type": "array", "minItems": 1, "maxItems": 100, "items": {"$ref": "#/components/schemas/SearchDefinition"}},
+          "continuation_token": {"type": ["string", "null"]},
+          "debug": {"$ref": "#/components/schemas/DebugOptions"}
+        }
+      },
+      "ValidateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["client", "searches"],
+        "properties": {
+          "contract": {"const": "generic-parser-module-v2", "default": "generic-parser-module-v2"},
+          "batch_id": {"type": "string", "default": "validation"},
+          "client": {"$ref": "#/components/schemas/Client"},
+          "searches": {"type": "array", "minItems": 1, "maxItems": 100, "items": {"$ref": "#/components/schemas/SearchDefinition"}}
+        }
+      },
+      "Pricing": {
+        "type": "object",
+        "required": ["item", "shipping", "total", "total_known", "currency"],
+        "properties": {
+          "item": {"type": ["number", "null"]},
+          "shipping": {"type": ["number", "null"]},
+          "total": {"type": ["number", "null"]},
+          "total_known": {"type": "boolean"},
+          "currency": {"type": "string"}
+        }
+      },
+      "Listing": {
+        "type": "object",
+        "required": ["listing_key", "source", "source_id", "title", "url", "pricing", "classification"],
+        "properties": {
+          "listing_key": {"type": "string", "description": "Stable packet identity source:source_id"},
+          "source": {"enum": ["kleinanzeigen", "vinted", "ebay"]},
+          "source_id": {"type": "string"},
+          "title": {"type": "string"},
+          "url": {"type": "string", "format": "uri"},
+          "image_url": {"type": ["string", "null"]},
+          "description": {"type": ["string", "null"]},
+          "pricing": {"$ref": "#/components/schemas/Pricing"},
+          "delivery": {"type": "object"},
+          "location": {"type": "object"},
+          "offer": {"type": "object"},
+          "classification": {"type": "object"},
+          "condition": {"type": ["string", "null"]},
+          "timestamps": {"type": "object"}
+        }
+      },
+      "SourceStatus": {
+        "type": "object",
+        "required": ["source", "status", "retryable", "listings_returned"],
+        "properties": {
+          "source": {"enum": ["kleinanzeigen", "vinted", "ebay"]},
+          "status": {"enum": ["ok", "empty", "partial", "blocked", "rate_limited", "timeout", "unavailable", "disabled"]},
+          "retryable": {"type": "boolean"},
+          "retry_after_ms": {"type": ["integer", "null"]},
+          "error_code": {"type": ["string", "null"]},
+          "http_status": {"type": ["integer", "null"]},
+          "listings_returned": {"type": "integer"},
+          "reason": {"type": ["string", "null"]}
+        }
+      },
+      "PacketResponse": {
+        "type": "object",
+        "required": ["contract", "batch_id", "status", "degraded", "progress", "results", "continuation_token", "deployment"],
+        "properties": {
+          "contract": {"const": "generic-parser-module-v2"},
+          "batch_id": {"type": "string"},
+          "status": {"enum": ["partial", "complete"]},
+          "degraded": {"type": "boolean"},
+          "stop_reason": {"enum": ["packet_budget_reached", "batch_complete", "all_sources_failed"]},
+          "progress": {"type": "object"},
+          "results": {"type": "array", "items": {"type": "object"}},
+          "continuation_token": {"type": ["string", "null"]},
+          "deployment": {"type": "object"}
+        }
+      },
+      "Capabilities": {
+        "type": "object",
+        "properties": {
+          "contract": {"const": "generic-parser-module-v2"},
+          "previous_contract": {"const": "generic-parser-module-v1"},
+          "sources": {"type": "array", "items": {"type": "string"}},
+          "packet_model": {"const": "one-source-page-per-request"},
+          "batch_limit": {"const": 100},
+          "continuation": {"type": "object"},
+          "persistent_server_jobs": {"const": false}
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "contract": {"const": "generic-parser-module-v2"},
+          "status": {"const": "error"},
+          "error_code": {"type": "string"},
+          "detail": {"type": "string"},
+          "retryable": {"type": "boolean"}
+        }
+      }
+    },
+    "responses": {
+      "PacketResponse": {
+        "description": "One processed source-page packet",
+        "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PacketResponse"}}}
+      },
+      "ContinuationConflict": {
+        "description": "Continuation token is invalid, already complete, or belongs to a changed batch",
+        "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
+      },
+      "ContinuationExpired": {
+        "description": "Continuation token exceeded its two-hour lifetime",
+        "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
+      },
+      "ValidationError": {"description": "Request validation failed"},
+      "SourceFailure": {
+        "description": "The processed source packet failed; retryability is reported in its source status",
+        "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PacketResponse"}}}
+      }
+    }
+  }
+}

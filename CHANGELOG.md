@@ -2,6 +2,20 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.6.0 – 2026-08-10 – Modul-API v2 und browserfreundliche Suche
+
+- Projektunabhängige Modul-API v2 mit Capabilities-, Validierungs-, Einzel- und Batch-Endpunkten ergänzt; v1 bleibt unverändert erreichbar.
+- Bis zu 100 Suchdefinitionen je Batch, genau ein Quellenpaket je Request und HMAC-SHA256-signierte Fortsetzungstoken mit zwei Stunden Laufzeit umgesetzt.
+- Quellenneutrale Listing-IDs, explizite Preis-/Versandsemantik und normalisierte Quellenstatus samt Wiederholbarkeit eingeführt.
+- Maschinenlesbare OpenAPI-3.1-Dokumentation sowie Vertrags-, Sonderzeichen-, Manipulations-, Ablauf- und Fehlerstatus-Tests ergänzt.
+- Weboberfläche auf Modul-v2 umgestellt und Suchbegriff, Plattformwahl und Primäraktion zu einer klaren Suchzeile zusammengeführt.
+- Pflicht-, Ausschluss-, Varianten- und Markenbegriffe als entfernbare Chips mit Komma-, Enter- und Einfügeunterstützung umgesetzt.
+- Suchkriterien, technische Optionen und Ergebnisfilter deutlicher getrennt; Quellenfortschritt, aktive Filterchips, letzte Suchen und Profilvorschau ergänzt.
+- Mobile Filtersteuerung, bekannte-Gesamtsumme-/Favoritenfilter und Favoriten-zuerst-Sortierung ergänzt; Kartenstatus als „Passend“, „Prüfen“ und „Unpassend“ benannt.
+- Keine Katalog-, Sammlungs-, Marktwert-, Deal- oder persistenten Serverjob-Modelle in GenericParser aufgenommen.
+- Suchkern, Kleinanzeigen-Pagination, Vinted Service Binding, eBay Browse API, Produktklassifizierung, Modul-v1, explizite Favoriten und signierter eBay-Löschendpunkt kompatibel beibehalten.
+- Rollback-Ziel: 1.5.1 / `gp-151-20260810-1`.
+
 ## 1.5.1 – 2026-08-10 – Wahrheitsgemäßer Stoppstatus und GUI-Politur
 
 - Manuellen Stopp nicht mehr als „vollständig beendet“, sondern als pausierten, gespeicherten und fortsetzbaren Suchstand dargestellt.
