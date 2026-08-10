@@ -6,7 +6,7 @@ Reusable multi-source marketplace parser and browser UI for **Evercade**, **SNES
 
 - **Version:** `1.5.1`
 - **Build:** `gp-151-20260810-1`
-- **Status:** Release candidate; local regression, stop-status and responsive-filter gates passed
+- **Status:** Stable; production identity, truthful stop, responsive GUI and all three live-source gates passed
 - **Worker profile:** Cloudflare Workers Paid
 - **Module contract:** `generic-parser-module-v1`
 - **Search runtime:** `0.45.0`
@@ -14,6 +14,8 @@ Reusable multi-source marketplace parser and browser UI for **Evercade**, **SNES
 - **Operational reference:** `0.44.6.5`
 
 GenericParser 1.5.1 corrects the contradictory completion message after a manual stop and presents the result filters in balanced, responsive rows. A stopped run is now explicitly shown and logged as incomplete, saved and resumable. The proven classification, three-source search, fixed-price eBay default, explicit favorites and signed Marketplace Account Deletion endpoint remain unchanged from 1.5.0.
+
+Production acceptance passed on commit `20721cc6335c00b6e1f9560c228f5604376f81b3` in workflow `31365503492`.
 
 ## Architecture
 
