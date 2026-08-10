@@ -16,7 +16,7 @@
   "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications",
   "release_date": "2026-08-10",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "release-candidate",
+  "status": "stable",
   "purpose": "classify and suppress irrelevant product types, keep green results first, add compact result filters and explicit browser-local favorites, and provide a signed eBay marketplace account-deletion endpoint",
   "worker_plan": "paid",
   "sources": {
@@ -68,12 +68,12 @@
     "search_header_project_mark": "removed",
     "vinted_description_api_data": "required",
     "no_horizontal_overflow": "required",
-    "production_acceptance": "pending",
-    "production_commit": null,
-    "production_workflow_run": null,
-    "vinted_browser_workflow_run": null,
+    "production_acceptance": "passed",
+    "production_commit": "33931e0dd391c68539ec1965342eff8a40d77070",
+    "production_workflow_run": 31361068931,
+    "vinted_browser_workflow_run": 31361068931,
     "vinted_browser_gate": "integrated in production workflow",
-    "accepted_at": null
+    "accepted_at": "2026-08-10T06:33:44Z"
   },
   "rollback_plan": {"last_stable_baseline": "1.4.0", "build_id": "gp-140-20260809-1"},
   "metadata_schema": 46

@@ -13,7 +13,9 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Sternaktion und Unterseite `Favoriten` ergänzt. Favoriten werden nur nach ausdrücklicher Auswahl im aktuellen Browser gespeichert und enthalten keine Beschreibung oder Verkäufer-/Kontodaten.
 - Separaten eBay Marketplace Account Deletion Worker ergänzt: SHA-256-Challenge, ECDSA-Signaturprüfung über eBays Public-Key-API und datensparsame Bestätigung gültiger Meldungen.
 - Kleinanzeigen-Referenzkern, Vinted Service Binding, eBay Browse API, Versand-Gesamtpreis und `generic-parser-module-v1` beibehalten.
-- Rollback-Ziel: 1.4.0 / `gp-140-20260809-1`.
+- eBay-Production-Zugangsdaten nach der Rotation erneut live geprüft; Browse Search auf `EBAY_DE` antwortete mit HTTP 200. Die Marketplace-Account-Deletion-Ausnahme wurde deaktiviert und Endpoint-Validierung sowie Testbenachrichtigung wurden betreiberseitig bestätigt.
+- Produktionsabnahme erfolgreich: Workflow `31361068931` (Versuch 2) bestätigte auf Commit `33931e0dd391c68539ec1965342eff8a40d77070` Challenge-Vertrag und Secret-Bindings, 7 Kleinanzeigen-, 25 Vinted- und 25 eBay-Treffer, 57 von 57 klassifizierte Treffer, 25 konsistente bekannte eBay-Gesamtsummen, ausschließlich Festpreisangebote im Standardlauf, keine Verkäufer-/Kontodaten und einen vollständigen Vinted-Detailbatch mit 3 von 3 Treffern.
+- Rollback-Ziel: 1.4.0 / `gp-140-20260809-1` / Commit `7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c`.
 
 ## 1.4.0 – 2026-08-09 – eBay Production Browse API
 
