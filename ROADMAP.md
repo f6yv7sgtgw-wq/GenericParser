@@ -69,13 +69,13 @@ Current status: **1.5.1 stable and production-accepted**. The patch corrects the
 - separate search criteria from result filtering;
 - add term chips, source progress, active filters, recent searches and stronger mobile behavior.
 
-Current status: **1.6.2 stable and production-accepted**. 1.6.1 corrected API-v2 state
-forwarding but still made a single live identity request a hard browser start
-gate. 1.6.2 makes identity and optional controller diagnostics fail-open,
-bypasses dynamic API routes in the service-worker cache and migrates `Log &
-Diagnose` to the responsive deep-blue/teal interface. Workflow `31423346170`,
-the direct API-v2 browser search, controlled stop/resume check and byte-exact
-live-asset verification passed; 1.6.1 is the rollback target.
+Current status: **1.6.3 release candidate**. 1.6.2 remains the production
+rollback target. 1.6.3 classifies Safari `Load failed` as a retryable transport
+interruption during long API-v2 runs, preserves transient eBay listings when
+the same page resumes, lets deferred Vinted details yield to the primary
+packet stream and reports unique per-source and aligned Vinted progress.
+Successful packets retain the Paid Worker profile with zero artificial delay;
+production long-run acceptance is pending.
 
 ## 1.7 – Source quality and schema evolution
 

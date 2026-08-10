@@ -6,9 +6,9 @@ remain optional module-v1 compatibility helpers.
 
 ## Current release
 
-- **Version:** `1.6.2`
-- **Build:** `gp-162-20260810-1`
-- **Status:** Stable; production and direct browser acceptance passed
+- **Version:** `1.6.3`
+- **Build:** `gp-163-20260810-1`
+- **Status:** Release candidate; production acceptance pending
 - **Worker profile:** Cloudflare Workers Paid
 - **Preferred module contract:** `generic-parser-module-v2`
 - **Compatible module contract:** `generic-parser-module-v1`
@@ -16,25 +16,23 @@ remain optional module-v1 compatibility helpers.
 - **Functional search core:** `0.44.4`
 - **Operational reference:** `0.44.6.5`
 
-GenericParser 1.6.2 keeps the project-independent module API v2 and the proven
-three-source search core, while removing a browser start-up single point of
-failure. A temporary `/health` or optional controller-diagnostic failure no
-longer disables the search: the embedded release identity starts the UI and a
-live check follows in the background. Dynamic JSON/API routes bypass the
-service-worker asset cache. `Log & Diagnose` now uses the same deep-blue, teal
-and warm-lavender interface as the search, with compact, expandable events and
-an explicit distinction between Websuche API v2 and module-v1 compatibility.
+GenericParser 1.6.3 keeps the project-independent module API v2 and the proven
+three-source search core, while making long mobile packet sequences resilient.
+A transient Safari `Load failed` is classified as a retryable transport
+interruption and the unchanged API-v2 packet is resent with a short bounded
+recovery backoff. Successful packets still have no artificial delay. Vinted
+background details yield to the primary search and start when the main packet
+stream pauses or finishes.
 
 Module-v1, module-v2 schemas, signed continuation tokens, marketplace
 adapters, classification, fixed-price eBay default, explicit favorites and the
 signed Marketplace Account Deletion endpoint remain compatible.
 
-Production workflow `31423346170` passed on commit
-`9e2a09b71c6d6cea7bca4e13b0ecd2a515758907`. A direct browser search for
-`Zelda` over API v2 loaded 378 unique eBay listings before a controlled stop,
-then exposed a correctly resumable state. Search and Log & Diagnose loaded the
-1.6.2 identity, and the eight active UI/controller/cache assets matched the
-tested commit byte for byte.
+The release gate includes the existing Python, marketplace and browser matrix
+plus a deterministic 30-packet mobile simulation that drops packet 29 once.
+The run must recover automatically with its continuation cursor and all 819
+in-memory listings intact. Production workflow and live long-run evidence are
+recorded only after deployment acceptance.
 
 ## Architecture
 
@@ -77,11 +75,12 @@ Free-Worker protection waits are disabled:
 
 - new-search cooldown: `0 ms`
 - normal packet delay: `0 ms`
-- retry waits: `0 ms`
+- successful-packet delay: `0 ms`
+- transport recovery only: `250`, `750`, `1,500`, `3,000`, `5,000` and `8,000 ms`
 - auto-resume quiet period: effectively immediate
 - recovery health interval: effectively immediate
 
-The proven seven-result Kleinanzeigen work-packet structure remains unchanged. Vinted background work uses serial three-item batches with no artificial delay and never blocks the primary search request.
+The proven seven-result Kleinanzeigen work-packet structure remains unchanged. Vinted background work uses serial three-item batches, yields while the primary search is running and never changes its continuation state.
 
 ## Module contracts
 
@@ -220,4 +219,4 @@ change extraction or pagination. 1.6.0 adds module-v2 and the browser client;
 1.6.1 corrects its runtime state forwarding while keeping module-v1 and the
 marketplace core compatible.
 
-Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.6.0.md`](docs/API_1.6.0.md), [`docs/openapi-module-v2.json`](docs/openapi-module-v2.json), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.6.2.md`](docs/releases/1.6.2.md).
+Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.6.0.md`](docs/API_1.6.0.md), [`docs/openapi-module-v2.json`](docs/openapi-module-v2.json), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.6.3.md`](docs/releases/1.6.3.md).

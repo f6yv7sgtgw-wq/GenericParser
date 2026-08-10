@@ -15,6 +15,7 @@
   let failed = 0;
   let cancelled = 0;
   let stopped = false;
+  let drainTimer = null;
   const seen = new Set();
   const queued = new Set();
   const processed = new Set();
@@ -34,6 +35,8 @@
 
   function reset(run) {
     generation += 1;
+    if (drainTimer) clearTimeout(drainTimer);
+    drainTimer = null;
     controller?.abort();
     controller = null;
     runKey = run;
@@ -65,14 +68,13 @@
     }
     section.classList.remove('hidden');
     const pending = queue.length + activeBatchSize;
-    const done = attempted;
     const full = complete.size;
-    const terminal = pending === 0 && done + cancelled >= totalQueued;
+    const terminal = pending === 0 && attempted + cancelled >= totalQueued;
     chip.textContent = `${full}/${seen.size}`;
     text.className = `compact-status ${terminal ? 'done' : 'working'}`;
     text.innerHTML = terminal
       ? `<strong>${stopped ? 'Vinted-Details nach Stopp beendet' : 'Vinted-Details abgeschlossen'}</strong><span>${full} vollständig · ${failed} unvollständig/fehlgeschlagen · ${cancelled} nicht mehr geladen · ${unavailable.size} ohne Detail-URL</span>`
-      : `<strong>Vinted-Details werden nachgeladen</strong><span>${done}/${totalQueued} Hintergrundtreffer geprüft · ${pending} ausstehend · 3 parallel je Batch</span>`;
+      : `<strong>Vinted-Details werden nachgeladen</strong><span>${full}/${seen.size} vollständig · ${pending} ausstehend${failed ? ` · ${failed} unvollständig/fehlgeschlagen` : ''} · 3 parallel je Batch</span>`;
   }
 
   function mergeUpdate(existing, update) {
@@ -119,8 +121,15 @@
       totalQueued += 1;
     }
     renderProgress();
-    const token = generation;
-    queueMicrotask(() => void drain(token));
+    scheduleDrain(generation);
+  }
+
+  function scheduleDrain(token, delay = 0) {
+    if (drainTimer) clearTimeout(drainTimer);
+    drainTimer = setTimeout(() => {
+      drainTimer = null;
+      void drain(token);
+    }, delay);
   }
 
   async function requestBatch(batch, token) {
@@ -155,9 +164,15 @@
 
   async function drain(token) {
     if (running || token !== generation) return;
+    if (window.GP_SEARCH_RUNNING === true) {
+      return;
+    }
     running = true;
     try {
       while (queue.length && token === generation) {
+        if (window.GP_SEARCH_RUNNING === true) {
+          break;
+        }
         if (typeof stopRequested !== 'undefined' && stopRequested) {
           log('vinted_background_cancelled', 'Vinted-Hintergrundanreicherung nach Stopp beendet', {remaining: queue.length});
           cancelled += queue.length;
@@ -238,5 +253,9 @@
   }
 
   window.addEventListener('gp-controller-ready', install, {once: true});
+  window.addEventListener('gp-search-run-state', event => {
+    if (event.detail?.running !== false || !queue.length) return;
+    scheduleDrain(generation);
+  });
   if (window.GP_CONTROLLER_IDENTITY) install();
 })();

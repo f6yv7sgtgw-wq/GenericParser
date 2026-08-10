@@ -1,8 +1,8 @@
 {
   "product": "GenericParser",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "package_version": "dynamic:generic_parser.release_identity.VERSION",
-  "build_id": "gp-162-20260810-1",
+  "build_id": "gp-163-20260810-1",
   "identity_source": "src/generic_parser/release_identity.py",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
@@ -15,16 +15,16 @@
   "functional_reference_version": "0.44.4",
   "stable_reference_version": "0.44.6.5",
   "runtime_reference_version": "0.44.6.2",
-  "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+responsive-web-ui-162+signed-continuations-v2",
+  "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+mobile-transport-recovery+deferred-vinted-details+responsive-web-ui-162+signed-continuations-v2",
   "release_date": "2026-08-10",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "stable",
-  "purpose": "keep the browser search available when live identity or optional controller diagnostics fail, bypass dynamic endpoints in the service-worker cache and bring Log & Diagnose onto the responsive 1.6 interface without changing module-v1, module-v2 or the proven marketplace search core",
+  "status": "release-candidate",
+  "purpose": "recover transient mobile Load failed interruptions during long API-v2 searches, keep same-page transient eBay results intact, let Vinted background details yield to the primary packet stream and make source/detail progress counters unambiguous without changing module-v1, module-v2 or the marketplace adapters",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted", "ebay"],
     "kleinanzeigen": {"strategy": "proven html search core", "search_path_changed": false},
-    "vinted": {"strategy": "cloudflare service binding catalog search plus bounded inline enrichment and deferred fail-open background batches, anonymous public-web fallback", "binding": "VINTED_BROWSER", "detail_enrichment": true, "detail_budget_per_page": 3, "detail_timeout_ms": 6000, "catalog_timeout_ms": 15000, "background_detail_enrichment": true, "background_endpoint": "/api/vinted/enrich", "background_batch_size": 3, "background_batch_concurrency": 1, "details_parallel_per_batch": 3, "main_search_blocked": false, "rescore_after_enrichment": true, "fail_open": true, "access_control_bypass": false},
+    "vinted": {"strategy": "cloudflare service binding catalog search plus bounded inline enrichment and deferred fail-open background batches, anonymous public-web fallback", "binding": "VINTED_BROWSER", "detail_enrichment": true, "detail_budget_per_page": 3, "detail_timeout_ms": 6000, "catalog_timeout_ms": 15000, "background_detail_enrichment": true, "background_endpoint": "/api/vinted/enrich", "background_batch_size": 3, "background_batch_concurrency": 1, "details_parallel_per_batch": 3, "main_search_blocked": false, "yields_to_primary_search": true, "rescore_after_enrichment": true, "fail_open": true, "access_control_bypass": false},
     "ebay": {"strategy": "official Browse API", "marketplace": "EBAY_DE", "oauth_grant": "client_credentials", "page_size": 25, "fixed_price_default": true, "auctions_optional": true, "auctions_enabled_by_default": false, "delivery_country": "DE", "price_semantics": "item plus known shipping total", "unknown_shipping_total": null, "token_cache": "in-memory until expiry", "search_result_persistence": false, "favorite_persistence": "explicit browser-local user selection", "favorite_fields_contain_seller_data": false, "marketplace_account_deletion_endpoint": "https://genericparser-ebay-notifications.f6yv7sgtgw.workers.dev/marketplace-account-deletion", "notification_signature_verification": "ECDSA via eBay public-key API", "fail_open": true}
   },
   "compatibility": {
@@ -89,15 +89,14 @@
     "search_header_project_mark": "removed",
     "vinted_description_api_data": "required",
     "no_horizontal_overflow": "required",
-    "production_acceptance": "passed",
-    "production_commit": "9e2a09b71c6d6cea7bca4e13b0ecd2a515758907",
-    "production_workflow_run": 31423346170,
-    "vinted_browser_workflow_run": 31423346170,
-    "vinted_browser_gate": "integrated in production workflow",
-    "direct_browser_search": "Zelda eBay API-v2 search loaded 378 unique listings before controlled resumable stop",
-    "live_asset_identity": "index, identity, controller, app, service worker, eventlog HTML/JS and ui-162 CSS byte-exact",
-    "accepted_at": "2026-08-10T19:22:54Z"
+    "mobile_transport_errors_retryable": true,
+    "mobile_transport_retry_waits_ms": [0, 250, 750, 1500, 3000, 5000, 8000],
+    "successful_packet_delay_ms": 0,
+    "same_page_transient_result_resume": true,
+    "vinted_background_yields_to_primary_search": true,
+    "source_progress_unique_listing_keys": true,
+    "production_acceptance": "pending"
   },
-  "rollback_plan": {"last_stable_baseline": "1.6.1", "build_id": "gp-161-20260810-1"},
-  "metadata_schema": 50
+  "rollback_plan": {"last_stable_baseline": "1.6.2", "build_id": "gp-162-20260810-1"},
+  "metadata_schema": 51
 }
