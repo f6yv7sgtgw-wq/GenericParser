@@ -68,6 +68,7 @@ jobs:
           node --test tests/js/favorites-store-150.test.mjs
           node --test tests/js/ui-160.test.mjs
           node --test tests/js/controller-v2-bridge-161.test.mjs
+          node --test tests/js/browser-startup-162.test.mjs
           node --check pocs/ebay-notifications/src/index.js
           node --test pocs/ebay-notifications/test/*.test.js
           node --check pocs/vinted-browser/src/index.js

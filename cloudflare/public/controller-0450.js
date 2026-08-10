@@ -10,8 +10,50 @@
   const footerBuild = document.querySelector('footer span');
   if (footerBuild) footerBuild.textContent = `GenericParser Mobile · Build ${I.buildId}`;
   const sourceUrl = new URL('./controller-0411.js?v=runtime-reference', location.href);
-  fetch(sourceUrl, {cache: 'no-store'})
-    .then(response => { if (!response.ok) throw new Error(`Controller source HTTP ${response.status}`); return response.text(); })
+  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const loadControllerSource = async () => {
+    let lastError = null;
+    for (const delay of [0, 250, 750]) {
+      if (delay) await wait(delay);
+      try {
+        const response = await fetch(sourceUrl, {cache: 'no-store'});
+        if (!response.ok) throw new Error(`Controller source HTTP ${response.status}`);
+        const contentType = response.headers.get('content-type') || '';
+        if (/text\/html/i.test(contentType)) throw new Error('Controller source returned HTML');
+        return await response.text();
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error('Controller source unavailable');
+  };
+  const directMode = error => {
+    window.GP_HANDSHAKE_READY = true;
+    const button = document.getElementById('search-button');
+    if (button) { button.disabled = false; button.textContent = 'Live-Suche starten'; }
+    const connection = document.getElementById('connection');
+    if (connection) { connection.classList.remove('offline'); connection.classList.add('degraded'); connection.innerHTML = '<span></span> Bereit'; }
+    const state = document.getElementById('worker-state-text');
+    if (state) {
+      state.className = 'compact-status done';
+      state.innerHTML = '<strong>Bereit</strong><span>Die Suche ist verfügbar; die erweiterte Browserdiagnose wird später erneut geladen.</span>';
+    }
+    window.GP_CONTROLLER_IDENTITY = {
+      version: I.version,
+      buildId: I.buildId,
+      apiContract: I.apiContract,
+      module: 'browser-direct-fallback',
+      moduleContract: I.moduleContract,
+      preferredModuleContract: I.preferredModuleContract,
+      webUiApiContract: I.webUiApiContract,
+      degradedDiagnostics: true,
+      diagnosticError: String(error?.message || error || 'Controller source unavailable'),
+      searchCoreChanged: false,
+      sources: I.sources
+    };
+    window.dispatchEvent(new CustomEvent('gp-controller-ready', {detail: window.GP_CONTROLLER_IDENTITY}));
+  };
+  loadControllerSource()
     .then(source => {
       const replacements = [
         [/const VERSION = '[^']+';/, `const VERSION = '${I.version}';`],
@@ -134,16 +176,16 @@
       window.dispatchEvent(new CustomEvent('gp-controller-ready',{detail:window.GP_CONTROLLER_IDENTITY}));
     })
     .catch(error => {
-      window.GP_HANDSHAKE_READY = false;
-      const button = document.getElementById('search-button');
-      if (button) { button.disabled = true; button.textContent = 'Live-Suche gesperrt'; }
-      const state = document.getElementById('worker-state-text');
-      if (state) { state.className='compact-status error'; state.textContent=`Controller konnte nicht geladen werden: ${error.message || error}`; }
+      directMode(error);
     });
 })().catch(error => {
-  window.GP_HANDSHAKE_READY = false;
+  // Identity diagnostics are fail-open in 1.6.2. The static app controller can
+  // still submit module-v2 requests and report a real API error if necessary.
+  window.GP_HANDSHAKE_READY = true;
   const button = document.getElementById('search-button');
-  if (button) { button.disabled = true; button.textContent = 'Live-Suche gesperrt'; }
+  if (button) { button.disabled = false; button.textContent = 'Live-Suche starten'; }
+  const connection = document.getElementById('connection');
+  if (connection) { connection.classList.remove('offline'); connection.classList.add('degraded'); connection.innerHTML = '<span></span> Bereit'; }
   const state = document.getElementById('worker-state-text');
-  if (state) { state.className='compact-status error'; state.textContent=`Release-Identität konnte nicht geladen werden: ${error.message || error}`; }
+  if (state) { state.className='compact-status done'; state.innerHTML='<strong>Bereit</strong><span>Die Live-Identität wird im Hintergrund erneut geprüft.</span>'; }
 });

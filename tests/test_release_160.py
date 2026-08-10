@@ -116,8 +116,8 @@ def test_release_identity_publishes_v2_additively():
 
     metadata = json.loads(read("VERSION.json"))
     public = json.loads(read("cloudflare/public/release-identity.json"))
-    assert VERSION == "1.6.1"
-    assert BUILD_ID == "gp-161-20260810-1"
+    assert VERSION == "1.6.2"
+    assert BUILD_ID == "gp-162-20260810-1"
     assert API_CONTRACT == "generic-parser-module-v1"
     assert PREFERRED_MODULE_CONTRACT == MODULE_CONTRACT_V2
     assert SUPPORTED_MODULE_CONTRACTS == (
@@ -128,18 +128,12 @@ def test_release_identity_publishes_v2_additively():
     assert generic_parser.MODULE_CONTRACT_V2 == MODULE_CONTRACT_V2
     assert metadata["version"] == public["version"] == VERSION
     assert metadata["build_id"] == public["build_id"] == BUILD_ID
-    assert metadata["status"] == "stable"
-    assert metadata["verification"]["production_acceptance"] == "passed"
-    assert metadata["verification"]["production_commit"] == (
-        "0b30f5bf651a3b7a87401ace0dce0540d5b1c882"
-    )
-    assert metadata["verification"]["production_workflow_run"] == 31419552008
-    assert metadata["verification"]["vinted_browser_workflow_run"] == 31419552008
-    assert metadata["verification"]["accepted_at"] == "2026-08-10T18:34:18Z"
+    assert metadata["status"] in {"release-candidate", "stable"}
+    assert metadata["verification"]["production_acceptance"] in {"pending", "passed"}
     assert metadata["compatibility"]["module_v1_unchanged"] is True
     assert metadata["rollback_plan"] == {
-        "last_stable_baseline": "1.5.1",
-        "build_id": "gp-151-20260810-1",
+        "last_stable_baseline": "1.6.1",
+        "build_id": "gp-161-20260810-1",
     }
 
 
@@ -355,11 +349,11 @@ def test_web_ui_160_uses_v2_and_exposes_clear_search_and_result_controls():
     assert "'search-source'" in app[app.index("const ids=") : app.index("function refreshProfiles")]
     assert "market_value" not in app[app.index("function v2Definition") : app.index("function v2Request")]
     assert "parseTermList" in ui
-    assert 'const CACHE="generic-parser-mobile-gp-161"' in service_worker
+    assert "generic-parser-mobile-gp-162" in service_worker
     assert '"./ui-160.css"' in service_worker
     assert '"./ui-161.css"' in service_worker
     assert '"./ui-160.js"' in service_worker
-    assert "service-worker.js?v=gp-161" in app
+    assert "service-worker.js?v=gp-162" in app
     controller = read("cloudflare/public/controller-0450.js")
     assert "requestPage = async function(payload, state)" in controller
     assert "originalRequestPage(payload, state)" in controller
@@ -375,3 +369,5 @@ def test_openapi_document_and_release_docs_are_present():
     assert "generic-parser-module-v2" in read("docs/API_1.6.0.md")
     assert "module-v1" in read("docs/releases/1.6.0.md")
     assert "controller bridge" in read("docs/releases/1.6.1.md").casefold()
+    assert "fail" in read("docs/releases/1.6.2.md").casefold()
+    assert "service-worker" in read("docs/releases/1.6.2.md").casefold()

@@ -23,8 +23,8 @@ test('v2 browser request remains bound to batch and continuation state', () => {
 
 test('browser storage cleanup is fail-open and the hotfix cache is isolated', () => {
   assert.match(app, /Gespeicherter Suchstand konnte nicht gelöscht werden/);
-  assert.match(app, /service-worker\.js\?v=gp-161/);
-  assert.match(serviceWorker, /generic-parser-mobile-gp-161/);
+  assert.match(app, /service-worker\.js\?v=gp-162/);
+  assert.match(serviceWorker, /generic-parser-mobile-gp-162/);
   assert.match(serviceWorker, /\.\/ui-161\.css/);
 });
 

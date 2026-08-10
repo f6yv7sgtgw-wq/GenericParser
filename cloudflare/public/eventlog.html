@@ -3,11 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#090a0f">
-  <title>GenericParser Eventlog</title>
+  <meta name="theme-color" content="#0b1d29">
+  <title>GenericParser Log &amp; Diagnose</title>
   <link rel="stylesheet" href="./app.css">
   <link rel="stylesheet" href="./layout-0409.css">
+  <link rel="stylesheet" href="./compact-04362.css">
   <link rel="stylesheet" href="./ui-133.css">
+  <link rel="stylesheet" href="./ui-134.css">
+  <link rel="stylesheet" href="./ui-150.css">
+  <link rel="stylesheet" href="./ui-151.css">
+  <link rel="stylesheet" href="./ui-160.css">
+  <link rel="stylesheet" href="./ui-161.css">
+  <link rel="stylesheet" href="./ui-162.css">
 </head>
 <body>
 <div class="sticky-shell">
@@ -15,33 +22,48 @@
     <div class="header-inner">
       <div class="brand">
         <div>
-          <div class="title-row"><h1>Log &amp; Diagnose</h1><span class="version-badge">Version <span data-version>…</span></span></div>
-          <p>GenericParser</p>
+          <div class="title-row"><h1>GenericParser</h1><span class="version-badge">Version <span data-version>…</span></span></div>
+          <p>Log &amp; Diagnose</p>
         </div>
       </div>
-      <div class="header-actions"><a class="header-link" href="./favorites.html">Favoriten <span class="favorite-count" data-favorite-count>0</span></a><a class="header-link" href="./">Zur Suche</a></div>
+      <div class="header-actions">
+        <a class="header-link" href="./favorites.html">Favoriten <span class="favorite-count" data-favorite-count>0</span></a>
+        <a class="header-link" href="./">Zur Suche</a>
+      </div>
     </div>
   </header>
 </div>
 
-<main class="app-shell eventlog-shell">
-  <section class="card eventlog-panel">
+<main class="app-shell eventlog-shell eventlog-shell-162">
+  <section class="card eventlog-hero">
     <div class="section-heading">
+      <div><p class="eyebrow">System &amp; Verlauf</p><h2>Log &amp; Diagnose</h2></div>
+      <span class="contract-badge">Websuche · API v2</span>
+    </div>
+    <p class="eventlog-intro">Status der drei Plattformen und die letzten Browserereignisse – technische Details bleiben platzsparend einklappbar.</p>
+    <div class="eventlog-actions eventlog-actions-162">
+      <button id="refresh-log" class="primary" type="button">Aktualisieren</button>
+      <button id="copy-log" class="secondary" type="button">Log kopieren</button>
+      <button id="clear-log" class="danger-button" type="button">Log löschen</button>
+    </div>
+  </section>
+
+  <section id="version-check" class="card runtime-card" aria-live="polite">
+    <div class="runtime-heading"><div><p class="eyebrow">Betriebsstatus</p><h2>Verbindung wird geprüft</h2></div><span class="runtime-state checking">Prüfung</span></div>
+  </section>
+
+  <section class="card eventlog-list-card">
+    <div class="eventlog-list-heading">
       <div><p class="eyebrow">Browseraktivität</p><h2>Ereignisse</h2></div>
-      <button id="clear-log" class="danger-button">Log löschen</button>
+      <label class="log-filter-label">Anzeige<select id="log-filter"><option value="all">Alle Ereignisse</option><option value="problems">Nur Probleme</option><option value="search">Suchläufe</option><option value="sources">Quellenstatus</option></select></label>
     </div>
-    <div class="eventlog-actions">
-      <button id="refresh-log" class="primary">Aktualisieren</button>
-      <button id="copy-log" class="secondary">Log kopieren</button>
-    </div>
-    <div id="version-check" class="diagnostic">Runtime-Identität wird geladen …</div>
-    <div id="log-summary" class="diagnostic"></div>
-    <div id="event-log"></div>
+    <div id="log-summary" class="log-summary" aria-live="polite"></div>
+    <div id="event-log" class="event-list"></div>
   </section>
   <footer><span>GenericParser · Build …</span></footer>
 </main>
-<script src="./build-identity-0450.js" defer></script>
+<script src="./build-identity-0450.js?v=gp-162" defer></script>
 <script src="./favorites-store-150.js" defer></script>
-<script src="./eventlog-0450.js" defer></script>
+<script src="./eventlog-0450.js?v=gp-162" defer></script>
 </body>
 </html>

@@ -19,14 +19,14 @@ def read(path: str) -> str:
 def test_release_identity_metadata_and_rollback_are_consistent():
     metadata = json.loads(read("VERSION.json"))
     public = json.loads(read("cloudflare/public/release-identity.json"))
-    assert VERSION == "1.6.1"
-    assert BUILD_ID == "gp-161-20260810-1"
+    assert VERSION == "1.6.2"
+    assert BUILD_ID == "gp-162-20260810-1"
     assert metadata["version"] == public["version"] == VERSION
     assert metadata["build_id"] == public["build_id"] == BUILD_ID
     assert metadata["status"] in {"release-candidate", "stable"}
     assert metadata["rollback_plan"] == {
-        "last_stable_baseline": "1.5.1",
-        "build_id": "gp-151-20260810-1",
+        "last_stable_baseline": "1.6.1",
+        "build_id": "gp-161-20260810-1",
     }
     assert metadata["verification"]["ebay_production_access_gate"] == "passed"
     assert metadata["verification"]["ebay_production_access_workflow_run"] == 31336200661

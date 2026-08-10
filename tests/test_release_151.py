@@ -16,15 +16,15 @@ def read(path: str) -> str:
 def test_release_identity_and_rollback_target_are_consistent():
     metadata = json.loads(read("VERSION.json"))
     public = json.loads(read("cloudflare/public/release-identity.json"))
-    assert VERSION == "1.6.1"
-    assert BUILD_ID == "gp-161-20260810-1"
+    assert VERSION == "1.6.2"
+    assert BUILD_ID == "gp-162-20260810-1"
     assert metadata["version"] == public["version"] == VERSION
     assert metadata["build_id"] == public["build_id"] == BUILD_ID
     assert metadata["status"] in {"release-candidate", "stable"}
     assert metadata["verification"]["production_acceptance"] in {"pending", "passed"}
     assert metadata["rollback_plan"] == {
-        "last_stable_baseline": "1.5.1",
-        "build_id": "gp-151-20260810-1",
+        "last_stable_baseline": "1.6.1",
+        "build_id": "gp-161-20260810-1",
     }
 
 
@@ -49,8 +49,8 @@ def test_manual_stop_is_never_presented_as_complete():
 
 def test_eventlog_normalizes_existing_and_new_manual_stop_events():
     eventlog = read("cloudflare/public/eventlog-0450.js")
-    assert "event?.type === 'search_stopped'" in eventlog
-    assert "title:'Suchlauf manuell gestoppt'" in eventlog
+    assert "search_stopped" in eventlog
+    assert "Suche pausiert" in eventlog
     assert "Der gespeicherte Stand kann fortgesetzt werden." in eventlog
 
 
@@ -82,17 +82,17 @@ def test_filter_layout_is_balanced_and_responsive_without_changing_filters():
 def test_current_browser_assets_are_cache_busted():
     service_worker = read("cloudflare/public/service-worker.js")
     app = read("cloudflare/public/app.js")
-    assert 'const CACHE="generic-parser-mobile-gp-161"' in service_worker
+    assert "generic-parser-mobile-gp-162" in service_worker
     assert '"./ui-151.css"' in service_worker
     assert '"./ui-160.css"' in service_worker
     assert '"./ui-161.css"' in service_worker
-    assert "service-worker.js?v=gp-161" in app
+    assert "service-worker.js?v=gp-162" in app
 
 
 def test_ebay_notification_component_tracks_patch_release():
     component = read("pocs/ebay-notifications/src/index.js")
     package = json.loads(read("pocs/ebay-notifications/package.json"))
-    assert "version: '1.6.1'" in component
+    assert "version: '1.6.2'" in component
     assert package["version"] == VERSION
 
 

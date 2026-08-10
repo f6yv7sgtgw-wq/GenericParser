@@ -6,9 +6,9 @@ remain optional module-v1 compatibility helpers.
 
 ## Current release
 
-- **Version:** `1.6.1`
-- **Build:** `gp-161-20260810-1`
-- **Status:** Stable; production and direct browser-v2 acceptance passed
+- **Version:** `1.6.2`
+- **Build:** `gp-162-20260810-1`
+- **Status:** Release candidate; production acceptance pending
 - **Worker profile:** Cloudflare Workers Paid
 - **Preferred module contract:** `generic-parser-module-v2`
 - **Compatible module contract:** `generic-parser-module-v1`
@@ -16,19 +16,18 @@ remain optional module-v1 compatibility helpers.
 - **Functional search core:** `0.44.4`
 - **Operational reference:** `0.44.6.5`
 
-GenericParser 1.6.1 retains the clearer responsive search interface and the
-project-independent module API v2 introduced with 1.6.0, and repairs the
-browser controller bridge so batch and continuation state reach every live
-request. The UI keeps dark mode with a friendlier deep-blue, teal and warm
-lavender palette. Module-v1, the proven three-source search core,
-classification, fixed-price eBay default, explicit favorites and the signed
-Marketplace Account Deletion endpoint remain compatible.
+GenericParser 1.6.2 keeps the project-independent module API v2 and the proven
+three-source search core, while removing a browser start-up single point of
+failure. A temporary `/health` or optional controller-diagnostic failure no
+longer disables the search: the embedded release identity starts the UI and a
+live check follows in the background. Dynamic JSON/API routes bypass the
+service-worker asset cache. `Log & Diagnose` now uses the same deep-blue, teal
+and warm-lavender interface as the search, with compact, expandable events and
+an explicit distinction between Websuche API v2 and module-v1 compatibility.
 
-Production workflow `31419552008` passed on commit
-`0b30f5bf651a3b7a87401ace0dce0540d5b1c882`. A separate direct browser-v2
-continuation test also crossed Kleinanzeigen, Vinted and eBay with one bound
-batch ID, and the live controller, app, palette and service worker matched the
-tested files byte for byte.
+Module-v1, module-v2 schemas, signed continuation tokens, marketplace
+adapters, classification, fixed-price eBay default, explicit favorites and the
+signed Marketplace Account Deletion endpoint remain compatible.
 
 ## Architecture
 
@@ -214,4 +213,4 @@ change extraction or pagination. 1.6.0 adds module-v2 and the browser client;
 1.6.1 corrects its runtime state forwarding while keeping module-v1 and the
 marketplace core compatible.
 
-Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.6.0.md`](docs/API_1.6.0.md), [`docs/openapi-module-v2.json`](docs/openapi-module-v2.json), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.6.1.md`](docs/releases/1.6.1.md).
+Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.6.0.md`](docs/API_1.6.0.md), [`docs/openapi-module-v2.json`](docs/openapi-module-v2.json), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.6.2.md`](docs/releases/1.6.2.md).
