@@ -31,8 +31,8 @@
       try { countdown = async () => {}; } catch {}
       try {
         const originalRequestPage = requestPage;
-        requestPage = async function(payload) {
-          const data = await originalRequestPage(payload);
+        requestPage = async function(payload, state) {
+          const data = await originalRequestPage(payload, state);
           const status = data?.source_status || data?.summary?.sources;
           const listings = Array.isArray(data?.listings) ? data.listings : [];
           const vinted = listings.filter(item => item?.source === 'vinted' || String(item?.id || '').startsWith('vinted:'));
@@ -85,10 +85,10 @@
           for (let i = 0; i < 4; i++) {
             if (stopRequested) throw new Error('Suche wurde gestoppt.');
             if (i) s.retries++;
-            try { return await requestPage(payload); }
+            try { return await requestPage(payload, s); }
             catch (e) {
               last = e;
-              if (!e.retryable || [400,401,422].includes(e.status)) break;
+              if (!e.retryable || [400,401,409,410,422].includes(e.status)) break;
               workerState('Worker wiederholt sofort', `Seite ${s.page+1} fehlgeschlagen · unmittelbarer Retry ${i+1}/4`, 'working');
             }
           }

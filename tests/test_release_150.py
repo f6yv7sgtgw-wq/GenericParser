@@ -21,8 +21,8 @@ def read(path: str) -> str:
 def test_release_identity_and_rollback_are_consistent():
     metadata = json.loads(read("VERSION.json"))
     public = json.loads(read("cloudflare/public/release-identity.json"))
-    assert VERSION == "1.6.0"
-    assert BUILD_ID == "gp-160-20260810-1"
+    assert VERSION == "1.6.1"
+    assert BUILD_ID == "gp-161-20260810-1"
     assert metadata["version"] == public["version"] == VERSION
     assert metadata["build_id"] == public["build_id"] == BUILD_ID
     assert metadata["status"] in {"release-candidate", "stable"}

@@ -4,7 +4,8 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 1.6.0 | `gp-160-20260810-1` | ausstehend | Projektunabhängige Modul-API v2 mit signierter Fortsetzung; klarere responsive Websuche mit Term-/Filterchips und Quellenfortschritt; Modul-v1 und Suchkern kompatibel |
+| 1.6.1 | `gp-161-20260810-1` | ausstehend | Browser-Controller reicht API-v2-State korrekt weiter; Speicherräumung fail-open; freundlicheres tiefblaues/teal Farbschema; Modul-v1, v2-Schema und Suchkern unverändert |
+| 1.6.0 | `gp-160-20260810-1` | `9a3f5af1775fbf1c95438dbb66daa643908235f3` | Modul-API v2 und neue Websuche; vor Stable-Freigabe wegen inkompatibler Controller-Aufrufsignatur durch 1.6.1 ersetzt |
 | 1.5.1 | `gp-151-20260810-1` | `20721cc6335c00b6e1f9560c228f5604376f81b3` | Manueller Stopp eindeutig pausiert/fortsetzbar; ausgewogenes responsives Filterlayout; 1.5.0-Suchverhalten unverändert; Produktions-Live-Gates grün |
 | 1.5.0 | `gp-150-20260810-1` | `33931e0dd391c68539ec1965342eff8a40d77070` | Produktklassifizierung, feste Ampelreihenfolge, Ergebnisfilter, kompakte Karten, explizite Browser-Favoriten und signierter eBay-Löschendpunkt; Produktions-Live-Gates grün |
 | 1.4.0 | `gp-140-20260809-1` | `7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c` | Offizielle eBay Browse API auf `EBAY_DE`, Festpreisstandard, bekannte Versand-Gesamtsumme und flüchtige eBay-Treffer; Produktions-Live-Gates grün |
@@ -22,12 +23,12 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 | 0.42.7 | `gp-0427-20260803-1` | `119a05985d11017940b775bb2c6cc7bc6acd992a` | 7er-Arbeitspakete für Cloudflare Worker |
 | 0.41.1 | `gp-0411-20260802-1` | `4c9eac9e52a34c52a021ff5d74c2d87ad0c5351d` | Deployment-Handshake |
 
-## Aktueller Stable Release
+## Aktueller Release-Kandidat
 
 ```text
-Version:                    1.6.0
-Paketversion:               1.6.0
-Build-ID:                   gp-160-20260810-1
+Version:                    1.6.1
+Paketversion:               1.6.1
+Build-ID:                   gp-161-20260810-1
 Bevorzugter Modulvertrag:   generic-parser-module-v2
 Kompatibler Modulvertrag:   generic-parser-module-v1
 Worker-Profil:              Paid

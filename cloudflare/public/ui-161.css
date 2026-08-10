@@ -1,0 +1,179 @@
+/* GenericParser 1.6.1: friendlier deep-blue, teal and warm-lavender palette. */
+
+:root {
+  --bg: #0b1d29;
+  --surface: #132b3a;
+  --surface-raised: #193545;
+  --surface-soft: #214353;
+  --border: #315565;
+  --border-bright: #467082;
+  --text: #f5fbfc;
+  --text-soft: #d7e7ea;
+  --muted: #a4bec5;
+  --accent: #70d7d2;
+  --accent-light: #b7eee7;
+  --accent-deep: #3caeac;
+  --green: #78d9aa;
+  --yellow: #f5cf76;
+  --orange: #f4a76d;
+  --red: #ff8797;
+  --unknown: #91aab4;
+  --line: #315565;
+  --ok: #78d9aa;
+  --danger: #ff8797;
+  --surface-160: rgba(19, 43, 58, .97);
+  --surface-raised-160: rgba(25, 53, 69, .98);
+  --violet-160: #c7b8ec;
+  --cyan-160: #7de1db;
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  background:
+    radial-gradient(circle at 8% -8%, rgba(79, 190, 184, .22), transparent 34rem),
+    radial-gradient(circle at 96% 8%, rgba(183, 154, 222, .16), transparent 30rem),
+    linear-gradient(180deg, #0d2230 0%, var(--bg) 62%, #091822 100%);
+}
+
+.sticky-shell {
+  background: rgba(11, 29, 41, .91);
+  border-bottom-color: rgba(86, 128, 143, .62);
+}
+
+.header-link,
+.secondary {
+  color: var(--text-soft);
+  background: rgba(33, 67, 83, .82);
+  border-color: var(--border-bright);
+}
+
+.header-link:hover,
+.secondary:not(:disabled):hover {
+  color: var(--text);
+  background: #2a5162;
+  border-color: #6591a1;
+}
+
+.version-badge,
+.chip,
+.badge,
+.contract-badge {
+  color: #ede7fb;
+  background: rgba(183, 154, 222, .14);
+  border-color: rgba(202, 178, 235, .34);
+}
+
+.search-card-160 {
+  border-color: rgba(112, 215, 210, .34);
+  background:
+    radial-gradient(circle at 0 0, rgba(112, 215, 210, .15), transparent 36%),
+    radial-gradient(circle at 100% 0, rgba(199, 184, 236, .15), transparent 38%),
+    linear-gradient(150deg, rgba(24, 58, 73, .99), rgba(14, 37, 51, .99));
+  box-shadow: 0 20px 50px rgba(2, 18, 27, .28);
+}
+
+input,
+select,
+.term-editor {
+  color: var(--text);
+  background: #0e2735;
+  border-color: var(--border-bright);
+}
+
+input::placeholder,
+.term-entry::placeholder {
+  color: #87a8b1;
+  opacity: 1;
+}
+
+input:focus,
+select:focus,
+.term-editor:focus-within {
+  border-color: var(--cyan-160);
+  box-shadow: 0 0 0 3px rgba(125, 225, 219, .16);
+}
+
+.primary {
+  color: #08252c;
+  background: linear-gradient(135deg, #b7eee7, #70d7d2);
+  box-shadow: 0 11px 26px rgba(60, 174, 172, .25);
+}
+
+.primary:not(:disabled):hover {
+  background: linear-gradient(135deg, #d1f7f1, #89e4de);
+}
+
+.search-summary,
+.profile-panel,
+.source-progress-item,
+.compact-status,
+.diagnostic-settings {
+  background: rgba(8, 31, 43, .52);
+  border-color: rgba(96, 143, 158, .32);
+}
+
+.term-chip,
+.product-class-badge {
+  color: #f0eafa !important;
+  background: rgba(183, 154, 222, .15) !important;
+  border-color: rgba(202, 178, 235, .34) !important;
+}
+
+.result-filters-160 {
+  border-color: rgba(112, 215, 210, .24);
+  background:
+    radial-gradient(circle at 100% 0, rgba(112, 215, 210, .09), transparent 32%),
+    linear-gradient(180deg, rgba(25, 53, 69, .98), rgba(18, 42, 56, .98));
+}
+
+.active-filter-chip,
+.listing-link {
+  color: #e3f8f5;
+  background: rgba(112, 215, 210, .12);
+  border-color: rgba(125, 225, 219, .28);
+}
+
+.listing {
+  border-color: rgba(88, 128, 143, .34);
+  background: linear-gradient(145deg, rgba(29, 62, 78, .98), rgba(17, 42, 56, .98));
+  box-shadow: 0 10px 25px rgba(2, 18, 27, .18);
+}
+
+.listing:hover {
+  border-color: rgba(125, 174, 190, .5);
+  box-shadow: 0 15px 32px rgba(2, 18, 27, .25);
+}
+
+.listing-image {
+  background: linear-gradient(145deg, #0d2735, #1a3c4c);
+  border-color: rgba(88, 128, 143, .34);
+}
+
+.listing .price {
+  color: #9ce8c4;
+}
+
+.favorite-toggle {
+  color: #c0d1d6;
+  background: rgba(11, 29, 41, .9);
+  border-color: var(--border-bright);
+}
+
+.favorite-toggle:hover,
+.favorite-toggle.is-favorite,
+.favorite-count {
+  color: #3a2b0b;
+  background: #f5cf76;
+  border-color: rgba(245, 207, 118, .72);
+}
+
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline-color: #93e8e1;
+}
