@@ -1,0 +1,79 @@
+name: GenericParser 1.6.3 production acceptance
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/release-163-production-acceptance.yml"
+
+permissions:
+  contents: read
+
+env:
+  DEPLOYMENT_URL: https://genericparser.f6yv7sgtgw.workers.dev
+  EBAY_DELETION_COMPONENT_URL: https://genericparser-ebay-notifications.f6yv7sgtgw.workers.dev
+  EXPECTED_VERSION: 1.6.3
+  EXPECTED_BUILD: gp-163-20260810-1
+
+jobs:
+  production-acceptance:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'agent/genericparser-1.6.3-production-acceptance'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v6
+        with: {enable-cache: true}
+      - name: Wait for deployed 1.6.3 identity
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 72); do
+            code="$(curl -sS -o /tmp/health.json -w '%{http_code}' --max-time 20 "$DEPLOYMENT_URL/health" || true)"
+            python - "$code" <<'PY' && break || true
+          import json, os, sys
+          try: data = json.load(open('/tmp/health.json'))
+          except Exception: raise SystemExit(1)
+          ok = (
+              sys.argv[1] == '200'
+              and data.get('version') == os.environ['EXPECTED_VERSION']
+              and data.get('build_id') == os.environ['EXPECTED_BUILD']
+              and data.get('preferred_module_contract') == 'generic-parser-module-v2'
+              and data.get('ebay_credentials_configured') is True
+          )
+          raise SystemExit(0 if ok else 1)
+          PY
+            if [ "$attempt" -eq 72 ]; then
+              cat /tmp/health.json || true
+              exit 1
+            fi
+            sleep 10
+          done
+      - name: Verify public eBay deletion component health
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 20 "$EBAY_DELETION_COMPONENT_URL/health" -o /tmp/ebay-health.json
+          python - <<'PY'
+          import json, os
+          data = json.load(open('/tmp/ebay-health.json'))
+          assert data['status'] == 'ok'
+          assert data['version'] == os.environ['EXPECTED_VERSION']
+          assert data['challenge_ready'] is True
+          assert data['signature_verification'] == 'ecdsa-public-key-api'
+          PY
+      - name: Verify long three-source continuation chain
+        run: uv run --no-project --with httpx python scripts/check_module_v2_long_run.py "$DEPLOYMENT_URL" --query Evercade --max-packets 36 --min-packets 30
+      - name: Verify live browser assets are byte exact
+        run: |
+          set -euo pipefail
+          while IFS='|' read -r path route; do
+            curl -fsS --max-time 30 "$DEPLOYMENT_URL/$route" -o "/tmp/$(basename "$path")"
+            cmp "$path" "/tmp/$(basename "$path")"
+          done <<'EOF'
+          cloudflare/public/index.html|
+          cloudflare/public/build-identity-0450.js|build-identity-0450.js
+          cloudflare/public/controller-0450.js|controller-0450.js
+          cloudflare/public/app.js|app.js
+          cloudflare/public/service-worker.js|service-worker.js
+          cloudflare/public/eventlog.html|eventlog.html
+          cloudflare/public/eventlog-0450.js|eventlog-0450.js
+          cloudflare/public/ui-162.css|ui-162.css
+          EOF
