@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="./ui-134.css">
   <link rel="stylesheet" href="./ui-150.css">
   <link rel="stylesheet" href="./ui-151.css">
+  <link rel="stylesheet" href="./ui-160.css">
 </head>
 <body>
 <div class="sticky-shell">
@@ -25,7 +26,7 @@
       <div class="brand">
         <div>
           <div class="title-row"><h1>GenericParser</h1><span class="version-badge">Version <span data-version>…</span></span></div>
-          <p>Kleinanzeigen, Vinted &amp; eBay durchsuchen</p>
+          <p>Eine Suche für Kleinanzeigen, Vinted &amp; eBay</p>
         </div>
       </div>
       <div class="header-actions">
@@ -38,30 +39,74 @@
 </div>
 
 <main class="app-shell">
-  <section class="card search-card">
-    <div class="section-heading">
-      <div><p class="eyebrow">Neue Suche</p><h2>Suchprofil</h2></div>
+  <section class="card search-card search-card-160">
+    <div class="section-heading search-heading">
+      <div><p class="eyebrow">Plattformübergreifend</p><h2>Suche</h2></div>
+      <span class="contract-badge">API v2</span>
     </div>
-    <div class="primary-fields">
-      <label>Profilname<input id="profile-name" autocomplete="off"></label>
-      <label>Suchbegriff<input id="query" autocomplete="off"></label>
+
+    <div class="search-bar" role="search">
+      <label class="query-field"><span>Was suchst du?</span><input id="query" autocomplete="off" enterkeyhint="search" placeholder="z. B. Evercade Interplay Collection 1"></label>
+      <label class="source-field"><span>Plattform</span><select id="search-source"><option value="auto" selected>Alle Plattformen</option><option value="kleinanzeigen">Kleinanzeigen</option><option value="vinted">Vinted</option><option value="ebay">eBay</option></select></label>
+      <button id="search-button" class="primary search-submit" type="button" disabled>Controller lädt …</button>
     </div>
-    <div class="details-grid core-filters">
-      <label>Pflichtbegriffe<input id="required-terms"></label>
-      <label>Ausschlussbegriffe<input id="excluded-terms"></label>
-      <label>Modell-/Schreibvarianten<input id="model-patterns"></label>
-      <label>Marken<input id="brands"></label>
-      <label>Maximalpreis €<input id="max-price" inputmode="decimal"></label>
-      <label>Richtwert €<input id="market-value" inputmode="decimal"></label>
+
+    <div class="search-state-actions">
+      <button id="stop-button" class="secondary hidden" type="button">Suche pausieren</button>
+      <button id="resume-button" class="secondary hidden" type="button" disabled>Letzte Suche fortsetzen</button>
+      <button id="clear-progress" class="text-button" type="button">Suchstand löschen</button>
     </div>
+
+    <div id="search-summary" class="search-summary" aria-live="polite">Suchbegriff eingeben und eine oder alle Plattformen auswählen.</div>
+    <div id="recent-searches" class="recent-searches hidden" aria-label="Letzte Suchen"></div>
+
+    <details class="search-criteria" id="search-criteria">
+      <summary><span>Suchkriterien</span><span id="criteria-count" class="summary-count">optional</span></summary>
+      <p class="criteria-intro">Diese Kriterien bestimmen, welche Angebote gefunden und bewertet werden. Leere Felder werden nicht ausgewertet.</p>
+      <div class="criteria-grid">
+        <div class="term-field">
+          <span class="field-label" id="required-terms-label">Pflichtbegriffe</span>
+          <div class="term-editor" data-term-editor="required-terms" aria-labelledby="required-terms-label"><div class="term-chips" data-term-chips="required-terms"></div><input class="term-entry" data-term-entry="required-terms" autocomplete="off" placeholder="Begriff eingeben, dann Komma oder Enter"></div>
+          <input id="required-terms" type="hidden">
+          <small>Alle Begriffe müssen im Treffer vorkommen.</small>
+        </div>
+        <div class="term-field">
+          <span class="field-label" id="excluded-terms-label">Ausschlussbegriffe</span>
+          <div class="term-editor" data-term-editor="excluded-terms" aria-labelledby="excluded-terms-label"><div class="term-chips" data-term-chips="excluded-terms"></div><input class="term-entry" data-term-entry="excluded-terms" autocomplete="off" placeholder="Begriff eingeben, dann Komma oder Enter"></div>
+          <input id="excluded-terms" type="hidden">
+          <small>Ein gefundener Ausschlussbegriff macht den Treffer unpassend.</small>
+        </div>
+        <div class="term-field">
+          <span class="field-label" id="model-patterns-label">Schreibvarianten</span>
+          <div class="term-editor" data-term-editor="model-patterns" aria-labelledby="model-patterns-label"><div class="term-chips" data-term-chips="model-patterns"></div><input class="term-entry" data-term-entry="model-patterns" autocomplete="off" placeholder="Varianten kommagetrennt eingeben"></div>
+          <input id="model-patterns" type="hidden">
+          <small>Alternative Modellnamen und Schreibweisen.</small>
+        </div>
+        <div class="term-field">
+          <span class="field-label" id="brands-label">Marken</span>
+          <div class="term-editor" data-term-editor="brands" aria-labelledby="brands-label"><div class="term-chips" data-term-chips="brands"></div><input class="term-entry" data-term-entry="brands" autocomplete="off" placeholder="Marken kommagetrennt eingeben"></div>
+          <input id="brands" type="hidden">
+          <small>Mehrere Marken lassen sich einzeln entfernen.</small>
+        </div>
+        <label>Maximaler Angebotspreis €<input id="max-price" inputmode="decimal" placeholder="kein Limit"></label>
+      </div>
+      <input id="market-value" type="hidden">
+
+      <div class="profile-panel">
+        <label>Profilname<input id="profile-name" autocomplete="off" placeholder="z. B. Retro-Handheld"></label>
+        <label>Gespeicherte Profile<select id="profiles"><option value="">– auswählen –</option></select></label>
+        <div class="profile-actions"><button id="save-profile" class="secondary" type="button">Profil speichern</button><button id="rename-profile" class="secondary" type="button">Umbenennen</button><button id="delete-profile" class="secondary danger-subtle" type="button">Löschen</button></div>
+        <div id="profile-preview" class="profile-preview">Kein Profil ausgewählt.</div>
+      </div>
+    </details>
+
     <details class="search-options">
-      <summary>Weitere Suchoptionen</summary>
+      <summary>Ort, Angebotsumfang &amp; technische Optionen</summary>
       <div class="details-grid">
-        <label>PLZ<input id="postal-code"></label>
-        <label>Location-ID<input id="location-id"></label>
-        <label>Radius km<input id="radius-km"></label>
-        <label>Max. Rohfunde<input id="max-results"></label>
-        <label>Sortierung<select id="sort-by"><option value="relevance">Relevanz</option><option value="date">Neueste</option></select></label>
+        <label>PLZ<input id="postal-code" inputmode="numeric"></label>
+        <label>Location-ID<input id="location-id" inputmode="numeric"></label>
+        <label>Radius km<input id="radius-km" inputmode="numeric"></label>
+        <label>Max. Rohfunde<input id="max-results" inputmode="numeric"></label>
         <label>Suchumfang<select id="search-scope"><option value="500" selected>Bis zum natürlichen Ende</option></select></label>
         <label>Paketpause<select id="page-delay" disabled><option value="0" selected>0 Sekunden · Paid Worker</option></select></label>
       </div>
@@ -69,8 +114,8 @@
         <label><input id="accept-bundles" type="checkbox"> Konvolute akzeptieren</label>
         <label><input id="accept-incomplete" type="checkbox"> Defekte/unvollständige Treffer akzeptieren</label>
         <label><input id="include-ebay-auctions" type="checkbox"> eBay-Auktionen einbeziehen</label>
-        <label><input id="include-review" type="checkbox" checked> Prüffälle anzeigen</label>
-        <label><input id="include-rejected" type="checkbox" checked> Abgelehnte Ergebnisse anzeigen</label>
+        <label><input id="include-review" type="checkbox" checked> Prüffälle laden</label>
+        <label><input id="include-rejected" type="checkbox" checked> Unpassende Ergebnisse laden</label>
       </div>
       <label>Zugriffstoken<input id="token" type="password"></label>
       <div class="diagnostic-settings">
@@ -81,20 +126,12 @@
         <span id="module-debug-status">Debug aus · Modultests aus</span>
       </div>
     </details>
-    <div class="actions">
-      <button id="search-button" class="primary" disabled>Controller lädt …</button>
-      <button id="stop-button" class="secondary hidden">Suche stoppen</button>
-      <button id="resume-button" class="secondary hidden" disabled>Letzte Suche fortsetzen</button>
-      <button id="save-profile" class="secondary">Profil speichern</button>
-      <button id="clear-progress" class="secondary">Suchstand löschen</button>
-      <button id="demo-button" class="secondary" aria-hidden="true">Demo anzeigen</button>
-    </div>
-    <label class="profile-select">Gespeicherte Profile<select id="profiles"><option value="">– auswählen –</option></select></label>
+    <button id="demo-button" class="hidden" type="button" aria-hidden="true" tabindex="-1">Demo</button>
   </section>
 
   <div class="status-grid">
     <section id="worker-state" class="card status-card">
-      <div class="row between"><div><p class="eyebrow">Verbindung</p><h2>Status</h2></div><span id="worker-version" class="chip">…</span></div>
+      <div class="row between"><div><p class="eyebrow">Suche</p><h2>Status</h2></div><span id="worker-version" class="chip">…</span></div>
       <div id="worker-state-text" class="compact-status">Suchcontroller wird geladen</div>
     </section>
     <section id="vinted-detail-state" class="card status-card hidden">
@@ -102,6 +139,12 @@
       <div id="vinted-detail-state-text" class="compact-status">Hintergrundanreicherung wartet</div>
     </section>
   </div>
+
+  <section id="source-progress" class="card source-progress" aria-label="Fortschritt nach Plattform">
+    <div class="source-progress-item" data-source-progress="kleinanzeigen"><span class="source-progress-dot"></span><div><strong>Kleinanzeigen</strong><span>Noch nicht gestartet</span></div><b>0</b></div>
+    <div class="source-progress-item" data-source-progress="vinted"><span class="source-progress-dot"></span><div><strong>Vinted</strong><span>Noch nicht gestartet</span></div><b>0</b></div>
+    <div class="source-progress-item" data-source-progress="ebay"><span class="source-progress-dot"></span><div><strong>eBay</strong><span>Noch nicht gestartet</span></div><b>0</b></div>
+  </section>
 
   <section id="message" class="message hidden"></section>
 
@@ -111,12 +154,17 @@
   </div>
 
   <section class="results-section">
-    <div class="results-heading"><div><p class="eyebrow">Treffer</p><h2>Suchergebnisse</h2></div><span id="results-count" class="badge">0</span></div>
-    <section id="result-filters" class="card result-filters" aria-label="Ergebnisse filtern">
-      <div class="filter-heading"><div class="filter-title"><strong>Filter</strong><span class="filter-default">Standard: Rot ausgeblendet</span></div><button id="reset-result-filters" class="filter-reset" type="button">Zurücksetzen</button></div>
+    <div class="results-heading">
+      <div><p class="eyebrow">Trefferzentrale</p><h2>Suchergebnisse</h2></div>
+      <div class="results-heading-actions"><span id="results-count" class="badge">0</span><button id="mobile-filter-toggle" class="secondary mobile-filter-toggle" type="button" aria-expanded="false" aria-controls="result-filters">Filter <span id="active-filter-count">0</span></button></div>
+    </div>
+    <section id="result-filters" class="card result-filters result-filters-160" aria-label="Ergebnisse filtern">
+      <div class="filter-heading"><div class="filter-title"><strong>Ergebnisfilter</strong><span class="filter-default">Passend &amp; Prüfen sichtbar</span></div><button id="reset-result-filters" class="filter-reset" type="button">Alle zurücksetzen</button></div>
+      <div id="active-result-filters" class="active-result-filters" aria-live="polite"></div>
       <div class="filter-grid">
-        <label>Ampel<select id="filter-traffic"><option value="without-red" selected>Grün, Gelb &amp; Orange</option><option value="green">Nur Grün</option><option value="yellow">Nur Gelb</option><option value="orange">Nur Orange</option><option value="red">Nur Rot</option><option value="all">Alle Farben</option></select></label>
-        <label>Quelle<select id="filter-source"><option value="all">Alle Quellen</option><option value="kleinanzeigen">Kleinanzeigen</option><option value="vinted">Vinted</option><option value="ebay">eBay</option></select></label>
+        <label>Sortierung<select id="sort-by"><option value="relevance" selected>Beste Treffer</option><option value="date">Neueste Angebote</option><option value="price_asc">Niedrigster Gesamtpreis</option><option value="price_desc">Höchster Gesamtpreis</option><option value="favorites">Favoriten zuerst</option></select></label>
+        <label>Status<select id="filter-traffic"><option value="without-red" selected>Passend &amp; Prüfen</option><option value="green">Nur passend</option><option value="review">Nur prüfen</option><option value="red">Nur unpassend</option><option value="all">Alle Status</option></select></label>
+        <label>Plattform<select id="filter-source"><option value="all">Alle Plattformen</option><option value="kleinanzeigen">Kleinanzeigen</option><option value="vinted">Vinted</option><option value="ebay">eBay</option></select></label>
         <label>Produktart<select id="filter-product-class"><option value="all">Alle Produktarten</option><option value="main_product">Hauptprodukt</option><option value="accessory_part">Zubehör/Ersatzteil</option><option value="bundle">Bundle/Konvolut</option><option value="wanted">Gesuch</option><option value="rental">Vermietung</option><option value="service">Dienstleistung</option><option value="related_merchandise">Merchandise/anderes Produkt</option><option value="unknown">Produktart offen</option></select></label>
         <label>Zustand<select id="filter-condition"><option value="all">Alle Zustände</option><option value="new">Neu/OVP</option><option value="used">Gebraucht</option><option value="defective">Defekt/unvollständig</option><option value="unknown">Zustand offen</option></select></label>
         <label>Gesamtpreis ab €<input id="filter-price-min" inputmode="decimal" aria-label="Gesamtpreis mindestens"></label>
@@ -124,8 +172,10 @@
         <label>Versand<select id="filter-shipping"><option value="all">Alle Versandarten</option><option value="available">Versand möglich</option><option value="free">Kostenloser Versand</option><option value="pickup">Nur Abholung</option><option value="unknown">Versand offen</option></select></label>
         <label>Umfang<select id="filter-scope"><option value="all">Einzel &amp; Bundle</option><option value="single">Einzelangebot</option><option value="bundle">Bundle/Konvolut</option></select></label>
         <label>Angebotsart<select id="filter-format"><option value="all">Alle Angebotsarten</option><option value="fixed">Sofort-Kaufen/Festpreis</option><option value="auction">Auktion</option><option value="offer">Preisvorschlag/VB</option></select></label>
+        <label>Gesamtpreis bekannt<select id="filter-known-total"><option value="all">Alle Preise</option><option value="known">Nur bekannte Gesamtpreise</option></select></label>
+        <label>Favoriten<select id="filter-favorites"><option value="all">Alle Treffer</option><option value="only">Nur Favoriten</option></select></label>
       </div>
-      <p class="filter-note">Grüne Treffer bleiben unabhängig von der gewählten Sortierung immer zuerst.</p>
+      <p class="filter-note">Passende Treffer bleiben vor Prüffällen und unpassenden Ergebnissen; innerhalb der Gruppe gilt deine Sortierung.</p>
     </section>
     <section id="results" class="results" aria-live="polite"></section>
     <button id="show-more" class="secondary load-more hidden">Weitere Ergebnisse anzeigen</button>
@@ -142,5 +192,6 @@
 <script src="./auto-resume-0450.js" defer></script>
 <script src="./source-colors-110.js" defer></script>
 <script src="./source-colors-140.js" defer></script>
+<script src="./ui-160.js" defer></script>
 </body>
 </html>

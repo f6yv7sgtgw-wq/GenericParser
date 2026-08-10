@@ -32,7 +32,19 @@ from .module_api import (
     module_response_from_legacy,
     run_contract_self_tests,
 )
+from .module_api_v2 import (
+    MODULE_CONTRACT_V2,
+    V2BatchRequest,
+    V2Client,
+    V2Criteria,
+    V2Filters,
+    V2Location,
+    V2SearchDefinition,
+    V2SingleRequest,
+    V2ValidateRequest,
+)
 from .normalization import compact_text, normalize_text, parse_location, parse_posted_at, parse_price
+from .release_identity import VERSION as __version__
 from .service import GenericParser, ListingSource
 from .sources.kleinanzeigen import (
     FetchedPage,
@@ -49,10 +61,9 @@ from .sources.kleinanzeigen import (
     slugify_keyword,
 )
 
-__version__ = "0.45.0"
-
 __all__ = [
     "MODULE_CONTRACT",
+    "MODULE_CONTRACT_V2",
     "ConfigurationError",
     "DebugTrace",
     "FetchedPage",
@@ -81,6 +92,15 @@ __all__ = [
     "PageState",
     "PriceFlag",
     "SearchProfile",
+    "V2BatchRequest",
+    "V2Client",
+    "V2Criteria",
+    "V2Filters",
+    "V2Location",
+    "V2SearchDefinition",
+    "V2SingleRequest",
+    "V2ValidateRequest",
+    "__version__",
     "compact_text",
     "evercade_profile",
     "extract_location_id",

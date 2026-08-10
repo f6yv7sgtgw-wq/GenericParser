@@ -117,7 +117,7 @@ def test_preflight_remains_browser_compatible() -> None:
         "Access-Control-Request-Method": "POST",
         "Access-Control-Request-Headers": "content-type,x-genericparser-contract,x-request-id",
     }
-    for path in ("/api/module/search", "/api/search", "/search"):
+    for path in ("/api/module/v2/search", "/api/module/search", "/api/search", "/search"):
         response = client.options(path, headers=headers)
         assert response.status_code in (200, 204)
         assert response.headers["access-control-allow-origin"] == "*"

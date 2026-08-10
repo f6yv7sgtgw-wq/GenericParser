@@ -21,15 +21,15 @@ def read(path: str) -> str:
 def test_release_identity_and_rollback_are_consistent():
     metadata = json.loads(read("VERSION.json"))
     public = json.loads(read("cloudflare/public/release-identity.json"))
-    assert VERSION == "1.5.1"
-    assert BUILD_ID == "gp-151-20260810-1"
+    assert VERSION == "1.6.0"
+    assert BUILD_ID == "gp-160-20260810-1"
     assert metadata["version"] == public["version"] == VERSION
     assert metadata["build_id"] == public["build_id"] == BUILD_ID
     assert metadata["status"] in {"release-candidate", "stable"}
     assert metadata["verification"]["production_acceptance"] in {"pending", "passed"}
     assert metadata["rollback_plan"] == {
-        "last_stable_baseline": "1.5.0",
-        "build_id": "gp-150-20260810-1",
+        "last_stable_baseline": "1.5.1",
+        "build_id": "gp-151-20260810-1",
     }
 
 
@@ -74,7 +74,7 @@ def test_browser_has_all_requested_filters_and_red_is_hidden_by_default():
     ):
         assert f'id="{identifier}"' in html
     assert '<option value="without-red" selected>' in html
-    assert "Grüne Treffer bleiben" in html
+    assert "Passende Treffer bleiben" in html
     assert "ui-150.css" in html
 
 

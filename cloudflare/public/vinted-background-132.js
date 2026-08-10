@@ -223,8 +223,8 @@
     installed = true;
     const originalRequestPage = requestPage;
     const originalRenderState = renderState;
-    requestPage = async function(payload) {
-      const data = await originalRequestPage(payload);
+    requestPage = async function(payload, state) {
+      const data = await originalRequestPage(payload, state);
       collect(data?.listings, payload, {newRun: Number(payload?.page || 0) === 0});
       return data;
     };

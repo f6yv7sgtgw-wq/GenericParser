@@ -19,14 +19,14 @@ def read(path: str) -> str:
 def test_release_identity_metadata_and_rollback_are_consistent():
     metadata = json.loads(read("VERSION.json"))
     public = json.loads(read("cloudflare/public/release-identity.json"))
-    assert VERSION == "1.5.1"
-    assert BUILD_ID == "gp-151-20260810-1"
+    assert VERSION == "1.6.0"
+    assert BUILD_ID == "gp-160-20260810-1"
     assert metadata["version"] == public["version"] == VERSION
     assert metadata["build_id"] == public["build_id"] == BUILD_ID
     assert metadata["status"] in {"release-candidate", "stable"}
     assert metadata["rollback_plan"] == {
-        "last_stable_baseline": "1.5.0",
-        "build_id": "gp-150-20260810-1",
+        "last_stable_baseline": "1.5.1",
+        "build_id": "gp-151-20260810-1",
     }
     assert metadata["verification"]["ebay_production_access_gate"] == "passed"
     assert metadata["verification"]["ebay_production_access_workflow_run"] == 31336200661
@@ -117,7 +117,7 @@ def test_roadmap_and_api_document_the_inserted_ebay_release():
     release = read("docs/releases/1.4.0.md")
     assert "## 1.4 – eBay production integration" in roadmap
     assert "## 1.5 – Product classification" in roadmap
-    assert "## 1.6 – Title and cartridge normalization" in roadmap
+    assert "## 1.6 – Project-independent API and browser usability" in roadmap
     assert "include_ebay_auctions" in api
     assert "item_price" in api and "shipping_cost" in api and "total_price" in api
     assert "No eBay listing persistence" in release

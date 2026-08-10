@@ -31,7 +31,7 @@ def test_search_header_matches_shared_project_pattern() -> None:
     assert 'class="version-badge"' in html
     assert "Log &amp; Diagnose" in html[:header_end]
     assert 'href="./eventlog.html"' in html[:header_end]
-    assert "Kleinanzeigen, Vinted &amp; eBay durchsuchen" in html
+    assert "Kleinanzeigen, Vinted &amp; eBay" in html
     assert "Technische Details anzeigen" not in html
     assert "technical-toggle" not in html
     assert "technical-content" not in html
