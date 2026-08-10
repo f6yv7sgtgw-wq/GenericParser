@@ -2,6 +2,19 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.5.0 – 2026-08-10 – Produktklassifizierung, Filter und Favoriten
+
+- Erklärbare Produktklassifizierung für Hauptprodukte, Zubehör/Ersatzteile, Bundles, Gesuche, Vermietung, Dienstleistungen, Merchandise und unklare Treffer ergänzt.
+- Bekannte Fehlertreffer aus dem Produktionslauf – Ravensburger-Kartenspiele, Jakks-Figuren und Carrera-Spielzeug – als unpassendes Merchandise klassifiziert.
+- Evercade-, SNES- und durch eBay-Kategorien bestätigte Videospiele als Hauptprodukte erkannt; unsichere Zuordnungen bleiben gelbe Prüffälle.
+- Ampelgruppen fest in der Reihenfolge Grün, Gelb, Orange, Rot sortiert; die Nutzersortierung wirkt innerhalb der Gruppen.
+- Ergebnisfilter für Ampel, Quelle, Produktart, Zustand, Gesamtpreis, Versand, Einzelangebot/Bundle und Angebotsart ergänzt; Rot standardmäßig ausgeblendet.
+- Anzeigentext aus den Karten entfernt und das dekorative Symbol auch aus `Log & Diagnose` entfernt.
+- Sternaktion und Unterseite `Favoriten` ergänzt. Favoriten werden nur nach ausdrücklicher Auswahl im aktuellen Browser gespeichert und enthalten keine Beschreibung oder Verkäufer-/Kontodaten.
+- Separaten eBay Marketplace Account Deletion Worker ergänzt: SHA-256-Challenge, ECDSA-Signaturprüfung über eBays Public-Key-API und datensparsame Bestätigung gültiger Meldungen.
+- Kleinanzeigen-Referenzkern, Vinted Service Binding, eBay Browse API, Versand-Gesamtpreis und `generic-parser-module-v1` beibehalten.
+- Rollback-Ziel: 1.4.0 / `gp-140-20260809-1`.
+
 ## 1.4.0 – 2026-08-09 – eBay Production Browse API
 
 - eBay Deutschland über die offizielle Browse API als dritte Standardquelle ergänzt.

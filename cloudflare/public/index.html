@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="./source-colors-140.css">
   <link rel="stylesheet" href="./ui-133.css">
   <link rel="stylesheet" href="./ui-134.css">
+  <link rel="stylesheet" href="./ui-150.css">
 </head>
 <body>
 <div class="sticky-shell">
@@ -27,6 +28,7 @@
         </div>
       </div>
       <div class="header-actions">
+        <a class="header-link" href="./favorites.html">Favoriten <span class="favorite-count" data-favorite-count>0</span></a>
         <a class="header-link" href="./eventlog.html"><span class="wide-label">Log &amp; Diagnose</span><span class="short-label">Log</span></a>
         <div id="connection" class="connection-status offline"><span></span> Controller lädt</div>
       </div>
@@ -109,6 +111,21 @@
 
   <section class="results-section">
     <div class="results-heading"><div><p class="eyebrow">Treffer</p><h2>Suchergebnisse</h2></div><span id="results-count" class="badge">0</span></div>
+    <section id="result-filters" class="card result-filters" aria-label="Ergebnisse filtern">
+      <div class="filter-heading"><strong>Filter</strong><button id="reset-result-filters" class="filter-reset" type="button">Zurücksetzen</button></div>
+      <div class="filter-grid">
+        <label>Ampel<select id="filter-traffic"><option value="without-red" selected>Grün, Gelb &amp; Orange</option><option value="green">Nur Grün</option><option value="yellow">Nur Gelb</option><option value="orange">Nur Orange</option><option value="red">Nur Rot</option><option value="all">Alle Farben</option></select></label>
+        <label>Quelle<select id="filter-source"><option value="all">Alle Quellen</option><option value="kleinanzeigen">Kleinanzeigen</option><option value="vinted">Vinted</option><option value="ebay">eBay</option></select></label>
+        <label>Produktart<select id="filter-product-class"><option value="all">Alle Produktarten</option><option value="main_product">Hauptprodukt</option><option value="accessory_part">Zubehör/Ersatzteil</option><option value="bundle">Bundle/Konvolut</option><option value="wanted">Gesuch</option><option value="rental">Vermietung</option><option value="service">Dienstleistung</option><option value="related_merchandise">Merchandise/anderes Produkt</option><option value="unknown">Produktart offen</option></select></label>
+        <label>Zustand<select id="filter-condition"><option value="all">Alle Zustände</option><option value="new">Neu/OVP</option><option value="used">Gebraucht</option><option value="defective">Defekt/unvollständig</option><option value="unknown">Zustand offen</option></select></label>
+        <label>Gesamtpreis ab €<input id="filter-price-min" inputmode="decimal" aria-label="Gesamtpreis mindestens"></label>
+        <label>Gesamtpreis bis €<input id="filter-price-max" inputmode="decimal" aria-label="Gesamtpreis höchstens"></label>
+        <label>Versand<select id="filter-shipping"><option value="all">Alle Versandarten</option><option value="available">Versand möglich</option><option value="free">Kostenloser Versand</option><option value="pickup">Nur Abholung</option><option value="unknown">Versand offen</option></select></label>
+        <label>Umfang<select id="filter-scope"><option value="all">Einzel &amp; Bundle</option><option value="single">Einzelangebot</option><option value="bundle">Bundle/Konvolut</option></select></label>
+        <label>Angebotsart<select id="filter-format"><option value="all">Alle Angebotsarten</option><option value="fixed">Sofort-Kaufen/Festpreis</option><option value="auction">Auktion</option><option value="offer">Preisvorschlag/VB</option></select></label>
+      </div>
+      <p class="filter-note">Grüne Treffer bleiben unabhängig von der gewählten Sortierung immer zuerst.</p>
+    </section>
     <section id="results" class="results" aria-live="polite"></section>
     <button id="show-more" class="secondary load-more hidden">Weitere Ergebnisse anzeigen</button>
   </section>
@@ -116,6 +133,7 @@
   <footer><span>GenericParser · Build …</span></footer>
 </main>
 <script src="./build-identity-0450.js" defer></script>
+<script src="./favorites-store-150.js" defer></script>
 <script src="./app.js" defer></script>
 <script src="./controller-0450.js" defer></script>
 <script src="./vinted-background-132.js" defer></script>

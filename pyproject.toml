@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "generic-kleinanzeigen-parser"
 dynamic = ["version"]
-description = "Reusable multi-source marketplace parser for Kleinanzeigen, Vinted and eBay with module-v1 API, Evercade/SNES adapters and Cloudflare Worker diagnostics"
+description = "Reusable classified marketplace parser for Kleinanzeigen, Vinted and eBay with filters, explicit favorites, module-v1 API and Cloudflare diagnostics"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [{ name = "Jan Leduc" }]
-keywords = ["kleinanzeigen", "vinted", "ebay", "browse-api", "parser", "cloudflare-workers", "pwa", "matching", "scoring", "traffic-light", "module-api", "evercade", "snes", "debug", "cors"]
+keywords = ["kleinanzeigen", "vinted", "ebay", "browse-api", "parser", "classification", "favorites", "filters", "cloudflare-workers", "pwa", "matching", "scoring", "traffic-light", "module-api", "evercade", "snes", "debug", "cors"]
 dependencies = [
   "PyYAML>=6.0",
   "beautifulsoup4>=4.12",

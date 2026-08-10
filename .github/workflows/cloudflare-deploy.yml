@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "cloudflare/**"
+      - "pocs/ebay-notifications/**"
       - "src/generic_parser/**"
       - "scripts/**"
       - "tests/**"
@@ -24,7 +25,10 @@ env:
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
   EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
+  EBAY_DELETION_VERIFICATION_TOKEN: ${{ secrets.EBAY_DELETION_VERIFICATION_TOKEN }}
   DEPLOYMENT_URL: https://genericparser.f6yv7sgtgw.workers.dev
+  EBAY_DELETION_COMPONENT_URL: https://genericparser-ebay-notifications.f6yv7sgtgw.workers.dev
+  EBAY_DELETION_ENDPOINT_URL: https://genericparser-ebay-notifications.f6yv7sgtgw.workers.dev/marketplace-account-deletion
 
 jobs:
   test-deploy-live:
@@ -46,9 +50,9 @@ jobs:
           echo "build=$(uv run python -c 'from generic_parser.release_identity import BUILD_ID; print(BUILD_ID)')" >> "$GITHUB_OUTPUT"
           echo "contract=$(uv run python -c 'from generic_parser.release_identity import API_CONTRACT; print(API_CONTRACT)')" >> "$GITHUB_OUTPUT"
       - name: Run regression tests
-        run: uv run pytest -q tests/test_release_100.py tests/test_release_132.py tests/test_release_133.py tests/test_release_134.py tests/test_release_140.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py tests/test_vinted_browser_production.py tests/test_vinted_service_binding_122.py tests/test_ebay_adapter.py tests/test_ebay_multi_source.py
+        run: uv run pytest -q tests/test_release_100.py tests/test_release_132.py tests/test_release_133.py tests/test_release_134.py tests/test_release_140.py tests/test_release_150.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py tests/test_vinted_browser_production.py tests/test_vinted_service_binding_122.py tests/test_ebay_adapter.py tests/test_ebay_multi_source.py tests/test_product_classification.py
       - name: Compile active runtime
-        run: uv run python -m py_compile src/generic_parser/release_identity.py src/generic_parser/cloudflare_worker.py src/generic_parser/cloudflare_v0450.py src/generic_parser/cloudflare_v0452.py src/generic_parser/build_identity_v0450.py src/generic_parser/build_identity_v0452.py src/generic_parser/search_service_v0450.py src/generic_parser/search_service_v111_runtime.py src/generic_parser/vinted_adapter.py src/generic_parser/vinted_enrichment.py src/generic_parser/ebay_adapter.py scripts/check_deployment.py
+        run: uv run python -m py_compile src/generic_parser/release_identity.py src/generic_parser/cloudflare_worker.py src/generic_parser/cloudflare_v0450.py src/generic_parser/cloudflare_v0452.py src/generic_parser/build_identity_v0450.py src/generic_parser/build_identity_v0452.py src/generic_parser/search_service_v0450.py src/generic_parser/search_service_v111_runtime.py src/generic_parser/vinted_adapter.py src/generic_parser/vinted_enrichment.py src/generic_parser/ebay_adapter.py src/generic_parser/product_classification.py scripts/check_deployment.py
       - name: Validate browser controller syntax
         run: |
           node --check cloudflare/public/controller-0450.js
@@ -58,6 +62,11 @@ jobs:
           node --check cloudflare/public/vinted-background-132.js
           node --check cloudflare/public/source-colors-110.js
           node --check cloudflare/public/source-colors-140.js
+          node --check cloudflare/public/favorites-store-150.js
+          node --check cloudflare/public/favorites-150.js
+          node --test tests/js/favorites-store-150.test.mjs
+          node --check pocs/ebay-notifications/src/index.js
+          node --test pocs/ebay-notifications/test/*.test.js
           node --check pocs/vinted-browser/src/index.js
       - name: Validate release metadata and service binding
         run: |
@@ -75,6 +84,11 @@ jobs:
           test -n "$CLOUDFLARE_API_TOKEN"
           test -n "$EBAY_CLIENT_ID"
           test -n "$EBAY_CLIENT_SECRET"
+          python - <<'PY'
+          import os,re
+          token=os.environ.get('EBAY_DELETION_VERIFICATION_TOKEN','')
+          assert re.fullmatch(r'[A-Za-z0-9_-]{32,80}',token), 'EBAY_DELETION_VERIFICATION_TOKEN must contain 32-80 allowed characters'
+          PY
       - name: Deploy Vinted Browser component
         working-directory: pocs/vinted-browser
         run: |
@@ -86,6 +100,36 @@ jobs:
           set -euo pipefail
           printf '%s\n' "$EBAY_CLIENT_ID" | uv run --group cloudflare pywrangler secret put EBAY_CLIENT_ID
           printf '%s\n' "$EBAY_CLIENT_SECRET" | uv run --group cloudflare pywrangler secret put EBAY_CLIENT_SECRET
+      - name: Deploy signed eBay account-deletion endpoint
+        working-directory: pocs/ebay-notifications
+        run: |
+          set -euo pipefail
+          npm install --no-audit --no-fund
+          npx wrangler deploy
+          printf '%s\n' "$EBAY_CLIENT_ID" | npx wrangler secret put EBAY_CLIENT_ID
+          printf '%s\n' "$EBAY_CLIENT_SECRET" | npx wrangler secret put EBAY_CLIENT_SECRET
+          printf '%s\n' "$EBAY_DELETION_VERIFICATION_TOKEN" | npx wrangler secret put EBAY_DELETION_VERIFICATION_TOKEN
+          npx wrangler deploy
+      - name: Verify eBay endpoint health and challenge contract
+        run: |
+          set -euo pipefail
+          code="$(curl -sS -o /tmp/ebay-deletion-health.json -w '%{http_code}' --max-time 20 "$EBAY_DELETION_COMPONENT_URL/health")"
+          python - "$code" <<'PY'
+          import json,sys
+          d=json.load(open('/tmp/ebay-deletion-health.json'))
+          assert sys.argv[1]=='200'
+          assert d.get('status')=='ok' and d.get('version')=='1.5.0'
+          assert d.get('challenge_ready') is True
+          assert d.get('signature_verification')=='ecdsa-public-key-api'
+          PY
+          challenge="gp-150-production-gate"
+          code="$(curl -sS -o /tmp/ebay-challenge.json -w '%{http_code}' --max-time 20 "$EBAY_DELETION_ENDPOINT_URL?challenge_code=$challenge")"
+          CHALLENGE="$challenge" python - "$code" <<'PY'
+          import hashlib,json,os,sys
+          d=json.load(open('/tmp/ebay-challenge.json'))
+          expected=hashlib.sha256((os.environ['CHALLENGE']+os.environ['EBAY_DELETION_VERIFICATION_TOKEN']+os.environ['EBAY_DELETION_ENDPOINT_URL']).encode()).hexdigest()
+          assert sys.argv[1]=='200' and d.get('challengeResponse')==expected
+          PY
       - name: Deploy Python Worker
         run: uv run --group cloudflare pywrangler deploy
       - name: Verify live release identity and eBay secret bindings
@@ -124,13 +168,25 @@ jobs:
           ka=status.get('kleinanzeigen') or {}; vi=status.get('vinted') or {}; eb=status.get('ebay') or {}; listings=d.get('listings') or []
           vinted=[x for x in listings if x.get('source')=='vinted' or str(x.get('id','')).startswith('vinted:')]
           ebay_listings=[x for x in listings if x.get('source')=='ebay' or str(x.get('id','')).startswith('ebay:')]
+          classified=[x for x in listings if (x.get('product_classification') or {}).get('ruleset')=='product-classification-v1']
           priced=[x for x in ebay_listings if x.get('item_price') is not None]
           totals=[x for x in ebay_listings if x.get('total_price') is not None]
           totals_valid=all(x.get('price')==x.get('total_price') for x in totals)
           fixed_price_only=all(x.get('auction') is False for x in ebay_listings)
-          ok=(sys.argv[1]=='200' and ka.get('enabled') is True and vi.get('enabled') is True and vi.get('status')=='ok' and vi.get('strategy')=='service-binding' and len(vinted)>0 and eb.get('enabled') is True and eb.get('status')=='ok' and eb.get('strategy')=='official-browse-api' and eb.get('marketplace')=='EBAY_DE' and eb.get('include_auctions') is False and len(ebay_listings)>0 and len(priced)>0 and totals_valid and fixed_price_only)
+          forbidden={'seller','sellerusername','sellerid','username','userid','eiastoken','feedbackscore'}
+          def keys(value):
+              if isinstance(value,dict):
+                  for key,item in value.items():
+                      yield ''.join(ch for ch in str(key).casefold() if ch.isalnum())
+                      yield from keys(item)
+              elif isinstance(value,list):
+                  for item in value: yield from keys(item)
+          ebay_has_no_seller_data=all(not (set(keys(item)) & forbidden) for item in ebay_listings)
+          all_classified=len(classified)==len(listings) and len(listings)>0
+          ok=(sys.argv[1]=='200' and ka.get('enabled') is True and vi.get('enabled') is True and vi.get('status')=='ok' and vi.get('strategy')=='service-binding' and len(vinted)>0 and eb.get('enabled') is True and eb.get('status')=='ok' and eb.get('strategy')=='official-browse-api' and eb.get('marketplace')=='EBAY_DE' and eb.get('include_auctions') is False and len(ebay_listings)>0 and len(priced)>0 and totals_valid and fixed_price_only and all_classified and ebay_has_no_seller_data)
           print('kleinanzeigen=',ka); print('vinted=',vi); print('ebay=',eb)
           print('vinted_listings=',len(vinted)); print('ebay_listings=',len(ebay_listings),'known_totals=',len(totals))
+          print('classified=',len(classified),'all_classified=',all_classified,'ebay_has_no_seller_data=',ebay_has_no_seller_data)
           raise SystemExit(0 if ok else 1)
           PY
             sleep 10
@@ -155,7 +211,8 @@ jobs:
           import json,sys
           d=json.load(open('/tmp/enrich-result.json')); rows=d.get('listings') or []
           complete=[x for x in rows if x.get('image_url') and x.get('price') is not None and x.get('description')]
-          ok=(sys.argv[1]=='200' and d.get('status')=='ok' and d.get('strategy')=='service-binding-deferred-detail' and d.get('detail_batch_limit')==3 and len(rows)>0 and len(complete)>0)
+          classified=all((x.get('product_classification') or {}).get('ruleset')=='product-classification-v1' for x in rows)
+          ok=(sys.argv[1]=='200' and d.get('status')=='ok' and d.get('strategy')=='service-binding-deferred-detail' and d.get('detail_batch_limit')==3 and len(rows)>0 and len(complete)>0 and classified)
           print('requested=',d.get('requested'),'complete=',len(complete),'partial=',d.get('partial'),'failed=',d.get('failed'))
           raise SystemExit(0 if ok else 1)
           PY

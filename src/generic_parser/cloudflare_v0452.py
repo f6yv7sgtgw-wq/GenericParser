@@ -43,6 +43,11 @@ from .vinted_enrichment import DETAIL_BATCH_LIMIT, enrich_vinted_batch
 
 app = FastAPI(title=f"GenericParser {VERSION}", version=VERSION, docs_url=None, redoc_url=None)
 
+EBAY_DELETION_ENDPOINT = (
+    "https://genericparser-ebay-notifications.f6yv7sgtgw.workers.dev/"
+    "marketplace-account-deletion"
+)
+
 EXPOSE_HEADERS = [
     "X-Request-ID",
     "X-GenericParser-Version",
@@ -95,7 +100,14 @@ def identity() -> dict[str, Any]:
         "ebay_browse_api": True,
         "ebay_marketplace": EBAY_MARKETPLACE,
         "ebay_credentials_configured": ebay_credentials_configured(),
-        "ebay_persistence": False,
+        "ebay_persistence": "explicit-browser-favorites-only",
+        "ebay_favorite_seller_data": False,
+        "ebay_deletion_endpoint": EBAY_DELETION_ENDPOINT,
+        "ebay_deletion_signature_verification": "ecdsa-public-key-api",
+        "product_classification": "product-classification-v1",
+        "result_filtering": True,
+        "traffic_group_sort": "green-yellow-orange-red",
+        "favorites": "browser-local-user-selected",
     }
 
 
@@ -171,7 +183,11 @@ async def health(request: Request) -> JSONResponse:
             "ebay_browse_api": True,
             "ebay_marketplace": EBAY_MARKETPLACE,
             "ebay_credentials_configured": ebay_credentials_configured(),
-            "ebay_persistence": False,
+            "ebay_persistence": "explicit-browser-favorites-only",
+            "ebay_favorite_seller_data": False,
+            "ebay_deletion_endpoint": EBAY_DELETION_ENDPOINT,
+            "product_classification": "product-classification-v1",
+            "result_filtering": True,
         },
     )
 
@@ -205,7 +221,11 @@ async def diagnostics(request: Request) -> JSONResponse:
                 "ebay_browse_api": True,
                 "ebay_marketplace": EBAY_MARKETPLACE,
                 "ebay_credentials_configured": ebay_credentials_configured(),
-                "ebay_persistence": False,
+                "ebay_persistence": "explicit-browser-favorites-only",
+                "ebay_favorite_seller_data": False,
+                "ebay_deletion_endpoint": EBAY_DELETION_ENDPOINT,
+                "product_classification": "product-classification-v1",
+                "result_filtering": True,
             },
             "routes": {
                 "health": "/health",
@@ -213,6 +233,8 @@ async def diagnostics(request: Request) -> JSONResponse:
                 "diagnostics": "/diagnostics",
                 "search": ["/search", "/api/search", "/api/module/search", "/api/module/v1/search"],
                 "vinted_detail_enrichment": "/api/vinted/enrich",
+                "favorites": "/favorites.html",
+                "ebay_marketplace_account_deletion": EBAY_DELETION_ENDPOINT,
             },
         },
     )
@@ -244,7 +266,30 @@ async def module_capabilities(request: Request) -> JSONResponse:
                 "auctions_optional": True,
                 "auctions_enabled_by_default": False,
                 "price_semantics": "total-including-known-shipping",
-                "persistence": False,
+                "search_result_persistence": False,
+                "favorite_persistence": "explicit-browser-local",
+                "favorite_fields_contain_seller_data": False,
+                "marketplace_account_deletion_endpoint": EBAY_DELETION_ENDPOINT,
+                "notification_signature_verification": "ecdsa-public-key-api",
+            },
+            "classification": {
+                "ruleset": "product-classification-v1",
+                "classes": [
+                    "main_product",
+                    "accessory_part",
+                    "bundle",
+                    "wanted",
+                    "rental",
+                    "service",
+                    "related_merchandise",
+                    "unknown",
+                ],
+                "traffic_order": ["green", "yellow", "orange", "red"],
+            },
+            "ui": {
+                "result_filters": True,
+                "listing_description_visible": False,
+                "favorites_page": "/favorites.html",
             },
             "deployment": identity(),
         },

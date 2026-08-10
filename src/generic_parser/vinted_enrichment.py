@@ -9,6 +9,11 @@ from __future__ import annotations
 from typing import Any
 
 from . import search_service_v0444 as reference
+from .product_classification import (
+    apply_classification_evaluation,
+    apply_classification_metadata,
+    classify_listing,
+)
 from .vinted_adapter import DETAIL_BATCH_LIMIT, enrich_vinted_details
 
 
@@ -52,7 +57,10 @@ def _merge_listing(original: dict[str, Any], enriched: dict[str, Any]) -> dict[s
 
 
 def _decorate(listing: dict[str, Any], payload: Any) -> dict[str, Any]:
+    classification = classify_listing(listing, str(payload.query))
+    apply_classification_metadata(listing, classification)
     evaluation = reference._evaluate(listing, payload)
+    evaluation = apply_classification_evaluation(evaluation, classification)
     listing["traffic_light"] = evaluation
     listing["match"] = {
         "listing_class": evaluation["label"],

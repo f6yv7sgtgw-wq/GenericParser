@@ -2,7 +2,7 @@
   "id": "./",
   "name": "GenericParser Mobile",
   "short_name": "GP Mobile",
-  "description": "Kleinanzeigen, Vinted und eBay durchsuchen, vergleichen und bewerten.",
+  "description": "Kleinanzeigen, Vinted und eBay klassifiziert durchsuchen, filtern und favorisieren.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -4,16 +4,16 @@ Reusable multi-source marketplace parser and browser UI for **Evercade**, **SNES
 
 ## Current release
 
-- **Version:** `1.4.0`
-- **Build:** `gp-140-20260809-1`
-- **Status:** Stable; production identity, three-source, eBay pricing and Vinted detail gates passed
+- **Version:** `1.5.0`
+- **Build:** `gp-150-20260810-1`
+- **Status:** Release candidate; local classification, UI, favorites and eBay notification gates passed
 - **Worker profile:** Cloudflare Workers Paid
 - **Module contract:** `generic-parser-module-v1`
 - **Search runtime:** `0.45.0`
 - **Functional search core:** `0.44.4`
 - **Operational reference:** `0.44.6.5`
 
-GenericParser 1.4.0 adds eBay Germany through the official Production Browse API as the third default source. Fixed-price listings remain the default; auctions are explicit opt-in. eBay results separate item price, shipping and trustworthy total, remain transient, and fail open without changing successful Kleinanzeigen or Vinted results. Production acceptance passed on commit `7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c` in workflow `31337634699`.
+GenericParser 1.5.0 classifies marketplace results before display, rejects known non-game merchandise such as card games, figures and toys, and always groups green results first. The browser adds compact filters and explicit favorites without restoring listing descriptions. eBay search results remain transient; only listings deliberately starred by the user are stored in that browser, without seller/account identifiers. A separate signed Marketplace Account Deletion endpoint supports the required eBay subscription.
 
 ## Architecture
 
@@ -26,7 +26,7 @@ GenericParser Worker
         ↓
 Kleinanzeigen runtime + private Vinted Service Binding + eBay Browse API
         ↓
-Immediate catalog response + deferred Vinted detail batches + transient eBay results
+Classified catalog response + deferred Vinted details + explicit browser favorites
 ```
 
 ## Public endpoints
@@ -43,6 +43,10 @@ Immediate catalog response + deferred Vinted detail batches + transient eBay res
 - `POST /api/vinted/enrich`
 - `POST /api/module/v1/vinted/enrich`
 - `GET /api/module/v1/self-test?enabled=true`
+
+eBay Marketplace Account Deletion endpoint:
+
+- `GET/POST https://genericparser-ebay-notifications.f6yv7sgtgw.workers.dev/marketplace-account-deletion`
 
 The two enrichment paths remain Vinted-only additive support endpoints. They accept at most three already returned Vinted listings, validate canonical item URLs, load those three detail pages in parallel and return updated listings with matching and traffic-light scoring recalculated. The bundled browser uses them automatically; module-v1 clients may use the canonical module path.
 
@@ -119,7 +123,9 @@ Debug logging and network-free module self-tests remain opt-in and are disabled 
 - Matching uses `price = total_price` only when shipping is known or the offer is pickup-only.
 - Unknown shipping is shown as open and is never treated as free.
 - OAuth tokens live only in Worker memory until expiry.
-- eBay listings are not stored server-side and are excluded from browser IndexedDB persistence.
+- eBay search results are not stored server-side and remain excluded from browser search-state IndexedDB persistence.
+- Only a listing explicitly marked with the star is stored in the current browser. The favorite snapshot omits description, seller name, seller ID and all account data.
+- Signed eBay deletion notifications are verified with eBay's public-key API; the endpoint stores no notification user data.
 - OAuth/Browse failures degrade only eBay; other source results remain available.
 
 ## Browser interface
@@ -131,8 +137,11 @@ Debug logging and network-free module self-tests remain opt-in and are disabled 
 - Every result card keeps a small square thumbnail and its text side by side, including on phone layouts.
 - The decorative four-dot project mark is removed from the search-page header.
 - Result cards retain source, traffic-light, condition and action regions without horizontal scrolling.
-- Descriptions are clamped to four lines by default and remain expandable.
-- Hashtag-only lines and trailing hashtag blocks are omitted from card text.
+- Listing descriptions are no longer displayed, making every card shorter.
+- Green results always precede yellow, orange and red results; the chosen sort applies only within each color group.
+- Filters cover traffic light, source, product class, condition, total price, shipping, scope and offer format. Red results are hidden by default but remain selectable.
+- The star in the upper-right corner saves an explicit favorite; `/favorites.html` lists and filters saved offers.
+- The decorative project mark is removed from both search and log headers.
 
 ## Release quality gate
 
@@ -149,10 +158,12 @@ A stable release requires:
 9. live three-source packet with official eBay transport and fixed-price default;
 10. eBay known-shipping total-price validation;
 11. live deferred Vinted detail batch without catalog-path regression;
-12. exact-source ZIP artifact.
+12. classification regression against known game/merchandise examples;
+13. eBay deletion challenge and signed-notification verification;
+14. exact-source ZIP artifact.
 
 ## Versioning
 
-From 1.0 onward GenericParser uses semantic versioning. Search-core changes are explicit functional changes; infrastructure changes must not silently change matching, ranking, extraction or pagination. 1.4.0 changes multi-source orchestration by adding eBay while retaining the established Kleinanzeigen core and Vinted transport.
+From 1.0 onward GenericParser uses semantic versioning. Search-core changes are explicit functional changes; infrastructure changes must not silently change extraction or pagination. 1.5.0 adds an explainable classification layer after source extraction while retaining the established Kleinanzeigen core and three-source transport.
 
-Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.4.0.md`](docs/API_1.4.0.md), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.4.0.md`](docs/releases/1.4.0.md).
+Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.5.0.md`](docs/API_1.5.0.md), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.5.0.md`](docs/releases/1.5.0.md).

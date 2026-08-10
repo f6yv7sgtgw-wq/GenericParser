@@ -45,7 +45,7 @@ def test_eventlog_uses_the_same_top_header() -> None:
     html = read("cloudflare/public/eventlog.html")
     header_end = html.index("</header>")
     assert 'data-page="eventlog"' in html
-    assert 'class="brand-mark"' in html[:header_end]
+    assert 'class="brand-mark"' not in html[:header_end]
     assert "Log &amp; Diagnose" in html[:header_end]
     assert 'href="./"' in html[:header_end]
     assert "Release-Identität und Quellenstatus" not in html
@@ -65,6 +65,8 @@ def test_vinted_cards_are_compact_expandable_and_responsive() -> None:
     assert ".description-shell.is-expanded .description" in css
     assert "overflow-x: hidden" in css
     assert "@media (max-width: 520px)" in css
+    card_source = app[app.index("function card(x)"):app.index("function syncDescriptionControls")]
+    assert "descriptionMarkup(x)" not in card_source
 
 
 def test_hashtag_only_lines_are_removed_without_losing_prose() -> None:
