@@ -69,12 +69,12 @@ Current status: **1.5.1 stable and production-accepted**. The patch corrects the
 - separate search criteria from result filtering;
 - add term chips, source progress, active filters, recent searches and stronger mobile behavior.
 
-Current status: **1.6.1 stable and production-accepted**. The 1.6.0 production
-test exposed an incompatible browser-controller call signature before Stable
-approval. 1.6.1 forwards API-v2 batch and continuation state correctly,
-hardens browser storage cleanup and introduces the friendlier deep-blue/teal
-palette. Workflow `31419552008` and the direct three-source continuation test
-passed; 1.5.1 remains the rollback target.
+Current status: **1.6.2 release candidate**. 1.6.1 corrected API-v2 state
+forwarding but still made a single live identity request a hard browser start
+gate. 1.6.2 makes identity and optional controller diagnostics fail-open,
+bypasses dynamic API routes in the service-worker cache and migrates `Log &
+Diagnose` to the responsive deep-blue/teal interface. 1.6.1 is the rollback
+target until the production gates pass.
 
 ## 1.7 – Source quality and schema evolution
 

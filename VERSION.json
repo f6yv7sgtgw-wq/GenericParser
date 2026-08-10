@@ -1,8 +1,8 @@
 {
   "product": "GenericParser",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "package_version": "dynamic:generic_parser.release_identity.VERSION",
-  "build_id": "gp-161-20260810-1",
+  "build_id": "gp-162-20260810-1",
   "identity_source": "src/generic_parser/release_identity.py",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
@@ -15,11 +15,11 @@
   "functional_reference_version": "0.44.4",
   "stable_reference_version": "0.44.6.5",
   "runtime_reference_version": "0.44.6.2",
-  "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+responsive-web-ui-161+signed-continuations-v2",
+  "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+responsive-web-ui-162+signed-continuations-v2",
   "release_date": "2026-08-10",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "stable",
-  "purpose": "repair the browser-to-module-v2 controller bridge, make local progress cleanup fail-open and introduce a friendlier responsive palette without changing module-v1 or the proven marketplace search core",
+  "status": "release-candidate",
+  "purpose": "keep the browser search available when live identity or optional controller diagnostics fail, bypass dynamic endpoints in the service-worker cache and bring Log & Diagnose onto the responsive 1.6 interface without changing module-v1, module-v2 or the proven marketplace search core",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted", "ebay"],
@@ -40,8 +40,10 @@
   },
   "verification": {
     "release_identity_source": "required",
-    "browser_identity_source": "live-health-only",
-    "hardcoded_public_release_identity": "forbidden",
+    "browser_identity_source": "embedded-release-fallback+background-live-health",
+    "embedded_public_release_identity": "required-minimal-fallback",
+    "identity_failure_blocks_search": false,
+    "dynamic_endpoints_service_worker_cache": "bypass",
     "cloudflare_deployment": "required",
     "health_contract": "required",
     "live_kleinanzeigen_search": "required",
@@ -79,6 +81,7 @@
     "listing_description_visible": false,
     "favorites_page": "required",
     "eventlog_runtime_identity": "required",
+    "eventlog_ui_162": "required",
     "live_request_time_budget": "required",
     "responsive_browser_ui": "required",
     "dense_result_card_grid": "required",
@@ -86,13 +89,13 @@
     "search_header_project_mark": "removed",
     "vinted_description_api_data": "required",
     "no_horizontal_overflow": "required",
-    "production_acceptance": "passed",
-    "production_commit": "0b30f5bf651a3b7a87401ace0dce0540d5b1c882",
-    "production_workflow_run": 31419552008,
-    "vinted_browser_workflow_run": 31419552008,
+    "production_acceptance": "pending",
+    "production_commit": null,
+    "production_workflow_run": null,
+    "vinted_browser_workflow_run": null,
     "vinted_browser_gate": "integrated in production workflow",
-    "accepted_at": "2026-08-10T18:34:18Z"
+    "accepted_at": null
   },
-  "rollback_plan": {"last_stable_baseline": "1.5.1", "build_id": "gp-151-20260810-1"},
-  "metadata_schema": 49
+  "rollback_plan": {"last_stable_baseline": "1.6.1", "build_id": "gp-161-20260810-1"},
+  "metadata_schema": 50
 }

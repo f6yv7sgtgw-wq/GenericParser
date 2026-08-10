@@ -1,6 +1,6 @@
-(() => {
+(async () => {
   'use strict';
-  const I = window.GP_BUILD_IDENTITY;
+  const I = await (window.GP_BUILD_IDENTITY_READY || Promise.resolve(window.GP_BUILD_IDENTITY));
   if (!I) throw new Error('Build identity missing');
   const sourceUrl = new URL('./auto-resume-04462.js?v=0.450-stable-reference-source', location.href);
   fetch(sourceUrl, {cache:'no-store'})
@@ -17,4 +17,6 @@
         window.gpEventLog('auto_resume_loader_error', 'Stabile 0.44.6.5-Recovery konnte nicht geladen werden', {detail:String(error?.message || error),buildId:I.buildId});
       }
     });
-})();
+})().catch(error => {
+  console.warn('Automatische Fortsetzung konnte nicht initialisiert werden.', error);
+});

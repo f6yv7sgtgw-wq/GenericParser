@@ -2,6 +2,17 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.6.2 – 2026-08-10 – Robuster Browserstart und neue Log-Oberfläche
+
+- Den Safari-Fehler behoben, bei dem ein einzelnes `Load failed` der Release-Identität die Websuche dauerhaft als „Live-Suche gesperrt“ blockierte.
+- Minimale Release-Identität in das Browser-Asset eingebettet und die Live-Prüfung mit kurzen Wiederholungen in den Hintergrund verschoben; Diagnosefehler blockieren keine API-v2-Suche mehr.
+- Optional nachgeladenen Controller bei wiederholtem Abruffehler in einen direkten, funktionsfähigen API-v2-Modus zurückfallen lassen.
+- Service Worker so korrigiert, dass `/health`, `/version`, `/diagnostics`, `/search` und sämtliche `/api/`-Pfade niemals als statische Assets behandelt werden und HTML nie als JSON-/JavaScript-Ersatz zurückgegeben wird.
+- `Log & Diagnose` auf das freundliche 1.6-Farbschema und ein kompaktes mobiles Layout umgestellt; Ereignisse sind einklappbar und nach Problemen, Suchläufen oder Quellen filterbar.
+- In der Diagnose „Websuche: API v2“ klar von „Kompatibilität: API v1“ getrennt.
+- Suchkern, API-v1/v2-Verträge, Quellenadapter, Klassifizierung, Favoriten, Stopp/Fortsetzen und Paid-Worker-Timing unverändert beibehalten.
+- Rollback-Ziel bis zur Produktionsabnahme: 1.6.1 / `gp-161-20260810-1`.
+
 ## 1.6.1 – 2026-08-10 – Browser-Bridge-Hotfix und freundlicheres Farbschema
 
 - Den in der produktiven 1.6.0-Weboberfläche reproduzierten Signaturfehler behoben: Der dynamische Controller reicht den vollständigen API-v2-Suchzustand mit Batch-ID und Fortsetzungstoken wieder durch alle Wrapper und Retries.

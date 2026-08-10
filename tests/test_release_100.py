@@ -27,16 +27,19 @@ def test_release_identity_is_consistent() -> None:
     assert "from .release_identity import" in identity
 
 
-def test_public_browser_identity_is_runtime_loaded_not_release_pinned() -> None:
+def test_public_browser_identity_has_fail_open_release_fallback_and_live_verification() -> None:
     browser = read("cloudflare/public/build-identity-0450.js")
     controller = read("cloudflare/public/controller-0450.js")
-    assert "fetch('./health?identity=ui'" in browser
+    assert "./health?identity=ui&build=" in browser
     assert "GP_BUILD_IDENTITY_READY" in browser
+    assert "GP_LIVE_IDENTITY_READY" in browser
     assert "health.version" in browser
     assert "health.build_id" in browser
     assert "health.api_contract" in browser
-    assert VERSION not in browser
-    assert BUILD_ID not in browser
+    assert VERSION in browser
+    assert BUILD_ID in browser
+    assert "embedded-release-fallback" in browser
+    assert "identityVerified: false" in browser
     assert "browser-run-worker+public-web-fallback" not in browser
     assert "vintedStrategy: 'service-binding'" in browser
     assert "GP_BUILD_IDENTITY_READY" in controller
@@ -45,7 +48,7 @@ def test_public_browser_identity_is_runtime_loaded_not_release_pinned() -> None:
     assert "Deployment inkonsistent: UI ${VERSION}/${BUILD_ID}" not in controller
 
 
-def test_eventlog_uses_runtime_identity_without_release_pin() -> None:
+def test_eventlog_uses_shared_identity_and_current_diagnostic_ui() -> None:
     html = read("cloudflare/public/eventlog.html")
     script = read("cloudflare/public/eventlog-0450.js")
     assert "Log &amp; Diagnose" in html
@@ -54,10 +57,12 @@ def test_eventlog_uses_runtime_identity_without_release_pin() -> None:
     assert VERSION not in html
     assert BUILD_ID not in html
     assert "GP_BUILD_IDENTITY_READY" in script
-    assert "document.title = `GenericParser Eventlog ${I.version}`" in script
+    assert "document.title = `GenericParser Log & Diagnose ${I.version}`" in script
     assert VERSION not in script
     assert BUILD_ID not in script
-    assert "Service Binding + entkoppelte 3er-Detail-Batches" in script
+    assert "Service Binding · 3er-Detail-Batches" in script
+    assert "Websuche · API v2" in html
+    assert "ui-162.css" in html
 
 
 def test_paid_timing_profile_is_active() -> None:
