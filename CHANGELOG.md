@@ -2,6 +2,16 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.6.1 – 2026-08-10 – Browser-Bridge-Hotfix und freundlicheres Farbschema
+
+- Den in der produktiven 1.6.0-Weboberfläche reproduzierten Signaturfehler behoben: Der dynamische Controller reicht den vollständigen API-v2-Suchzustand mit Batch-ID und Fortsetzungstoken wieder durch alle Wrapper und Retries.
+- Fortsetzungsfehler 409/410 als nicht wiederholbare Clientfehler behandelt.
+- Browserseitiges Löschen eines Suchstands fail-open ausgeführt, damit eine nicht verfügbare IndexedDB keinen erfolgreich abgeschlossenen Suchlauf in einen Fehler verwandelt.
+- Eigenen JavaScript-Regressionsvertrag für Controller-v2-State-Forwarding, Batch-/Tokenbindung, Speicherräumung und Cache-Busting ergänzt.
+- Dunkles Farbschema freundlicher gestaltet: tiefblaue Flächen, türkise Primäraktionen, warme Lavendelakzente und weichere Karten bei unverändertem responsivem Layout.
+- Modul-v1, API-v2-Schema, Marketplace-Adapter, Suchkern, Klassifizierung, Favoriten und Stopp/Fortsetzen unverändert beibehalten.
+- 1.6.0 vor Stable-Freigabe ersetzt; Rollback-Ziel bleibt 1.5.1 / `gp-151-20260810-1`.
+
 ## 1.6.0 – 2026-08-10 – Modul-API v2 und browserfreundliche Suche
 
 - Projektunabhängige Modul-API v2 mit Capabilities-, Validierungs-, Einzel- und Batch-Endpunkten ergänzt; v1 bleibt unverändert erreichbar.

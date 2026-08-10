@@ -6,8 +6,8 @@ remain optional module-v1 compatibility helpers.
 
 ## Current release
 
-- **Version:** `1.6.0`
-- **Build:** `gp-160-20260810-1`
+- **Version:** `1.6.1`
+- **Build:** `gp-161-20260810-1`
 - **Status:** Release candidate; production acceptance pending
 - **Worker profile:** Cloudflare Workers Paid
 - **Preferred module contract:** `generic-parser-module-v2`
@@ -16,9 +16,11 @@ remain optional module-v1 compatibility helpers.
 - **Functional search core:** `0.44.4`
 - **Operational reference:** `0.44.6.5`
 
-GenericParser 1.6.0 adds a clearer responsive search interface and a
-project-independent module API v2 with signed continuation packets. The web UI
-uses v2 directly; module-v1, the proven three-source search core,
+GenericParser 1.6.1 retains the clearer responsive search interface and the
+project-independent module API v2 introduced with 1.6.0, and repairs the
+browser controller bridge so batch and continuation state reach every live
+request. The UI keeps dark mode with a friendlier deep-blue, teal and warm
+lavender palette. Module-v1, the proven three-source search core,
 classification, fixed-price eBay default, explicit favorites and the signed
 Marketplace Account Deletion endpoint remain compatible.
 
@@ -78,7 +80,7 @@ The proven seven-result Kleinanzeigen work-packet structure remains unchanged. V
 boundary. It processes one source page per request, returns an opaque signed
 continuation token until the batch is complete, and normalizes source status,
 listing identity and known-total pricing. Up to 100 definitions fit in one
-batch. Persistent server jobs are not part of 1.6.0.
+batch. Persistent server jobs are not part of the 1.6 line.
 
 Example v2 request:
 
@@ -205,7 +207,8 @@ A stable release requires:
 
 From 1.0 onward GenericParser uses semantic versioning. Search-core changes are
 explicit functional changes; infrastructure and UI changes must not silently
-change extraction or pagination. 1.6.0 adds module-v2 and the browser client
-while keeping module-v1 and the marketplace core compatible.
+change extraction or pagination. 1.6.0 adds module-v2 and the browser client;
+1.6.1 corrects its runtime state forwarding while keeping module-v1 and the
+marketplace core compatible.
 
-Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.6.0.md`](docs/API_1.6.0.md), [`docs/openapi-module-v2.json`](docs/openapi-module-v2.json), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.6.0.md`](docs/releases/1.6.0.md).
+Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.6.0.md`](docs/API_1.6.0.md), [`docs/openapi-module-v2.json`](docs/openapi-module-v2.json), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.6.1.md`](docs/releases/1.6.1.md).

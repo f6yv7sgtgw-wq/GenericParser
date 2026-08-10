@@ -1,8 +1,8 @@
 {
   "product": "GenericParser",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "package_version": "dynamic:generic_parser.release_identity.VERSION",
-  "build_id": "gp-160-20260810-1",
+  "build_id": "gp-161-20260810-1",
   "identity_source": "src/generic_parser/release_identity.py",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
@@ -15,11 +15,11 @@
   "functional_reference_version": "0.44.4",
   "stable_reference_version": "0.44.6.5",
   "runtime_reference_version": "0.44.6.2",
-  "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+responsive-web-ui-160+signed-continuations-v2",
+  "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+responsive-web-ui-161+signed-continuations-v2",
   "release_date": "2026-08-10",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "release-candidate",
-  "purpose": "add the project-independent module API v2 and a clearer responsive search interface while preserving module-v1 and the proven marketplace search core",
+  "purpose": "repair the browser-to-module-v2 controller bridge, make local progress cleanup fail-open and introduce a friendlier responsive palette without changing module-v1 or the proven marketplace search core",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted", "ebay"],
@@ -68,6 +68,9 @@
     "module_v2_openapi": "required",
     "module_v1_compatibility": "required",
     "web_ui_uses_module_v2": "required",
+    "web_ui_v2_state_forwarding": "required",
+    "browser_storage_cleanup_fail_open": "required",
+    "friendly_accessible_palette": "required",
     "comma_term_chips": "required",
     "per_source_progress": "required",
     "active_filter_chips": "required",
@@ -91,5 +94,5 @@
     "accepted_at": null
   },
   "rollback_plan": {"last_stable_baseline": "1.5.1", "build_id": "gp-151-20260810-1"},
-  "metadata_schema": 48
+  "metadata_schema": 49
 }

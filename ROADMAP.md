@@ -69,8 +69,11 @@ Current status: **1.5.1 stable and production-accepted**. The patch corrects the
 - separate search criteria from result filtering;
 - add term chips, source progress, active filters, recent searches and stronger mobile behavior.
 
-Current status: **1.6.0 release candidate**. Static contract and UI work is
-complete; production acceptance is pending. 1.5.1 remains the rollback target.
+Current status: **1.6.1 release candidate**. The 1.6.0 production test exposed
+an incompatible browser-controller call signature before Stable approval.
+1.6.1 forwards API-v2 batch and continuation state correctly, hardens browser
+storage cleanup and introduces the friendlier deep-blue/teal palette. Full
+production acceptance is pending; 1.5.1 remains the rollback target.
 
 ## 1.7 – Source quality and schema evolution
 

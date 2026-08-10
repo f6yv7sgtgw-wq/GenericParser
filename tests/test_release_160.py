@@ -116,8 +116,8 @@ def test_release_identity_publishes_v2_additively():
 
     metadata = json.loads(read("VERSION.json"))
     public = json.loads(read("cloudflare/public/release-identity.json"))
-    assert VERSION == "1.6.0"
-    assert BUILD_ID == "gp-160-20260810-1"
+    assert VERSION == "1.6.1"
+    assert BUILD_ID == "gp-161-20260810-1"
     assert API_CONTRACT == "generic-parser-module-v1"
     assert PREFERRED_MODULE_CONTRACT == MODULE_CONTRACT_V2
     assert SUPPORTED_MODULE_CONTRACTS == (
@@ -347,9 +347,15 @@ def test_web_ui_160_uses_v2_and_exposes_clear_search_and_result_controls():
     assert "'search-source'" in app[app.index("const ids=") : app.index("function refreshProfiles")]
     assert "market_value" not in app[app.index("function v2Definition") : app.index("function v2Request")]
     assert "parseTermList" in ui
-    assert 'const CACHE="generic-parser-mobile-gp-160"' in service_worker
+    assert 'const CACHE="generic-parser-mobile-gp-161"' in service_worker
     assert '"./ui-160.css"' in service_worker
+    assert '"./ui-161.css"' in service_worker
     assert '"./ui-160.js"' in service_worker
+    assert "service-worker.js?v=gp-161" in app
+    controller = read("cloudflare/public/controller-0450.js")
+    assert "requestPage = async function(payload, state)" in controller
+    assert "originalRequestPage(payload, state)" in controller
+    assert "requestPage(payload, s)" in controller
 
 
 def test_openapi_document_and_release_docs_are_present():
@@ -360,3 +366,4 @@ def test_openapi_document_and_release_docs_are_present():
     assert "market_value" not in json.dumps(openapi)
     assert "generic-parser-module-v2" in read("docs/API_1.6.0.md")
     assert "module-v1" in read("docs/releases/1.6.0.md")
+    assert "controller bridge" in read("docs/releases/1.6.1.md").casefold()

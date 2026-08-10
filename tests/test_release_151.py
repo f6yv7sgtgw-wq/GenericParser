@@ -16,8 +16,8 @@ def read(path: str) -> str:
 def test_release_identity_and_rollback_target_are_consistent():
     metadata = json.loads(read("VERSION.json"))
     public = json.loads(read("cloudflare/public/release-identity.json"))
-    assert VERSION == "1.6.0"
-    assert BUILD_ID == "gp-160-20260810-1"
+    assert VERSION == "1.6.1"
+    assert BUILD_ID == "gp-161-20260810-1"
     assert metadata["version"] == public["version"] == VERSION
     assert metadata["build_id"] == public["build_id"] == BUILD_ID
     assert metadata["status"] in {"release-candidate", "stable"}
@@ -82,16 +82,17 @@ def test_filter_layout_is_balanced_and_responsive_without_changing_filters():
 def test_current_browser_assets_are_cache_busted():
     service_worker = read("cloudflare/public/service-worker.js")
     app = read("cloudflare/public/app.js")
-    assert 'const CACHE="generic-parser-mobile-gp-160"' in service_worker
+    assert 'const CACHE="generic-parser-mobile-gp-161"' in service_worker
     assert '"./ui-151.css"' in service_worker
     assert '"./ui-160.css"' in service_worker
-    assert "service-worker.js?v=gp-160" in app
+    assert '"./ui-161.css"' in service_worker
+    assert "service-worker.js?v=gp-161" in app
 
 
 def test_ebay_notification_component_tracks_patch_release():
     component = read("pocs/ebay-notifications/src/index.js")
     package = json.loads(read("pocs/ebay-notifications/package.json"))
-    assert "version: '1.6.0'" in component
+    assert "version: '1.6.1'" in component
     assert package["version"] == VERSION
 
 

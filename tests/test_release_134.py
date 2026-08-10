@@ -74,8 +74,8 @@ def test_current_ui_asset_and_cache_are_versioned() -> None:
     app = read("cloudflare/public/app.js")
     assert html.index("ui-133.css") < html.index("ui-134.css")
     assert '"./ui-134.css"' in service_worker
-    assert "generic-parser-mobile-gp-160" in service_worker
-    assert "service-worker.js?v=gp-160" in app
+    assert "generic-parser-mobile-gp-161" in service_worker
+    assert "service-worker.js?v=gp-161" in app
 
 
 def test_compact_layout_keeps_vinted_description_behavior() -> None:
