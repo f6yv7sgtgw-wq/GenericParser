@@ -4,16 +4,16 @@ Reusable multi-source marketplace parser and browser UI for **Evercade**, **SNES
 
 ## Current release
 
-- **Version:** `1.5.0`
-- **Build:** `gp-150-20260810-1`
-- **Status:** Stable; production identity, classification, filters, favorites, eBay deletion endpoint and three-source gates passed
+- **Version:** `1.5.1`
+- **Build:** `gp-151-20260810-1`
+- **Status:** Release candidate; local regression, stop-status and responsive-filter gates passed
 - **Worker profile:** Cloudflare Workers Paid
 - **Module contract:** `generic-parser-module-v1`
 - **Search runtime:** `0.45.0`
 - **Functional search core:** `0.44.4`
 - **Operational reference:** `0.44.6.5`
 
-GenericParser 1.5.0 classifies marketplace results before display, rejects known non-game merchandise such as card games, figures and toys, and always groups green results first. The browser adds compact filters and explicit favorites without restoring listing descriptions. eBay search results remain transient; only listings deliberately starred by the user are stored in that browser, without seller/account identifiers. A separate signed Marketplace Account Deletion endpoint supports the required eBay subscription. Production acceptance passed on commit `33931e0dd391c68539ec1965342eff8a40d77070` in workflow `31361068931` (attempt 2).
+GenericParser 1.5.1 corrects the contradictory completion message after a manual stop and presents the result filters in balanced, responsive rows. A stopped run is now explicitly shown and logged as incomplete, saved and resumable. The proven classification, three-source search, fixed-price eBay default, explicit favorites and signed Marketplace Account Deletion endpoint remain unchanged from 1.5.0.
 
 ## Architecture
 
@@ -140,6 +140,8 @@ Debug logging and network-free module self-tests remain opt-in and are disabled 
 - Listing descriptions are no longer displayed, making every card shorter.
 - Green results always precede yellow, orange and red results; the chosen sort applies only within each color group.
 - Filters cover traffic light, source, product class, condition, total price, shipping, scope and offer format. Red results are hidden by default but remain selectable.
+- Manual stops are labelled as paused and resumable, never as fully completed.
+- Result filters use two balanced desktop rows and responsive three-, two- and one-column layouts at narrower widths.
 - The star in the upper-right corner saves an explicit favorite; `/favorites.html` lists and filters saved offers.
 - The decorative project mark is removed from both search and log headers.
 
@@ -164,6 +166,6 @@ A stable release requires:
 
 ## Versioning
 
-From 1.0 onward GenericParser uses semantic versioning. Search-core changes are explicit functional changes; infrastructure changes must not silently change extraction or pagination. 1.5.0 adds an explainable classification layer after source extraction while retaining the established Kleinanzeigen core and three-source transport.
+From 1.0 onward GenericParser uses semantic versioning. Search-core changes are explicit functional changes; infrastructure changes must not silently change extraction or pagination. 1.5.1 is a presentation-and-status patch on the unchanged 1.5.0 search behavior.
 
-Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.5.0.md`](docs/API_1.5.0.md), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.5.0.md`](docs/releases/1.5.0.md).
+Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.5.1.md`](docs/API_1.5.1.md), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.5.1.md`](docs/releases/1.5.1.md).

@@ -21,8 +21,8 @@ def test_release_134_layout_contract_remains_active_in_current_release() -> None
     assert metadata["verification"]["dense_result_card_grid"] == "required"
     assert metadata["verification"]["side_by_side_card_media"] == "required"
     assert metadata["rollback_plan"] == {
-        "last_stable_baseline": "1.4.0",
-        "build_id": "gp-140-20260809-1",
+        "last_stable_baseline": "1.5.0",
+        "build_id": "gp-150-20260810-1",
     }
     assert public["version"] == VERSION
     assert public["build_id"] == BUILD_ID
@@ -74,8 +74,8 @@ def test_current_ui_asset_and_cache_are_versioned() -> None:
     app = read("cloudflare/public/app.js")
     assert html.index("ui-133.css") < html.index("ui-134.css")
     assert '"./ui-134.css"' in service_worker
-    assert "generic-parser-mobile-gp-150" in service_worker
-    assert "service-worker.js?v=gp-150" in app
+    assert "generic-parser-mobile-gp-151" in service_worker
+    assert "service-worker.js?v=gp-151" in app
 
 
 def test_compact_layout_keeps_vinted_description_behavior() -> None:

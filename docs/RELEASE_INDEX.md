@@ -4,6 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
+| 1.5.1 RC | `gp-151-20260810-1` | ausstehend | Manueller Stopp eindeutig pausiert/fortsetzbar; ausgewogenes responsives Filterlayout; 1.5.0-Suchverhalten unverändert |
 | 1.5.0 | `gp-150-20260810-1` | `33931e0dd391c68539ec1965342eff8a40d77070` | Produktklassifizierung, feste Ampelreihenfolge, Ergebnisfilter, kompakte Karten, explizite Browser-Favoriten und signierter eBay-Löschendpunkt; Produktions-Live-Gates grün |
 | 1.4.0 | `gp-140-20260809-1` | `7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c` | Offizielle eBay Browse API auf `EBAY_DE`, Festpreisstandard, bekannte Versand-Gesamtsumme und flüchtige eBay-Treffer; Produktions-Live-Gates grün |
 | 1.3.4 | `gp-134-20260809-1` | `47a74efa13f63b0908688cc96872e013f23e56bf` | Dichtes Mehrspaltenraster, kleine Karten mit Bild und Text nebeneinander, Startseiten-Symbol entfernt; Produktions-Live-Gates grün |

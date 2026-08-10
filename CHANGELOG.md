@@ -2,6 +2,15 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.5.1 – 2026-08-10 – Wahrheitsgemäßer Stoppstatus und GUI-Politur
+
+- Manuellen Stopp nicht mehr als „vollständig beendet“, sondern als pausierten, gespeicherten und fortsetzbaren Suchstand dargestellt.
+- `search_stopped` mit `complete:false`, Grund und Fortsetzbarkeit protokolliert; alte und neue Stoppereignisse werden im Eventlog eindeutig dargestellt.
+- Ergebnisfilter auf Desktop in zwei vollständig gefüllte Reihen gegliedert und für Tablet, Mobiltelefon sowie sehr schmale Ansichten responsiv abgestuft.
+- Filterbereich mit ruhigerer Flächenhierarchie, klarer Fokusdarstellung und sichtbarem Standard „Rot ausgeblendet“ aufgewertet.
+- Kartenhierarchie, Favoriten, Standardfilter, Klassifizierung, Quellenlogik, Modulvertrag und Kleinanzeigen-Suchkern unverändert beibehalten.
+- Rollback-Ziel: 1.5.0 / `gp-150-20260810-1`.
+
 ## 1.5.0 – 2026-08-10 – Produktklassifizierung, Filter und Favoriten
 
 - Erklärbare Produktklassifizierung für Hauptprodukte, Zubehör/Ersatzteile, Bundles, Gesuche, Vermietung, Dienstleistungen, Merchandise und unklare Treffer ergänzt.

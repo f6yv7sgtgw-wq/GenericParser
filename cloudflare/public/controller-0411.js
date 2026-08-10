@@ -87,11 +87,11 @@
     stopping = false;
     cooldownUntil = Date.now() + COOLDOWN_MS;
     setControlsRunning(false);
-    workerState('Worker gestoppt', `Suche „${activeQuery}“ wurde vollständig beendet.`, 'done');
+    workerState('Suche pausiert', `Suche „${activeQuery}“ wurde manuell gestoppt. Der Stand ist gespeichert und fortsetzbar.`, 'done');
     msg(`Suche „${activeQuery}“ wurde gestoppt. Der gespeicherte Stand kann fortgesetzt werden.`);
     resumeButton?.classList.remove('hidden');
     resumeButton.disabled = window.GP_HANDSHAKE_READY !== true;
-    log('search_stopped', 'Suchlauf vollständig beendet', {sessionId: activeSessionId, query: activeQuery});
+    log('search_stopped', 'Suchlauf manuell gestoppt', {sessionId: activeSessionId, query: activeQuery, reason, complete:false, resumable:true});
   }
 
   window.fetch = async function controlledFetch(input, init = {}) {

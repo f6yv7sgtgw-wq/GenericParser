@@ -66,6 +66,7 @@
   function eventPresentation(event) {
     if (isHtml503(event)) return {className:'diagnostic error', title:'Temporärer Abruffehler (HTTP 503)', message:'Cloudflare oder der vorgelagerte Abruf lieferte HTML statt Suchdaten.'};
     if (event?.type === 'worker_1101') return {className:'diagnostic error', title:'Cloudflare-Worker-Ausnahme', message:event.message || 'Worker-Ausnahme vor dem Suchservice.'};
+    if (event?.type === 'search_stopped') return {className:'diagnostic done', title:'Suchlauf manuell gestoppt', message:'Der gespeicherte Stand kann fortgesetzt werden.'};
     if (titles[event?.type]) {
       const [title, fallback] = titles[event.type];
       const error = /error|manual_required/.test(String(event.type)) || event.ok === false;

@@ -21,20 +21,15 @@ def read(path: str) -> str:
 def test_release_identity_and_rollback_are_consistent():
     metadata = json.loads(read("VERSION.json"))
     public = json.loads(read("cloudflare/public/release-identity.json"))
-    assert VERSION == "1.5.0"
-    assert BUILD_ID == "gp-150-20260810-1"
+    assert VERSION == "1.5.1"
+    assert BUILD_ID == "gp-151-20260810-1"
     assert metadata["version"] == public["version"] == VERSION
     assert metadata["build_id"] == public["build_id"] == BUILD_ID
-    assert metadata["status"] == "stable"
-    assert metadata["verification"]["production_acceptance"] == "passed"
-    assert metadata["verification"]["production_commit"] == (
-        "33931e0dd391c68539ec1965342eff8a40d77070"
-    )
-    assert metadata["verification"]["production_workflow_run"] == 31361068931
-    assert metadata["verification"]["accepted_at"] == "2026-08-10T06:33:44Z"
+    assert metadata["status"] in {"release-candidate", "stable"}
+    assert metadata["verification"]["production_acceptance"] in {"pending", "passed"}
     assert metadata["rollback_plan"] == {
-        "last_stable_baseline": "1.4.0",
-        "build_id": "gp-140-20260809-1",
+        "last_stable_baseline": "1.5.0",
+        "build_id": "gp-150-20260810-1",
     }
 
 
@@ -194,5 +189,5 @@ def test_release_documentation_covers_data_handling_and_known_junk_examples():
     assert "Level 8 Super Mario Kartenspiel" in release
     assert "Jakks Super Mario Kart" in release
     assert "CARRERA Pull & Speed" in release
-    assert "1.5.0 stable and production-accepted" in roadmap
+    assert "1.5.1" in roadmap
     assert "31361068931" in release
