@@ -58,7 +58,7 @@ Current status: **1.4.0 stable and production-accepted**. The one-shot access ga
 - add result filters, explicit browser-local favorites and the required signed eBay account-deletion endpoint;
 - retain deterministic review behavior for uncertain offers.
 
-Current status: **1.5.0 stable and production-accepted**. The eBay portal endpoint is validated, the signed notification contract is deployed, and the regular production workflow passed classification, all three sources, eBay fixed-price and total-price invariants, seller-data exclusion and the deferred Vinted detail path. 1.4.0 remains the rollback target.
+Current status: **1.5.1 release candidate**. The patch corrects the manual-stop status and refines the responsive filter layout without changing classification, all three sources, favorites or the module contract. 1.5.0 remains the rollback target until the production gate passes.
 
 ## 1.6 – Title and cartridge normalization
 

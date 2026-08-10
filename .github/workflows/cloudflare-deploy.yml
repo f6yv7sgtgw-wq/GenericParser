@@ -50,7 +50,7 @@ jobs:
           echo "build=$(uv run python -c 'from generic_parser.release_identity import BUILD_ID; print(BUILD_ID)')" >> "$GITHUB_OUTPUT"
           echo "contract=$(uv run python -c 'from generic_parser.release_identity import API_CONTRACT; print(API_CONTRACT)')" >> "$GITHUB_OUTPUT"
       - name: Run regression tests
-        run: uv run pytest -q tests/test_release_100.py tests/test_release_132.py tests/test_release_133.py tests/test_release_134.py tests/test_release_140.py tests/test_release_150.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py tests/test_vinted_browser_production.py tests/test_vinted_service_binding_122.py tests/test_ebay_adapter.py tests/test_ebay_multi_source.py tests/test_product_classification.py
+        run: uv run pytest -q tests/test_release_100.py tests/test_release_132.py tests/test_release_133.py tests/test_release_134.py tests/test_release_140.py tests/test_release_150.py tests/test_release_151.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py tests/test_vinted_browser_production.py tests/test_vinted_service_binding_122.py tests/test_ebay_adapter.py tests/test_ebay_multi_source.py tests/test_product_classification.py
       - name: Compile active runtime
         run: uv run python -m py_compile src/generic_parser/release_identity.py src/generic_parser/cloudflare_worker.py src/generic_parser/cloudflare_v0450.py src/generic_parser/cloudflare_v0452.py src/generic_parser/build_identity_v0450.py src/generic_parser/build_identity_v0452.py src/generic_parser/search_service_v0450.py src/generic_parser/search_service_v111_runtime.py src/generic_parser/vinted_adapter.py src/generic_parser/vinted_enrichment.py src/generic_parser/ebay_adapter.py src/generic_parser/product_classification.py scripts/check_deployment.py
       - name: Validate browser controller syntax
@@ -111,18 +111,21 @@ jobs:
           printf '%s\n' "$EBAY_DELETION_VERIFICATION_TOKEN" | npx wrangler secret put EBAY_DELETION_VERIFICATION_TOKEN
           npx wrangler deploy
       - name: Verify eBay endpoint health and challenge contract
+        env:
+          EXPECTED_VERSION: ${{ steps.release.outputs.version }}
+          EXPECTED_BUILD: ${{ steps.release.outputs.build }}
         run: |
           set -euo pipefail
           code="$(curl -sS -o /tmp/ebay-deletion-health.json -w '%{http_code}' --max-time 20 "$EBAY_DELETION_COMPONENT_URL/health")"
           python - "$code" <<'PY'
-          import json,sys
+          import json,os,sys
           d=json.load(open('/tmp/ebay-deletion-health.json'))
           assert sys.argv[1]=='200'
-          assert d.get('status')=='ok' and d.get('version')=='1.5.0'
+          assert d.get('status')=='ok' and d.get('version')==os.environ['EXPECTED_VERSION']
           assert d.get('challenge_ready') is True
           assert d.get('signature_verification')=='ecdsa-public-key-api'
           PY
-          challenge="gp-150-production-gate"
+          challenge="${EXPECTED_BUILD}-production-gate"
           code="$(curl -sS -o /tmp/ebay-challenge.json -w '%{http_code}' --max-time 20 "$EBAY_DELETION_ENDPOINT_URL?challenge_code=$challenge")"
           CHALLENGE="$challenge" python - "$code" <<'PY'
           import hashlib,json,os,sys
