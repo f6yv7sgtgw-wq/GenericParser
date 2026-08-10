@@ -18,7 +18,7 @@
   "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+responsive-web-ui-162+signed-continuations-v2",
   "release_date": "2026-08-10",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "release-candidate",
+  "status": "stable",
   "purpose": "keep the browser search available when live identity or optional controller diagnostics fail, bypass dynamic endpoints in the service-worker cache and bring Log & Diagnose onto the responsive 1.6 interface without changing module-v1, module-v2 or the proven marketplace search core",
   "worker_plan": "paid",
   "sources": {
@@ -89,12 +89,14 @@
     "search_header_project_mark": "removed",
     "vinted_description_api_data": "required",
     "no_horizontal_overflow": "required",
-    "production_acceptance": "pending",
-    "production_commit": null,
-    "production_workflow_run": null,
-    "vinted_browser_workflow_run": null,
+    "production_acceptance": "passed",
+    "production_commit": "9e2a09b71c6d6cea7bca4e13b0ecd2a515758907",
+    "production_workflow_run": 31423346170,
+    "vinted_browser_workflow_run": 31423346170,
     "vinted_browser_gate": "integrated in production workflow",
-    "accepted_at": null
+    "direct_browser_search": "Zelda eBay API-v2 search loaded 378 unique listings before controlled resumable stop",
+    "live_asset_identity": "index, identity, controller, app, service worker, eventlog HTML/JS and ui-162 CSS byte-exact",
+    "accepted_at": "2026-08-10T19:22:54Z"
   },
   "rollback_plan": {"last_stable_baseline": "1.6.1", "build_id": "gp-161-20260810-1"},
   "metadata_schema": 50
