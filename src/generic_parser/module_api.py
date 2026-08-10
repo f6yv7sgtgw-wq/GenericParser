@@ -169,6 +169,7 @@ class ModuleListing(BaseModel):
     seller: dict[str, Any] = Field(default_factory=dict)
     transient: bool = False
     detail_enrichment: dict[str, Any] = Field(default_factory=dict)
+    product_classification: dict[str, Any] = Field(default_factory=dict)
     match: dict[str, Any] = Field(default_factory=dict)
     traffic_light: dict[str, Any] = Field(default_factory=dict)
     result_info: dict[str, Any] = Field(default_factory=dict)
@@ -290,6 +291,11 @@ def module_response_from_legacy(
                 detail_enrichment=(
                     raw.get("detail_enrichment")
                     if isinstance(raw.get("detail_enrichment"), dict)
+                    else {}
+                ),
+                product_classification=(
+                    raw.get("product_classification")
+                    if isinstance(raw.get("product_classification"), dict)
                     else {}
                 ),
                 match=raw.get("match") if isinstance(raw.get("match"), dict) else {},

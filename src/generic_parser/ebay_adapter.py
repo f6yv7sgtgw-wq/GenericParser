@@ -180,8 +180,15 @@ def _normalize_item(
     location = location if isinstance(location, dict) else {}
     image = item.get("image")
     image = image if isinstance(image, dict) else {}
-    seller = item.get("seller")
-    seller = seller if isinstance(seller, dict) else {}
+    categories = item.get("categories")
+    categories = categories if isinstance(categories, list) else []
+    category_names = [
+        str(category.get("categoryName") or category.get("categoryPath") or "").strip()
+        for category in categories
+        if isinstance(category, dict)
+        and str(category.get("categoryName") or category.get("categoryPath") or "").strip()
+    ]
+    primary_category = categories[0] if categories and isinstance(categories[0], dict) else {}
     condition = _condition_text(item.get("condition"))
     listing_format = "Auktion" if auction_only else "Sofort-Kaufen"
     if "BEST_OFFER" in buying_options and not auction_only:
@@ -214,17 +221,17 @@ def _normalize_item(
         "source_query": query,
         "source": "ebay",
         "source_label": "eBay",
+        "category_id": item.get("categoryId") or primary_category.get("categoryId"),
+        "category_path": item.get("categoryPath") or " > ".join(category_names) or None,
+        "categories": category_names,
         "tags": [],
         "image_url": image.get("imageUrl"),
         "buying_options": buying_options,
         "listing_format": listing_format,
         "auction": auction_only,
         "bid_count": item.get("bidCount"),
-        "seller": {
-            "username": seller.get("username"),
-            "feedback_percentage": seller.get("feedbackPercentage"),
-            "feedback_score": seller.get("feedbackScore"),
-        },
+        # Seller/account identifiers are deliberately discarded. Explicitly
+        # saved browser favorites therefore contain listing data only.
         "transient": True,
         "result_info": {
             "offer_type": "Produkt",

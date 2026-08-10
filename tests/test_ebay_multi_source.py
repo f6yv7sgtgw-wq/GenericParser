@@ -184,6 +184,11 @@ def test_module_contract_preserves_ebay_total_and_transient_marker():
                 "buying_options": ["FIXED_PRICE"],
                 "listing_format": "Sofort-Kaufen",
                 "transient": True,
+                "product_classification": {
+                    "code": "main_product",
+                    "label": "Hauptprodukt",
+                    "ruleset": "product-classification-v1",
+                },
             }
         ],
         "pagination": {
@@ -210,4 +215,6 @@ def test_module_contract_preserves_ebay_total_and_transient_marker():
     assert listing.price == listing.total_price
     assert listing.buying_options == ["FIXED_PRICE"]
     assert listing.transient is True
+    assert listing.product_classification["code"] == "main_product"
+    assert listing.product_classification["ruleset"] == "product-classification-v1"
     assert profile.to_legacy_payload()["include_ebay_auctions"] is False

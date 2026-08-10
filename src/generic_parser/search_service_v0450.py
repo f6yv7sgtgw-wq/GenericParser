@@ -27,6 +27,11 @@ from .module_api import (
     module_response_from_legacy,
     run_contract_self_tests,
 )
+from .product_classification import (
+    apply_classification_evaluation,
+    apply_classification_metadata,
+    classify_listing,
+)
 from .vinted_adapter import search_vinted
 
 class SearchRequest(reference.SearchRequest):
@@ -69,8 +74,11 @@ def _include_listing(listing: dict[str, Any], payload: SearchRequest) -> bool:
     return True
 
 
-def _decorate_marketplace(listing: dict[str, Any], payload: SearchRequest) -> dict[str, Any]:
+def _decorate_listing(listing: dict[str, Any], payload: SearchRequest) -> dict[str, Any]:
+    classification = classify_listing(listing, str(payload.query))
+    apply_classification_metadata(listing, classification)
     evaluation = reference._evaluate(listing, payload)
+    evaluation = apply_classification_evaluation(evaluation, classification)
     listing["traffic_light"] = evaluation
     listing["match"] = {
         "listing_class": evaluation["label"],
@@ -95,6 +103,7 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
         for item in ka_result.get("listings") or []:
             item.setdefault("source", "kleinanzeigen")
             item.setdefault("source_label", "Kleinanzeigen")
+            _decorate_listing(item, payload)
 
     vinted_result: dict[str, Any] | None = None
     vinted_visible: list[dict[str, Any]] = []
@@ -103,7 +112,7 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
     if want_vinted:
         vinted_result = await search_vinted(str(payload.query), page=page)
         for raw in vinted_result.get("listings") or []:
-            item = _decorate_marketplace(raw, payload)
+            item = _decorate_listing(raw, payload)
             color = str((item.get("traffic_light") or {}).get("color") or "yellow")
             if color in vinted_counts:
                 vinted_counts[color] += 1
@@ -125,7 +134,7 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
             postal_code=getattr(payload, "postal_code", None),
         )
         for raw in ebay_result.get("listings") or []:
-            item = _decorate_marketplace(raw, payload)
+            item = _decorate_listing(raw, payload)
             color = str((item.get("traffic_light") or {}).get("color") or "yellow")
             if color in ebay_counts:
                 ebay_counts[color] += 1
@@ -144,13 +153,20 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
             "worker": {},
         }
 
-    ka_listings = list(ka_result.get("listings") or [])
+    ka_candidates = list(ka_result.get("listings") or [])
+    ka_listings = [item for item in ka_candidates if _include_listing(item, payload)]
+    ka_additional_hidden = len(ka_candidates) - len(ka_listings)
+    ka_result["listings"] = ka_listings
     ka_summary = ka_result.get("summary") if isinstance(ka_result.get("summary"), dict) else {}
     ka_pagination = ka_result.get("pagination") if isinstance(ka_result.get("pagination"), dict) else {}
-    ka_counts = ka_result.get("traffic_light_summary") if isinstance(ka_result.get("traffic_light_summary"), dict) else {}
+    ka_counts = {"green": 0, "yellow": 0, "red": 0}
+    for item in ka_candidates:
+        color = str((item.get("traffic_light") or {}).get("color") or "yellow")
+        if color in ka_counts:
+            ka_counts[color] += 1
 
     combined = ka_listings + vinted_visible + ebay_visible
-    ka_hidden = int(ka_summary.get("hidden_by_filter") or 0)
+    ka_hidden = int(ka_summary.get("hidden_by_filter") or 0) + ka_additional_hidden
     ka_fetched = int(ka_summary.get("fetched_listings") or len(ka_listings) + ka_hidden)
     vinted_fetched = len(vinted_visible) + vinted_hidden
     ebay_fetched = len(ebay_visible) + ebay_hidden

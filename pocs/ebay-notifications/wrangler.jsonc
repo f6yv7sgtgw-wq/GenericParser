@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "genericparser-ebay-notifications",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-10",
+  "vars": {
+    "EBAY_DELETION_ENDPOINT_URL": "https://genericparser-ebay-notifications.f6yv7sgtgw.workers.dev/marketplace-account-deletion"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

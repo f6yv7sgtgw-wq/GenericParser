@@ -19,14 +19,14 @@ def read(path: str) -> str:
 def test_release_identity_metadata_and_rollback_are_consistent():
     metadata = json.loads(read("VERSION.json"))
     public = json.loads(read("cloudflare/public/release-identity.json"))
-    assert VERSION == "1.4.0"
-    assert BUILD_ID == "gp-140-20260809-1"
+    assert VERSION == "1.5.0"
+    assert BUILD_ID == "gp-150-20260810-1"
     assert metadata["version"] == public["version"] == VERSION
     assert metadata["build_id"] == public["build_id"] == BUILD_ID
     assert metadata["status"] in {"release-candidate", "stable"}
     assert metadata["rollback_plan"] == {
-        "last_stable_baseline": "1.3.4",
-        "build_id": "gp-134-20260809-1",
+        "last_stable_baseline": "1.4.0",
+        "build_id": "gp-140-20260809-1",
     }
     assert metadata["verification"]["ebay_production_access_gate"] == "passed"
     assert metadata["verification"]["ebay_production_access_workflow_run"] == 31336200661
@@ -40,7 +40,9 @@ def test_ebay_is_the_third_default_source_with_official_transport():
     assert ebay["marketplace"] == "EBAY_DE"
     assert ebay["fixed_price_default"] is True
     assert ebay["auctions_enabled_by_default"] is False
-    assert ebay["listing_persistence"] is False
+    assert ebay["search_result_persistence"] is False
+    assert ebay["favorite_persistence"] == "explicit browser-local user selection"
+    assert ebay["favorite_fields_contain_seller_data"] is False
     assert ebay["price_semantics"] == "item plus known shipping total"
 
 
@@ -51,15 +53,16 @@ def test_capabilities_publish_ebay_contract_without_changing_module_version():
     assert payload["contract"] == "generic-parser-module-v1"
     assert payload["sources"] == ["kleinanzeigen", "vinted", "ebay"]
     assert payload["default_sources"] == payload["sources"]
-    assert payload["ebay"] == {
-        "strategy": "official-browse-api",
-        "marketplace": "EBAY_DE",
-        "fixed_price_default": True,
-        "auctions_optional": True,
-        "auctions_enabled_by_default": False,
-        "price_semantics": "total-including-known-shipping",
-        "persistence": False,
-    }
+    ebay = payload["ebay"]
+    assert ebay["strategy"] == "official-browse-api"
+    assert ebay["marketplace"] == "EBAY_DE"
+    assert ebay["fixed_price_default"] is True
+    assert ebay["auctions_optional"] is True
+    assert ebay["auctions_enabled_by_default"] is False
+    assert ebay["price_semantics"] == "total-including-known-shipping"
+    assert ebay["search_result_persistence"] is False
+    assert ebay["favorite_persistence"] == "explicit-browser-local"
+    assert ebay["favorite_fields_contain_seller_data"] is False
 
 
 def test_worker_reads_ebay_secrets_request_scoped_without_hardcoding():
@@ -76,7 +79,7 @@ def test_worker_reads_ebay_secrets_request_scoped_without_hardcoding():
     assert "api.sandbox.ebay.com" not in adapter
 
 
-def test_browser_exposes_auction_switch_total_price_and_no_ebay_persistence():
+def test_browser_exposes_auction_switch_total_price_and_separate_explicit_favorites():
     html = read("cloudflare/public/index.html")
     app_js = read("cloudflare/public/app.js")
     controller = read("cloudflare/public/controller-0450.js")
@@ -87,7 +90,9 @@ def test_browser_exposes_auction_switch_total_price_and_no_ebay_persistence():
     assert "fingerprints:[]" in app_js
     assert "history:[]" in app_js
     assert "fetched:items.length" in app_js
-    assert "ebayPersistence:false" in controller
+    assert "ebayPersistence:I.ebayPersistence" in controller
+    assert "favorites-store-150.js" in html
+    assert "favorite-toggle" in app_js
     assert "total_price" in app_js
     assert "Versandkosten offen" in app_js
     assert '"./source-colors-140.css"' in service_worker
@@ -118,12 +123,9 @@ def test_roadmap_and_api_document_the_inserted_ebay_release():
     assert "No eBay listing persistence" in release
 
 
-def test_stable_release_manifest_targets_the_accepted_metadata_commit():
-    metadata = json.loads(read("VERSION.json"))
+def test_historical_140_release_manifest_remains_immutable():
     manifest = json.loads(read(".github/releases/1.4.0.json"))
     publisher = read(".github/workflows/publish-release.yml")
-    assert metadata["status"] == "stable"
-    assert metadata["verification"]["production_acceptance"] == "passed"
     assert manifest == {
         "version": "1.4.0",
         "tag": "v1.4.0",

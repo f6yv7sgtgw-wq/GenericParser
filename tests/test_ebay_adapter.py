@@ -20,6 +20,9 @@ def ebay_item(*, shipping=True, buying_options=None):
         "itemLocation": {"postalCode": "10115", "city": "Berlin"},
         "itemOriginDate": "2026-08-09T19:00:00.000Z",
         "shortDescription": "Komplett mit Hülle.",
+        "categories": [
+            {"categoryId": "139973", "categoryName": "Video Games"}
+        ],
         "seller": {
             "username": "seller",
             "feedbackPercentage": "99.8",
@@ -49,6 +52,9 @@ def test_fixed_price_item_uses_item_plus_known_shipping_total():
     assert listing["shipping_available"] is True
     assert listing["listing_format"] == "Sofort-Kaufen"
     assert listing["transient"] is True
+    assert listing["category_id"] == "139973"
+    assert listing["category_path"] == "Video Games"
+    assert "seller" not in listing
 
 
 def test_unknown_shipping_never_pretends_item_price_is_total():

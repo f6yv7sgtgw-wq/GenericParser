@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="de" data-page="favorites">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#090a0f">
+  <title>GenericParser Favoriten</title>
+  <link rel="stylesheet" href="./app.css">
+  <link rel="stylesheet" href="./layout-0409.css">
+  <link rel="stylesheet" href="./compact-04362.css">
+  <link rel="stylesheet" href="./cards-0440.css">
+  <link rel="stylesheet" href="./traffic-light-0443.css">
+  <link rel="stylesheet" href="./source-colors-110.css">
+  <link rel="stylesheet" href="./source-colors-140.css">
+  <link rel="stylesheet" href="./ui-133.css">
+  <link rel="stylesheet" href="./ui-134.css">
+  <link rel="stylesheet" href="./ui-150.css">
+</head>
+<body>
+<div class="sticky-shell">
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div>
+          <div class="title-row"><h1>Favoriten</h1><span class="version-badge">Version <span data-version>…</span></span></div>
+          <p>Bewusst gespeicherte Einzelangebote</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a class="header-link" href="./eventlog.html">Log</a>
+        <a class="header-link" href="./">Zur Suche</a>
+      </div>
+    </div>
+  </header>
+</div>
+
+<main class="app-shell favorites-shell">
+  <section class="card favorites-toolbar">
+    <label>Quelle<select id="favorite-source"><option value="all">Alle Quellen</option><option value="kleinanzeigen">Kleinanzeigen</option><option value="vinted">Vinted</option><option value="ebay">eBay</option></select></label>
+    <div class="favorites-meta"><strong id="favorite-total">0</strong> Favoriten · nur in diesem Browser gespeichert</div>
+    <button id="clear-favorites" class="danger-button" type="button">Alle entfernen</button>
+  </section>
+  <section id="favorites-results" class="favorites-results" aria-live="polite"></section>
+  <footer><span>GenericParser · Build …</span></footer>
+</main>
+<script src="./build-identity-0450.js" defer></script>
+<script src="./favorites-store-150.js" defer></script>
+<script src="./favorites-150.js" defer></script>
+</body>
+</html>

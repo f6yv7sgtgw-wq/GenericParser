@@ -1,6 +1,6 @@
-# GenericParser 1.4 Cloudflare Worker
+# GenericParser 1.5 Cloudflare Worker
 
-Der Paid Worker stellt die PWA und den Vertrag `generic-parser-module-v1` bereit. Eine Standardsuche kombiniert den bewährten Kleinanzeigen-Kern, das private Vinted Service Binding und eBay Deutschland über die offizielle Production Browse API.
+Der Paid Worker stellt die PWA und den Vertrag `generic-parser-module-v1` bereit. Eine Standardsuche kombiniert den bewährten Kleinanzeigen-Kern, das private Vinted Service Binding und eBay Deutschland über die offizielle Production Browse API. Die additive Klassifizierung läuft für alle drei Quellen.
 
 ## Voraussetzungen
 
@@ -18,7 +18,9 @@ EBAY_CLIENT_ID=
 EBAY_CLIENT_SECRET=
 ```
 
-`.dev.vars` wird nicht eingecheckt. Für Produktion werden dieselben Namen als verschlüsselte Cloudflare Worker Secrets gesetzt. OAuth-Tokens bleiben nur bis zu ihrem Ablauf im Worker-Speicher; eBay-Treffer werden weder serverseitig noch in der Browser-IndexedDB persistiert.
+`.dev.vars` wird nicht eingecheckt. Für Produktion werden dieselben Namen als verschlüsselte Cloudflare Worker Secrets gesetzt. OAuth-Tokens bleiben nur bis zu ihrem Ablauf im Worker-Speicher; gewöhnliche eBay-Suchergebnisse werden weder serverseitig noch in der Browser-Suchstand-IndexedDB persistiert. Nur ein ausdrücklich mit dem Stern gewählter Favorit wird datensparsam im aktuellen Browser gespeichert.
+
+Der separate Worker unter `pocs/ebay-notifications` benötigt zusätzlich das Secret `EBAY_DELETION_VERIFICATION_TOKEN`. Er beantwortet eBays Endpoint-Challenge und verifiziert signierte Marketplace-Account-Deletion-Meldungen, ohne deren Nutzerdaten zu speichern.
 
 ## Lokal testen
 
@@ -52,6 +54,8 @@ Das gleiche Token wird im mobilen Interface unter „Ort, Radius und Zugriff“ 
 - eBay nutzt `EBAY_DE`, 25 Browse-Treffer pro Seite und standardmäßig nur Festpreisangebote.
 - Reine eBay-Auktionen werden nur mit `include_ebay_auctions: true` zurückgegeben.
 - Bei unbekanntem Versand bleiben `shipping_cost`, `total_price` und der bewertete `price` leer.
+- Die PWA gruppiert Grün vor Gelb, Orange und Rot, stellt acht Filtergruppen bereit und speichert nur ausdrücklich markierte Favoriten.
+- Anzeigentexte werden nicht mehr auf Ergebniskarten dargestellt.
 - Fehler einer Quelle werden als degradierter Quellenstatus zurückgegeben; andere Quellen bleiben verfügbar.
 
-Das Deployment-Gate prüft Release-Identität, alle drei Quellen, eBay-Markt und Transport, Festpreisstandard, Preissemantik sowie den vorhandenen Vinted-Detailpfad.
+Das Deployment-Gate prüft Release-Identität, alle drei Quellen, Klassifizierung, fehlende eBay-Verkäuferdaten, eBay-Markt und Transport, Festpreisstandard, Preissemantik, den Vinted-Detailpfad sowie Health- und Challenge-Vertrag des Löschendpunkts.

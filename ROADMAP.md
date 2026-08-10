@@ -46,15 +46,19 @@ Current status: **1.3.4 stable and production-accepted**. Dense responsive UI co
 - add eBay as the third default, fail-open source;
 - default to fixed-price listings and make auctions an explicit opt-in;
 - score only a trustworthy total when shipping is known;
-- keep OAuth tokens in memory and never persist eBay listing data.
+- keep OAuth tokens in memory and never persist ordinary eBay search-state data.
 
 Current status: **1.4.0 stable and production-accepted**. The one-shot access gate and the regular deployment workflow both passed; live verification covered all three sources, eBay fixed-price and total-price invariants, and the existing deferred Vinted detail path. 1.3.4 remains the rollback target.
 
 ## 1.5 – Product classification
 
-- distinguish product, accessory, parts, lot and unrelated offers;
-- make classifier evidence visible to callers;
-- retain deterministic fail-open behavior for uncertain offers.
+- distinguish main products, accessories/parts, bundles, wanted ads, rentals, services and unrelated merchandise;
+- make classifier evidence visible to callers and use known category information from eBay;
+- keep green results first, independent from the selected within-group sort;
+- add result filters, explicit browser-local favorites and the required signed eBay account-deletion endpoint;
+- retain deterministic review behavior for uncertain offers.
+
+Current status: **1.5.0 release candidate**. Implementation and local regression tests are complete; production deployment and eBay portal endpoint validation remain pending. 1.4.0 is the rollback target.
 
 ## 1.6 – Title and cartridge normalization
 

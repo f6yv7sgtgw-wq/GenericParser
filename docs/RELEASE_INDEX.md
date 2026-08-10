@@ -4,6 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
+| 1.5.0 RC | `gp-150-20260810-1` | ausstehend | Produktklassifizierung, feste Ampelreihenfolge, Ergebnisfilter, kompakte Karten, explizite Browser-Favoriten und signierter eBay-Löschendpunkt |
 | 1.4.0 | `gp-140-20260809-1` | `7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c` | Offizielle eBay Browse API auf `EBAY_DE`, Festpreisstandard, bekannte Versand-Gesamtsumme und flüchtige eBay-Treffer; Produktions-Live-Gates grün |
 | 1.3.4 | `gp-134-20260809-1` | `47a74efa13f63b0908688cc96872e013f23e56bf` | Dichtes Mehrspaltenraster, kleine Karten mit Bild und Text nebeneinander, Startseiten-Symbol entfernt; Produktions-Live-Gates grün |
 | 1.3.3 | `gp-133-20260809-1` | `88df0a4f91fd813a685e26b429e3c549bb9ce5b3` | GUI-Rework im Evercade/SNES-Stil, Log-Navigation im Kopf und kompakte aufklappbare Vinted-Beschreibungen; Produktions-Live-Gates grün |
@@ -19,12 +20,12 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 | 0.42.7 | `gp-0427-20260803-1` | `119a05985d11017940b775bb2c6cc7bc6acd992a` | 7er-Arbeitspakete für Cloudflare Worker |
 | 0.41.1 | `gp-0411-20260802-1` | `4c9eac9e52a34c52a021ff5d74c2d87ad0c5351d` | Deployment-Handshake |
 
-## Aktueller Stable Release
+## Aktueller Release Candidate
 
 ```text
-Version:                    1.4.0
-Paketversion:               1.4.0
-Build-ID:                   gp-140-20260809-1
+Version:                    1.5.0
+Paketversion:               1.5.0
+Build-ID:                   gp-150-20260810-1
 Modulvertrag:               generic-parser-module-v1
 Worker-Profil:              Paid
 Fachlicher Referenzkern:    0.44.4
@@ -42,29 +43,31 @@ eBay-Festpreis:             standardmäßig an
 eBay-Auktionen:             standardmäßig aus, explizit aktivierbar
 eBay-Gesamtpreis:           Artikel + bekannte Versandkosten
 Unbekannte Versandkosten:   price/total_price bleiben leer
-eBay-Persistenz:            keine
-Vinted-Beschreibung:        4 Zeilen, aufklappbar
-Hashtag-Blöcke:             ausgeblendet
+eBay-Suchergebnispersistenz: keine
+Explizite Favoriten:        browserlokal, ohne Verkäufer-/Kontodaten
+eBay-Löschendpunkt:         ECDSA-signiert, Challenge unterstützt
+Produktklassifizierung:     v1, erklärbar und quellenneutral
+Ampelreihenfolge:           Grün, Gelb, Orange, Rot
+Ergebnisfilter:             8 Filtergruppen
+Anzeigentext:               entfernt
 Log-Navigation:             im Seitenkopf
 Ergebnisraster:             3+ Spalten Desktop, 4–5 Spalten Wide Screen
 Kartenmedien:               Bild und Text dauerhaft nebeneinander
 Startseiten-Symbol:         entfernt
 Debug-Logs:                 standardmäßig aus
 Modultests:                 standardmäßig aus, ohne Kleinanzeigen-Abruf
-Status:                     Stable; Produktions-Live-Gates grün
-Produktions-Commit:         7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c
-Deploy-Workflow:            31337634699 (success)
-eBay-Production-Gate:       31337634699 (im Deploy-Workflow, success)
-Vinted-Browser-Gate:        31337634699 (im Deploy-Workflow, success)
+Status:                     Release Candidate; Produktions-Live-Gates ausstehend
+Produktions-Commit:         ausstehend
+Deploy-Workflow:            ausstehend
 ```
 
 ## Rückfallreferenz
 
 ```text
-Version:                    1.3.4
-Build-ID:                   gp-134-20260809-1
-Commit:                     47a74efa13f63b0908688cc96872e013f23e56bf
-Deploy-Workflow:            31311244612 (success)
+Version:                    1.4.0
+Build-ID:                   gp-140-20260809-1
+Commit:                     7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c
+Deploy-Workflow:            31337634699 (success)
 ```
 
 ## Release-Download
