@@ -6,14 +6,14 @@ Reusable multi-source marketplace parser and browser UI for **Evercade**, **SNES
 
 - **Version:** `1.5.0`
 - **Build:** `gp-150-20260810-1`
-- **Status:** Release candidate; local classification, UI, favorites and eBay notification gates passed
+- **Status:** Stable; production identity, classification, filters, favorites, eBay deletion endpoint and three-source gates passed
 - **Worker profile:** Cloudflare Workers Paid
 - **Module contract:** `generic-parser-module-v1`
 - **Search runtime:** `0.45.0`
 - **Functional search core:** `0.44.4`
 - **Operational reference:** `0.44.6.5`
 
-GenericParser 1.5.0 classifies marketplace results before display, rejects known non-game merchandise such as card games, figures and toys, and always groups green results first. The browser adds compact filters and explicit favorites without restoring listing descriptions. eBay search results remain transient; only listings deliberately starred by the user are stored in that browser, without seller/account identifiers. A separate signed Marketplace Account Deletion endpoint supports the required eBay subscription.
+GenericParser 1.5.0 classifies marketplace results before display, rejects known non-game merchandise such as card games, figures and toys, and always groups green results first. The browser adds compact filters and explicit favorites without restoring listing descriptions. eBay search results remain transient; only listings deliberately starred by the user are stored in that browser, without seller/account identifiers. A separate signed Marketplace Account Deletion endpoint supports the required eBay subscription. Production acceptance passed on commit `33931e0dd391c68539ec1965342eff8a40d77070` in workflow `31361068931` (attempt 2).
 
 ## Architecture
 

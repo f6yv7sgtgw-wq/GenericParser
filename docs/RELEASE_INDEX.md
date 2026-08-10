@@ -4,7 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 1.5.0 RC | `gp-150-20260810-1` | ausstehend | Produktklassifizierung, feste Ampelreihenfolge, Ergebnisfilter, kompakte Karten, explizite Browser-Favoriten und signierter eBay-Löschendpunkt |
+| 1.5.0 | `gp-150-20260810-1` | `33931e0dd391c68539ec1965342eff8a40d77070` | Produktklassifizierung, feste Ampelreihenfolge, Ergebnisfilter, kompakte Karten, explizite Browser-Favoriten und signierter eBay-Löschendpunkt; Produktions-Live-Gates grün |
 | 1.4.0 | `gp-140-20260809-1` | `7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c` | Offizielle eBay Browse API auf `EBAY_DE`, Festpreisstandard, bekannte Versand-Gesamtsumme und flüchtige eBay-Treffer; Produktions-Live-Gates grün |
 | 1.3.4 | `gp-134-20260809-1` | `47a74efa13f63b0908688cc96872e013f23e56bf` | Dichtes Mehrspaltenraster, kleine Karten mit Bild und Text nebeneinander, Startseiten-Symbol entfernt; Produktions-Live-Gates grün |
 | 1.3.3 | `gp-133-20260809-1` | `88df0a4f91fd813a685e26b429e3c549bb9ce5b3` | GUI-Rework im Evercade/SNES-Stil, Log-Navigation im Kopf und kompakte aufklappbare Vinted-Beschreibungen; Produktions-Live-Gates grün |
@@ -20,7 +20,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 | 0.42.7 | `gp-0427-20260803-1` | `119a05985d11017940b775bb2c6cc7bc6acd992a` | 7er-Arbeitspakete für Cloudflare Worker |
 | 0.41.1 | `gp-0411-20260802-1` | `4c9eac9e52a34c52a021ff5d74c2d87ad0c5351d` | Deployment-Handshake |
 
-## Aktueller Release Candidate
+## Aktueller Stable Release
 
 ```text
 Version:                    1.5.0
@@ -56,9 +56,13 @@ Kartenmedien:               Bild und Text dauerhaft nebeneinander
 Startseiten-Symbol:         entfernt
 Debug-Logs:                 standardmäßig aus
 Modultests:                 standardmäßig aus, ohne Kleinanzeigen-Abruf
-Status:                     Release Candidate; Produktions-Live-Gates ausstehend
-Produktions-Commit:         ausstehend
-Deploy-Workflow:            ausstehend
+Status:                     Stable; Produktions-Live-Gates und eBay-Portalvalidierung grün
+Produktions-Commit:         33931e0dd391c68539ec1965342eff8a40d77070
+Deploy-Workflow:            31361068931, Versuch 2 (success)
+eBay-Endpoint-Gate:         31361068931 (Challenge-Vertrag, success)
+eBay-Browse-Gate:           25 Treffer, HTTP 200, EBAY_DE, Festpreis
+Klassifizierungs-Gate:      57/57 Treffer
+Vinted-Browser-Gate:        3/3 Details vollständig
 ```
 
 ## Rückfallreferenz
@@ -78,16 +82,16 @@ Der Hauptbranch enthält den veröffentlichten Stand einschließlich der nachgel
 https://github.com/f6yv7sgtgw-wq/GenericParser/archive/refs/heads/main.zip
 ```
 
-Der exakte abgenommene 1.4.0-Produktionsstand ist dauerhaft über den Commit abrufbar:
+Der exakte abgenommene 1.5.0-Produktionsstand ist dauerhaft über den Commit abrufbar:
+
+```text
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/33931e0dd391c68539ec1965342eff8a40d77070.zip
+```
+
+Stabile Rückfallreferenz 1.4.0:
 
 ```text
 https://github.com/f6yv7sgtgw-wq/GenericParser/archive/7eb1b9c6a124ee43f36555cfca7bce39ddd1e47c.zip
-```
-
-Stabile Rückfallreferenz 1.3.4:
-
-```text
-https://github.com/f6yv7sgtgw-wq/GenericParser/archive/47a74efa13f63b0908688cc96872e013f23e56bf.zip
 ```
 
 ## Pflegevorgabe ab 1.0
