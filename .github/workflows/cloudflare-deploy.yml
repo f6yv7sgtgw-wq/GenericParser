@@ -116,23 +116,37 @@ jobs:
           EXPECTED_BUILD: ${{ steps.release.outputs.build }}
         run: |
           set -euo pipefail
-          code="$(curl -sS -o /tmp/ebay-deletion-health.json -w '%{http_code}' --max-time 20 "$EBAY_DELETION_COMPONENT_URL/health")"
-          python - "$code" <<'PY'
+          for attempt in $(seq 1 24); do
+            code="$(curl -sS -o /tmp/ebay-deletion-health.json -w '%{http_code}' --max-time 20 "$EBAY_DELETION_COMPONENT_URL/health" || true)"
+            python - "$code" <<'PY' && break || true
           import json,os,sys
-          d=json.load(open('/tmp/ebay-deletion-health.json'))
-          assert sys.argv[1]=='200'
-          assert d.get('status')=='ok' and d.get('version')==os.environ['EXPECTED_VERSION']
-          assert d.get('challenge_ready') is True
-          assert d.get('signature_verification')=='ecdsa-public-key-api'
+          try: d=json.load(open('/tmp/ebay-deletion-health.json'))
+          except Exception: raise SystemExit(1)
+          ok=(sys.argv[1]=='200' and d.get('status')=='ok' and d.get('version')==os.environ['EXPECTED_VERSION'] and d.get('challenge_ready') is True and d.get('signature_verification')=='ecdsa-public-key-api')
+          raise SystemExit(0 if ok else 1)
           PY
+            if [ "$attempt" -eq 24 ]; then
+              cat /tmp/ebay-deletion-health.json || true
+              exit 1
+            fi
+            sleep 10
+          done
           challenge="${EXPECTED_BUILD}-production-gate"
-          code="$(curl -sS -o /tmp/ebay-challenge.json -w '%{http_code}' --max-time 20 "$EBAY_DELETION_ENDPOINT_URL?challenge_code=$challenge")"
-          CHALLENGE="$challenge" python - "$code" <<'PY'
+          for attempt in $(seq 1 12); do
+            code="$(curl -sS -o /tmp/ebay-challenge.json -w '%{http_code}' --max-time 20 "$EBAY_DELETION_ENDPOINT_URL?challenge_code=$challenge" || true)"
+            CHALLENGE="$challenge" python - "$code" <<'PY' && break || true
           import hashlib,json,os,sys
-          d=json.load(open('/tmp/ebay-challenge.json'))
+          try: d=json.load(open('/tmp/ebay-challenge.json'))
+          except Exception: raise SystemExit(1)
           expected=hashlib.sha256((os.environ['CHALLENGE']+os.environ['EBAY_DELETION_VERIFICATION_TOKEN']+os.environ['EBAY_DELETION_ENDPOINT_URL']).encode()).hexdigest()
-          assert sys.argv[1]=='200' and d.get('challengeResponse')==expected
+          raise SystemExit(0 if sys.argv[1]=='200' and d.get('challengeResponse')==expected else 1)
           PY
+            if [ "$attempt" -eq 12 ]; then
+              cat /tmp/ebay-challenge.json || true
+              exit 1
+            fi
+            sleep 5
+          done
       - name: Deploy Python Worker
         run: uv run --group cloudflare pywrangler deploy
       - name: Verify live release identity and eBay secret bindings

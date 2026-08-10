@@ -93,6 +93,21 @@ def test_ebay_notification_component_tracks_patch_release():
     assert package["version"] == VERSION
 
 
+def test_deploy_gate_waits_for_notification_worker_propagation():
+    workflow = read(".github/workflows/cloudflare-deploy.yml")
+    gate = workflow[
+        workflow.index("- name: Verify eBay endpoint health") : workflow.index(
+            "- name: Deploy Python Worker"
+        )
+    ]
+    assert "for attempt in $(seq 1 24)" in gate
+    assert "d.get('version')==os.environ['EXPECTED_VERSION']" in gate
+    assert "for attempt in $(seq 1 12)" in gate
+    assert "sleep 10" in gate
+    assert "sleep 5" in gate
+    assert "d.get('challengeResponse')==expected" in gate
+
+
 def test_release_documentation_covers_scope_and_non_changes():
     api = read("docs/API_1.5.1.md")
     release = read("docs/releases/1.5.1.md")
