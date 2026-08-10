@@ -4,7 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 1.6.1 | `gp-161-20260810-1` | ausstehend | Browser-Controller reicht API-v2-State korrekt weiter; Speicherräumung fail-open; freundlicheres tiefblaues/teal Farbschema; Modul-v1, v2-Schema und Suchkern unverändert |
+| 1.6.1 | `gp-161-20260810-1` | `0b30f5bf651a3b7a87401ace0dce0540d5b1c882` | Browser-Controller reicht API-v2-State korrekt weiter; Speicherräumung fail-open; freundlicheres tiefblaues/teal Farbschema; Produktions-Live-Gates grün; Modul-v1, v2-Schema und Suchkern unverändert |
 | 1.6.0 | `gp-160-20260810-1` | `9a3f5af1775fbf1c95438dbb66daa643908235f3` | Modul-API v2 und neue Websuche; vor Stable-Freigabe wegen inkompatibler Controller-Aufrufsignatur durch 1.6.1 ersetzt |
 | 1.5.1 | `gp-151-20260810-1` | `20721cc6335c00b6e1f9560c228f5604376f81b3` | Manueller Stopp eindeutig pausiert/fortsetzbar; ausgewogenes responsives Filterlayout; 1.5.0-Suchverhalten unverändert; Produktions-Live-Gates grün |
 | 1.5.0 | `gp-150-20260810-1` | `33931e0dd391c68539ec1965342eff8a40d77070` | Produktklassifizierung, feste Ampelreihenfolge, Ergebnisfilter, kompakte Karten, explizite Browser-Favoriten und signierter eBay-Löschendpunkt; Produktions-Live-Gates grün |
@@ -23,7 +23,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 | 0.42.7 | `gp-0427-20260803-1` | `119a05985d11017940b775bb2c6cc7bc6acd992a` | 7er-Arbeitspakete für Cloudflare Worker |
 | 0.41.1 | `gp-0411-20260802-1` | `4c9eac9e52a34c52a021ff5d74c2d87ad0c5351d` | Deployment-Handshake |
 
-## Aktueller Release-Kandidat
+## Aktueller Stable Release
 
 ```text
 Version:                    1.6.1
@@ -64,13 +64,13 @@ Kartenmedien:               Bild und Text dauerhaft nebeneinander
 Startseiten-Symbol:         entfernt
 Debug-Logs:                 standardmäßig aus
 Modultests:                 standardmäßig aus, ohne Kleinanzeigen-Abruf
-Status:                     Release Candidate; Produktionsabnahme ausstehend
-Produktions-Commit:         ausstehend
-Deploy-Workflow:            ausstehend
-eBay-Endpoint-Gate:         ausstehend
-eBay-Browse-Gate:           ausstehend
-Klassifizierungs-Gate:      ausstehend
-Vinted-Browser-Gate:        ausstehend
+Status:                     Stable; Produktionsabnahme bestanden
+Produktions-Commit:         0b30f5bf651a3b7a87401ace0dce0540d5b1c882
+Deploy-Workflow:            31419552008 (success)
+eBay-Endpoint-Gate:         31419552008 (success)
+eBay-Browse-Gate:           31419552008 (success)
+Klassifizierungs-Gate:      31419552008 (success)
+Vinted-Browser-Gate:        31419552008 (success)
 ```
 
 ## Rückfallreferenz
@@ -90,10 +90,10 @@ Der Hauptbranch enthält den veröffentlichten Stand einschließlich der nachgel
 https://github.com/f6yv7sgtgw-wq/GenericParser/archive/refs/heads/main.zip
 ```
 
-Der exakte abgenommene 1.5.1-Produktionsstand ist dauerhaft über den Commit abrufbar:
+Der exakte abgenommene 1.6.1-Produktionsstand ist dauerhaft über den Commit abrufbar:
 
 ```text
-https://github.com/f6yv7sgtgw-wq/GenericParser/archive/20721cc6335c00b6e1f9560c228f5604376f81b3.zip
+https://github.com/f6yv7sgtgw-wq/GenericParser/archive/0b30f5bf651a3b7a87401ace0dce0540d5b1c882.zip
 ```
 
 Stabile Rückfallreferenz 1.5.1:

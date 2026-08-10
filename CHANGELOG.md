@@ -10,6 +10,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Eigenen JavaScript-Regressionsvertrag für Controller-v2-State-Forwarding, Batch-/Tokenbindung, Speicherräumung und Cache-Busting ergänzt.
 - Dunkles Farbschema freundlicher gestaltet: tiefblaue Flächen, türkise Primäraktionen, warme Lavendelakzente und weichere Karten bei unverändertem responsivem Layout.
 - Modul-v1, API-v2-Schema, Marketplace-Adapter, Suchkern, Klassifizierung, Favoriten und Stopp/Fortsetzen unverändert beibehalten.
+- Produktionsabnahme erfolgreich: Workflow `31419552008` bestätigte auf Commit `0b30f5bf651a3b7a87401ace0dce0540d5b1c882` Identität, Modul-v2, alle drei Marketplace-Quellen, eBay-Verträge und Vinted-Detailanreicherung; ein zusätzlicher direkter Browser-v2-Lauf bestätigte Batch-/Fortsetzungstoken über Kleinanzeigen, Vinted und eBay sowie bytegleiche Live-Assets.
 - 1.6.0 vor Stable-Freigabe ersetzt; Rollback-Ziel bleibt 1.5.1 / `gp-151-20260810-1`.
 
 ## 1.6.0 – 2026-08-10 – Modul-API v2 und browserfreundliche Suche

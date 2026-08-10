@@ -18,7 +18,7 @@
   "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+responsive-web-ui-161+signed-continuations-v2",
   "release_date": "2026-08-10",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "release-candidate",
+  "status": "stable",
   "purpose": "repair the browser-to-module-v2 controller bridge, make local progress cleanup fail-open and introduce a friendlier responsive palette without changing module-v1 or the proven marketplace search core",
   "worker_plan": "paid",
   "sources": {
@@ -86,12 +86,12 @@
     "search_header_project_mark": "removed",
     "vinted_description_api_data": "required",
     "no_horizontal_overflow": "required",
-    "production_acceptance": "pending",
-    "production_commit": null,
-    "production_workflow_run": null,
-    "vinted_browser_workflow_run": null,
+    "production_acceptance": "passed",
+    "production_commit": "0b30f5bf651a3b7a87401ace0dce0540d5b1c882",
+    "production_workflow_run": 31419552008,
+    "vinted_browser_workflow_run": 31419552008,
     "vinted_browser_gate": "integrated in production workflow",
-    "accepted_at": null
+    "accepted_at": "2026-08-10T18:34:18Z"
   },
   "rollback_plan": {"last_stable_baseline": "1.5.1", "build_id": "gp-151-20260810-1"},
   "metadata_schema": 49
