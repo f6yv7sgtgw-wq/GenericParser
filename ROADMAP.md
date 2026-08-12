@@ -84,14 +84,28 @@ production long-run acceptance is pending.
 - expand deterministic fixtures for spelling, punctuation and marketplace edge cases;
 - keep catalog, collection, valuation and deal decisions in consuming clients.
 
-Current status: **1.9.0 release candidate** (2026-08-12), production acceptance
-pending; 1.8.9 is the accepted stable baseline and the rollback target. 1.9.0
+Current status: **1.9.0 stable and production-accepted** (2026-08-12); 1.8.9
+is the rollback target. An acceptance run `lemmings snes` returned 249 results
+with 97 marked red and hidden only by the status filter, all visible green
+tiles genuine matches, and the grey zone (SNES titles without "lemmings")
+correctly yellow. 1.9.0
 adds the source-neutral relevance check from `docs/HANDOVER-1.9.0.md`: a search
 for `super mario kart 8` returned 1291 results that the classifier had no
 reason to reject, because it judges the product kind, not the fit to the query.
 The new `relevance.py` measures how well the carrying query terms are covered
 in the title and maps low coverage to red/yellow additively — never silently
 hiding a result.
+
+Planned for **1.9.1**: a deliberate per-source spacing for Vinted inside the
+rotation. Two runs on 1.8.9 (`super mario kart 8`, `zelda link to the past`)
+show Vinted blocking anonymous catalog access after 11 and then only 6
+packets — consistent with a cumulative time-window budget, which a return to
+sequential search would not help (same total requests, denser). Instead,
+Vinted skips its turn until a cooldown has elapsed while the other sources
+keep rotating without pauses. Before picking the cooldown: measure the window
+from timestamped blocked runs, and check whether a fresh session bootstrap
+after expiry reopens the source (then a resume attempt beats a final
+`blocked`).
 
 Earlier status: 1.8.6 is the accepted stable
 baseline and the rollback target. 1.8.7 records why each source stops and

@@ -12,7 +12,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Aufruf in `_decorate_listing`, damit alle drei Quellen gleich behandelt werden und auch abgeleitete Konvolut-Kacheln erneut geprüft werden.
 - Die geteilte Fallsammlung `tests/fixtures/normalization_cases.json` bekommt einen Abschnitt `relevance` mit 14 Fällen aus dem echten Lauf („Mario Party 8" passt nicht, „MK8 Deluxe" passt, „Mario Kart Wii" ist Prüffall).
 - Neue Suite `tests/test_release_190.py` (24).
-- Produktionsabnahme: ausstehend. Abnahmekriterium: derselbe Lauf `super mario kart 8` zeigt deutlich weniger grüne Treffer, ohne dass ein tatsächliches „Mario Kart 8" auf Rot landet. Rollback-Ziel: 1.8.9 / `gp-189-20260812-1`.
+- Produktionsabnahme erfolgreich: Deploy-Workflow `31642426632` lief auf Commit `e85f1860058c3b4b1d9919ca4508e6445ac20c3c` grün durch — diesmal einschließlich der langen module-v2-Prüfkette, die beim vorigen Deploy an einem transienten 502 gescheitert war. Abnahmelauf `lemmings snes`: 249 Treffer, davon 152 sichtbar und **97 als unpassend Rot ausgeblendet** (Statusfilter, keine stille Kürzung). Alle sichtbaren grünen Kacheln waren echte Lemmings-SNES-Artikel; Gelb waren genau die Grauzone — SNES-Spiele ohne „lemmings" im Titel (Pilotwings, Donkey Kong Country, Populous, Sammlungen) mit der neuen Begründung „Suchbegriffe nur teilweise gedeckt (fehlt: lemmings)". Kein echtes Lemmings-Angebot landete auf Rot; zwei Schreibvarianten („Lemminge", „Tribess") wurden Prüffall statt Treffer — Kandidaten für relevance-v2. Rollback-Ziel: 1.8.9 / `gp-189-20260812-1`.
 
 ## 1.8.9 – 2026-08-12 – Zwei verlorene Assets und ein Log, das den Lauf beschreibt
 
