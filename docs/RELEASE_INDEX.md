@@ -4,6 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
+| 1.8.6 RC | `gp-186-20260812-1` | ausstehend | Latenzdrosselung wird vom Browser selbst entschieden statt von einer stumm ausfallenden Neutralisierung; während der Quellenrotation entfällt die Paketpause ganz |
 | 1.8.5 | `gp-185-20260812-1` | `3486cb4aeb1365ab3b2f0777283e23872f2c70da` | Quellen rotieren statt nacheinander ausgelesen zu werden, je Quelle ein eigener Seitenzeiger; geteilte deterministische Fallsammlung deckte drei Normalisierungslücken auf |
 | 1.8.1 | `gp-181-20260812-1` | `4d1ce29` | Korrekturen aus dem Livelauf: Stückpreis-Füllwörter aus abgeleiteten Titeln entfernt, `derived_from` als vollständiger `listing_key` |
 | 1.8.0 | `gp-180-20260812-1` | `dfa3c18` | Quellenneutrale Zustands- und Versandcodes; Kleinanzeigen-Konvolute mit Einzelpreisliste werden zu Einzelkacheln mit Verweis auf die Ursprungsanzeige; Vinted-Katalogbilder ab dem ersten Paket; moderne Suchmaske mit einklappbarem Filterpanel |
