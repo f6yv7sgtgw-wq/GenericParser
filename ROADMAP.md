@@ -98,8 +98,10 @@ work requested from production use:
 - the browser is rebuilt around a modern search mask with a collapsible filter
   panel and loading placeholders.
 
-Still open in this line: broader deterministic fixtures for spelling,
-punctuation and marketplace edge cases.
+1.8.5 completes the line: the marketplace sources now rotate instead of being
+drained one after another, and `tests/fixtures/normalization_cases.json` gives
+the normalizers a shared deterministic case collection that both the Python
+adapters and the Vinted worker are checked against.
 
 Earlier status: **1.7.1 stable and production-accepted** (2026-08-12). 1.7.1 runs the deferred Vinted
 detail batches two at a time instead of strictly one after another, with a

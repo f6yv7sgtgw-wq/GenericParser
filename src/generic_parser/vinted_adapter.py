@@ -65,8 +65,15 @@ _SIZE_PLACEHOLDERS = frozenset(
 )
 
 
+# Dieselbe Grenze wie normalizeSize im Vinted-Worker: eine Größe ist ein
+# kurzes Label, längere Treffer sind Fließtext.
+_SIZE_MAX_LENGTH = 12
+
+
 def _size_text(value: Any) -> str | None:
     text = " ".join(str(value or "").split())
+    if not text or len(text) > _SIZE_MAX_LENGTH:
+        return None
     return None if text.casefold() in _SIZE_PLACEHOLDERS else text
 
 

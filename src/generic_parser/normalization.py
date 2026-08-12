@@ -179,20 +179,29 @@ _CONDITION_RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("like_new", ("wie neu", "like new", "sehr gut", "very good", "neuwertig",
                   "kaum getragen", "kaum benutzt")),
     ("new", ("neu mit etikett", "neu ohne etikett", "new with tags",
-             "new without tags", "neu/ovp", "originalverpackt", "ungeöffnet",
+             "new without tags", "neu ovp", "originalverpackt", "ungeoffnet",
              "ungetragen", "unbenutzt", "brand new", "nagelneu", "ovp", "neu",
              "new")),
     ("used", ("gebraucht", "getragen", "benutzt", "gut", "good", "akzeptabel",
-              "zufriedenstellend", "satisfactory", "used", "pre-owned",
+              "zufriedenstellend", "satisfactory", "used", "pre owned",
               "second hand")),
 )
+
+
+_CONDITION_PUNCT_RE = re.compile(r"[^0-9a-zäöüß]+")
+
+
+def _condition_key(value: object) -> str:
+    """Vereinheitlicht Interpunktion, damit "wie-neu" wie "wie neu" zählt."""
+
+    return " ".join(_CONDITION_PUNCT_RE.sub(" ", str(value or "").casefold()).split())
 
 
 def normalize_condition(*values: object) -> str:
     """Ordnet Zustandsangaben einem stabilen Code zu; unbekannt bleibt unbekannt."""
 
     for value in values:
-        text = " ".join(str(value or "").split()).casefold()
+        text = _condition_key(value)
         if not text:
             continue
         for code, needles in _CONDITION_RULES:
