@@ -2,6 +2,18 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.8.7 – 2026-08-12 – Abbruchgrund je Quelle und Log-Download
+
+- Jede Quelle hält jetzt fest, **warum** sie aussteigt: Status, Grund, Paketzahl und Trefferzahl. Bisher endete ein Lauf ohne Spur davon, ob eine Quelle erschöpft, blockiert, gedrosselt oder in eine Zeitgrenze gelaufen war — beobachtete Obergrenzen wie 64 bei Kleinanzeigen, 110 bei Vinted und über 700 bei eBay ließen sich nur raten.
+- Der Grund steht in der Diagnose der Suchseite und wird als `source_finished` ins Eventlog geschrieben — einmal je Quelle, nicht bei jedem weiteren Paket.
+- Die bekannten Zustände sind in Klartext benannt (`blocked` → „von der Quelle blockiert", `rate_limited` → „von der Quelle gedrosselt", `empty` → „keine weiteren Treffer" und so fort).
+- Das Eventlog lässt sich als JSON-Datei herunterladen. „Log kopieren" reicht nicht, wenn ein Lauf über hunderte Einträge geht oder das Ergebnis weitergegeben werden soll.
+- Der Export trägt Version, Build-ID, Identitätsquelle, Exportzeit und Eintragszahl mit, damit ein später gelesenes Log einem Stand zuzuordnen ist.
+- Der Dateiname enthält keine Doppelpunkte, die Windows in Dateinamen ablehnt; der Blob wird nach dem Download wieder freigegeben.
+- Ein leeres Log meldet das, statt eine leere Datei zu schreiben; ein beschädigter Speicher liefert eine leere Liste, statt den Export abzubrechen.
+- Neue Suiten `tests/js/source-outcome-187.test.mjs` (5), `tests/js/eventlog-export-187.test.mjs` (6) und `tests/test_release_187.py` (4).
+- Produktionsabnahme: ausstehend. Rollback-Ziel: 1.8.6 / `gp-186-20260812-1`.
+
 ## 1.8.6 – 2026-08-12 – Drosselung entschärft
 
 - Der Fünf-Sekunden-Timer war keine Kleinanzeigen-Pause, sondern die latenzabhängige Drosselung `adaptiveDelay`: Ab vier Sekunden Paketlaufzeit wartete der Lauf danach fünf Sekunden.
