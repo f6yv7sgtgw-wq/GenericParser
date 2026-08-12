@@ -116,8 +116,8 @@ def test_release_identity_publishes_v2_additively():
 
     metadata = json.loads(read("VERSION.json"))
     public = json.loads(read("cloudflare/public/release-identity.json"))
-    assert VERSION == "1.6.3"
-    assert BUILD_ID == "gp-163-20260810-1"
+    assert VERSION == "1.6.4"
+    assert BUILD_ID == "gp-164-20260812-1"
     assert API_CONTRACT == "generic-parser-module-v1"
     assert PREFERRED_MODULE_CONTRACT == MODULE_CONTRACT_V2
     assert SUPPORTED_MODULE_CONTRACTS == (
@@ -363,11 +363,11 @@ def test_web_ui_160_uses_v2_and_exposes_clear_search_and_result_controls():
     assert "'search-source'" in app[app.index("const ids=") : app.index("function refreshProfiles")]
     assert "market_value" not in app[app.index("function v2Definition") : app.index("function v2Request")]
     assert "parseTermList" in ui
-    assert "generic-parser-mobile-gp-163" in service_worker
+    assert "generic-parser-mobile-gp-164" in service_worker
     assert '"./ui-160.css"' in service_worker
     assert '"./ui-161.css"' in service_worker
     assert '"./ui-160.js"' in service_worker
-    assert "service-worker.js?v=gp-163" in app
+    assert "service-worker.js?v=gp-164" in app
     controller = read("cloudflare/public/controller-0450.js")
     assert "requestPage = async function(payload, state)" in controller
     assert "originalRequestPage(payload, state)" in controller
