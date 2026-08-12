@@ -84,7 +84,7 @@ production long-run acceptance is pending.
 - expand deterministic fixtures for spelling, punctuation and marketplace edge cases;
 - keep catalog, collection, valuation and deal decisions in consuming clients.
 
-Current status: **1.8.7 release candidate**; 1.8.6 is the accepted stable
+Current status: **1.8.8 release candidate**; 1.8.6 is the accepted stable
 baseline and the rollback target. 1.8.7 records why each source stops and
 makes the event log downloadable, so the observed per-source ceilings can be
 diagnosed from evidence instead of guessed at. 1.8.6 fixes an interaction the rotation

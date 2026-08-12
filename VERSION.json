@@ -1,8 +1,8 @@
 {
   "product": "GenericParser",
-  "version": "1.8.7",
+  "version": "1.8.8",
   "package_version": "dynamic:generic_parser.release_identity.VERSION",
-  "build_id": "gp-187-20260812-1",
+  "build_id": "gp-188-20260812-1",
   "identity_source": "src/generic_parser/release_identity.py",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
@@ -19,7 +19,7 @@
   "release_date": "2026-08-12",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "release-candidate",
-  "purpose": "record and show why each source stops, so that an observed ceiling can be told apart as an exhausted source, a block, a rate limit or a timeout instead of being guessed at, and let the event log be downloaded as a file that carries the release identity",
+  "purpose": "supply the event log writer that every caller had only ever checked for, so that the log stops being permanently empty and the 1.8.7 download works at all, and show the offer format as German text instead of the raw module-v2 code",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted", "ebay"],
@@ -118,12 +118,14 @@
     "source_stop_reason_recorded": "required",
     "source_stop_reason_visible": "required",
     "event_log_download": "required",
+    "event_log_writer": "required",
+    "offer_format_label_localised": "required",
     "no_inter_packet_pause_while_rotating": "required",
     "same_page_transient_result_resume": true,
     "vinted_background_yields_to_primary_search": true,
     "source_progress_unique_listing_keys": true,
     "production_acceptance": "pending"
   },
-  "rollback_plan": {"last_stable_baseline": "1.8.6", "build_id": "gp-186-20260812-1"},
-  "metadata_schema": 58
+  "rollback_plan": {"last_stable_baseline": "1.8.7", "build_id": "gp-187-20260812-1"},
+  "metadata_schema": 59
 }

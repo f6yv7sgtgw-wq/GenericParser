@@ -2,6 +2,15 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.8.8 – 2026-08-12 – Der fehlende Log-Schreiber
+
+- **Das Eventlog war nie befüllt.** Jeder Aufrufer prüfte nur `typeof window.gpEventLog === 'function'`, und die Log-Seite las einen Speicher, den niemand beschrieb. Alle Log-Aufrufe im Suchpfad waren wirkungslos — auch die in 1.8.7 ergänzten `source_finished`-Einträge. Der Download aus 1.8.7 konnte damit nur „Log ist leer" melden.
+- `eventlog-writer-188.js` liefert den Schreiber nach und wird auf Such- und Log-Seite vor allen Aufrufern geladen. Ein bereits vorhandener Schreiber wird nicht verdrängt.
+- Das Log ist auf 800 Einträge begrenzt. Ein voller Speicher wirft die ältere Hälfte weg, statt eine laufende Suche abzubrechen; eine nicht serialisierbare Nutzlast kostet den Eintrag nicht.
+- **`fixed_price` stand roh in der Kachel.** `listingFromV2` reichte den Modul-v2-Code als Anzeigetext durch. Angebotsformate erscheinen jetzt als „Festpreis", „Auktion" und „Preisvorschlag" — die Bezeichnungen sind so gewählt, dass der Angebotsart-Filter sie weiterhin richtig einordnet.
+- Neue Suiten `tests/js/eventlog-writer-188.test.mjs` (5) und `tests/test_release_188.py` (5).
+- Produktionsabnahme: ausstehend. Rollback-Ziel: 1.8.7 / `gp-187-20260812-1`.
+
 ## 1.8.7 – 2026-08-12 – Abbruchgrund je Quelle und Log-Download
 
 - Jede Quelle hält jetzt fest, **warum** sie aussteigt: Status, Grund, Paketzahl und Trefferzahl. Bisher endete ein Lauf ohne Spur davon, ob eine Quelle erschöpft, blockiert, gedrosselt oder in eine Zeitgrenze gelaufen war — beobachtete Obergrenzen wie 64 bei Kleinanzeigen, 110 bei Vinted und über 700 bei eBay ließen sich nur raten.
