@@ -564,6 +564,30 @@
       "query": "König der Löwen SNES",
       "title": "Koenig der Loewen - Super Nintendo (SNES)",
       "expected": "match"
+    },
+    {
+      "name": "Deutscher Plural als Schreibvariante",
+      "query": "lemmings snes",
+      "title": "SNES Lemminge Verpackt Aktiv Ntsc Japan",
+      "expected": "match"
+    },
+    {
+      "name": "Tippfehler mit doppeltem Buchstaben",
+      "query": "lemmings tribes snes",
+      "title": "SUPER NINTENDO SNES Lemminge 2 Tribess OVP TOP CIB PAL",
+      "expected": "match"
+    },
+    {
+      "name": "Wario ist keine Schreibvariante von Mario",
+      "query": "mario kart 8",
+      "title": "Wario Land 8",
+      "expected": "mismatch"
+    },
+    {
+      "name": "Karten sind keine Schreibvariante von Kart",
+      "query": "mario kart 8",
+      "title": "Pokemon Karten Sammlung 8",
+      "expected": "mismatch"
     }
   ]
 }

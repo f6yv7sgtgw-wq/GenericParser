@@ -14,6 +14,11 @@ from .product_classification import (
     apply_classification_metadata,
     classify_listing,
 )
+from .relevance import (
+    apply_relevance_evaluation,
+    apply_relevance_metadata,
+    evaluate_relevance,
+)
 from .vinted_adapter import DETAIL_BATCH_LIMIT, enrich_vinted_details
 
 
@@ -63,10 +68,18 @@ def _merge_listing(original: dict[str, Any], enriched: dict[str, Any]) -> dict[s
 
 
 def _decorate(listing: dict[str, Any], payload: Any) -> dict[str, Any]:
+    # Muss dieselben Regeln anwenden wie search_service._decorate_listing:
+    # ohne die Relevanzprüfung verlor die Neubewertung nach der Anreicherung
+    # die Relevanz-Begründung aus der Hauptsuche (1.9.0-Abnahmelauf).
     classification = classify_listing(listing, str(payload.query))
     apply_classification_metadata(listing, classification)
+    relevance = evaluate_relevance(
+        str(payload.query), listing.get("title"), listing.get("description")
+    )
+    apply_relevance_metadata(listing, relevance)
     evaluation = reference._evaluate(listing, payload)
     evaluation = apply_classification_evaluation(evaluation, classification)
+    evaluation = apply_relevance_evaluation(evaluation, relevance)
     listing["traffic_light"] = evaluation
     listing["match"] = {
         "listing_class": evaluation["label"],

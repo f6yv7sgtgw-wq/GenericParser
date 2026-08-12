@@ -1,8 +1,8 @@
 {
   "product": "GenericParser",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "package_version": "dynamic:generic_parser.release_identity.VERSION",
-  "build_id": "gp-190-20260812-1",
+  "build_id": "gp-191-20260812-1",
   "identity_source": "src/generic_parser/release_identity.py",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
@@ -18,8 +18,8 @@
   "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+mobile-transport-recovery+deferred-vinted-details+responsive-web-ui-162+signed-continuations-v2+vinted-size-normalization+default-auction-search-with-result-filter+parallel-vinted-background-batches+source-neutral-condition-delivery-codes+derived-bundle-listings+modern-search-mask+round-robin-source-rotation",
   "release_date": "2026-08-12",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "stable",
-  "purpose": "add a source-neutral relevance check derived from the query itself, so that OR-matched marketplace results like every Mario game for 'super mario kart 8' turn red or yellow instead of green, additively and without silently hiding anything",
+  "status": "release-candidate",
+  "purpose": "protect Vinted with a rotation cooldown instead of pausing every source, report each source's true end instead of attributing the packet-level stop reason (the invented Kleinanzeigen packet budget), tolerate spelling variants like Lemminge/Tribess in the relevance check, keep the relevance reason through the Vinted enrichment rescore, and make the runtime loader fallbacks log loudly",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted", "ebay"],
@@ -131,11 +131,14 @@
     "relevance_field_additive": "required",
     "relevance_never_hides_listings": "required",
     "shared_relevance_fixtures": "required",
-    "production_acceptance": "passed",
-    "production_commit": "e85f1860058c3b4b1d9919ca4508e6445ac20c3c",
-    "production_workflow_run": 31642426632,
-    "accepted_at": "2026-08-12T21:32:02Z"
+    "relevance_spelling_variants": "required",
+    "vinted_rotation_cooldown_seconds": 20,
+    "vinted_pacing_hint_additive": "required",
+    "per_source_end_truthful": "required",
+    "enrichment_rescore_applies_relevance": "required",
+    "runtime_loader_fallback_logged": "required",
+    "production_acceptance": "pending"
   },
-  "rollback_plan": {"last_stable_baseline": "1.8.9", "build_id": "gp-189-20260812-1"},
-  "metadata_schema": 61
+  "rollback_plan": {"last_stable_baseline": "1.9.0", "build_id": "gp-190-20260812-1"},
+  "metadata_schema": 62
 }

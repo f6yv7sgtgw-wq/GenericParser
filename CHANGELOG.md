@@ -2,6 +2,17 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.9.1 – 2026-08-12 – Vinted-Schonfrist und das erfundene Paketbudget
+
+- **Das „Kleinanzeigen-Paketbudget" gab es nie.** `packet_budget_reached` ist der Paket-Stop-Grund des v2-Vertrags („dieses Paket ist eine Seite, weiter per Token") und stand bei **jedem** Zwischenpaket in der Antwort. Der Browser schrieb ihn jeder Quelle zu, die mitten im Lauf endete — nur die letzte Quelle erbte `batch_complete`. Kleinanzeigen endete in allen drei ausgewerteten Läufen vermutlich regulär. Das v2-Paket trägt jetzt additiv `source_complete`, und der Browser vergibt `source_complete` als eigenen Endgrund statt des Paket-Grunds.
+- **Vinted bekommt eine Schonfrist statt alle zu bremsen.** Drei Läufe wurden nach 11, 6 und 4 Paketen blockiert — das spricht für ein kumulatives Zeitfenster, dem eine Rückkehr zur sequenziellen Suche nicht helfen würde (gleiche Gesamtzahl, dichter gebündelt). Die Rotation lässt Vinted jetzt aussetzen, bis 20 Sekunden seit dem letzten Vinted-Paket vergangen sind; Kleinanzeigen und eBay rotieren pausenlos weiter. Ist nur noch Vinted offen, liefert das Paket einen additiven `pacing`-Hinweis, und der Browser wartet sichtbar („Schonfrist für vinted") — die Taktung bleibt beim Browser (1.8.6). Der Wert ist eine erste Näherung und über die Blockade-Zeitstempel im Eventlog nachschärfbar.
+- **Schreibvarianten in der Relevanzprüfung (`relevance-v2`).** „SNES **Lemminge**" und „**Tribess**" sind echte Treffer und landeten im Abnahmelauf auf Gelb. Lange Begriffe (ab sechs Zeichen, gleicher Anfangsbuchstabe) dürfen jetzt eine Abweichung haben; „wario" trifft weiterhin nicht „mario" und „karte" nicht „kart".
+- **Die Neubewertung nach der Vinted-Anreicherung wendet die Relevanz an.** Vorher verlor die „Warum?"-Zeile bei Vinted-Kacheln den Relevanz-Teil, den eBay-Kacheln zeigten.
+- **„Nur Anleitung" ist Zubehör.** „nur Spielanleitung", „NUR HANDBUCH" und „Notice seule" liefen als Hauptprodukt grün durch; die Zubehörliste kennt die Formulierungen jetzt.
+- **Die Laufzeit-Loader scheitern laut.** Der Controller-Fallback (direkter Modus) und der Identitätsfehler schreiben jetzt einen Eventlog-Eintrag — dieselbe Konstruktion hatte zweimal unsichtbare Ausfälle erzeugt; die Wiederaufnahme loggte bereits.
+- Neue Suiten `tests/test_release_191.py` (10) und `tests/js/source-outcome-191.test.mjs` (4); fünf neue Relevanz-Fälle in der geteilten Fallsammlung.
+- Produktionsabnahme: ausstehend. Prüfpunkte: Diagnose zeigt für eine regulär endende Quelle `source_complete` statt `packet_budget_reached`; ein Lauf mit erschöpften anderen Quellen zeigt die sichtbare Vinted-Schonfrist; „Lemminge"-Treffer sind Grün. Rollback-Ziel: 1.9.0 / `gp-190-20260812-1`.
+
 ## 1.9.0 – 2026-08-12 – Relevanzprüfung: Passt der Treffer zur Suche?
 
 - Die Marktplatzsuchen arbeiten mit ODER-Semantik über die Anfragewörter: `super mario kart 8` lieferte 1291 Treffer, davon 975 von eBay — jedes Mario-Spiel, jeder Kart-Artikel, alles mit einer 8. Der Produktklassifizierer hatte keinen Grund abzulehnen, weil er nur die **Produktart** beurteilt, nicht die Passung zur Anfrage.

@@ -28,6 +28,13 @@
     throw lastError || new Error('Controller source unavailable');
   };
   const directMode = error => {
+    // Der Fallback trägt die Suche weiter, darf aber nicht mehr stumm sein:
+    // genau diese Konstruktion hat zweimal unsichtbare Ausfälle erzeugt.
+    window.gpEventLog?.(
+      'controller_runtime_fallback',
+      'Erweiterte Browserdiagnose nicht geladen – direkter Modus aktiv',
+      {message: String(error?.message || error || 'Controller source unavailable')}
+    );
     window.GP_HANDSHAKE_READY = true;
     const button = document.getElementById('search-button');
     if (button) { button.disabled = false; button.textContent = 'Live-Suche starten'; }
@@ -200,6 +207,11 @@
 })().catch(error => {
   // Identity diagnostics remain fail-open in 1.6.3. The static app controller can
   // still submit module-v2 requests and report a real API error if necessary.
+  window.gpEventLog?.(
+    'controller_identity_error',
+    'Live-Identität nicht verfügbar – Suche läuft im Basismodus',
+    {message: String(error?.message || error || 'identity unavailable')}
+  );
   window.GP_HANDSHAKE_READY = true;
   const button = document.getElementById('search-button');
   if (button) { button.disabled = false; button.textContent = 'Live-Suche starten'; }

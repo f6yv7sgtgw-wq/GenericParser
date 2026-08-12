@@ -28,6 +28,13 @@ from .release_identity import PREFERRED_MODULE_CONTRACT
 MODULE_CONTRACT_V2 = PREFERRED_MODULE_CONTRACT
 CONTINUATION_TTL_SECONDS = 2 * 60 * 60
 DEFAULT_SOURCES = ["kleinanzeigen", "vinted", "ebay"]
+# Vinted begrenzt den anonymen Katalogzugriff über ein Zeitfenster (belegt
+# durch drei Läufe, die nach 11, 6 und 4 Paketen blockiert wurden). Die
+# Rotation lässt Vinted deshalb aussetzen, bis die Abklingzeit verstrichen
+# ist; die anderen Quellen rotieren pausenlos weiter. Erste Näherung — der
+# Wert lässt sich über die Blockade-Zeitstempel im Eventlog nachschärfen.
+VINTED_SOURCE = "vinted"
+VINTED_COOLDOWN_SECONDS = 20.0
 SourceName = Literal["kleinanzeigen", "vinted", "ebay"]
 SortName = Literal["relevance", "date", "price_asc", "price_desc"]
 
@@ -480,6 +487,16 @@ def normalize_source_status(source: str, raw: dict[str, Any], listing_count: int
     }
 
 
+def _vinted_cooldown_remaining(last_at: dict[str, Any], now: float) -> float:
+    last = last_at.get(VINTED_SOURCE)
+    if last is None:
+        return 0.0
+    try:
+        return max(0.0, VINTED_COOLDOWN_SECONDS - (now - float(last)))
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def _advance_state(
     state: dict[str, Any],
     request: V2BatchRequest,
@@ -489,6 +506,7 @@ def _advance_state(
     failed: bool,
     degraded: bool,
     listings: int,
+    now: float | None = None,
 ) -> tuple[dict[str, Any], bool, bool]:
     updated = {
         key: value
@@ -526,12 +544,41 @@ def _advance_state(
     updated["source_pages"] = cursors
     updated["sources_done"] = done
 
+    # Zeitstempel je Quelle: Grundlage für die Vinted-Abklingzeit. Ältere
+    # Fortsetzungstoken tragen das Feld nicht und starten ohne Vorgeschichte.
+    now_ts = time.time() if now is None else float(now)
+    last_at = dict(updated.get("source_last_at") or {})
+    if source is not None:
+        last_at[source] = now_ts
+    updated["source_last_at"] = last_at
+    updated.pop("pacing", None)
+
     next_index = None
+    deferred_index = None
     for step in range(1, len(sources) + 1):
         candidate = (source_index + step) % len(sources)
-        if sources[candidate] not in done:
-            next_index = candidate
-            break
+        name = sources[candidate]
+        if name in done:
+            continue
+        if name == VINTED_SOURCE and _vinted_cooldown_remaining(last_at, now_ts) > 0:
+            # Vinted lässt seinen Zug aus, solange die Abklingzeit läuft.
+            # Bleibt keine andere Quelle offen, kommt Vinted trotzdem an die
+            # Reihe — dann mit Wartehinweis, denn die Taktung gehört dem
+            # Browser (1.8.6), nicht einem blockierenden Server.
+            if deferred_index is None:
+                deferred_index = candidate
+            continue
+        next_index = candidate
+        break
+    if next_index is None and deferred_index is not None:
+        next_index = deferred_index
+        remaining = _vinted_cooldown_remaining(last_at, now_ts)
+        if remaining > 0:
+            updated["pacing"] = {
+                "source": VINTED_SOURCE,
+                "wait_ms": int(remaining * 1000),
+                "reason": "vinted_access_window",
+            }
 
     if next_index is not None:
         updated["source_index"] = next_index
@@ -593,6 +640,7 @@ async def execute_v2_packet(
         degraded=degraded_packet,
         listings=len(listings),
     )
+    pacing = updated.pop("pacing", None)
     continuation = None if batch_complete else encode_continuation(updated)
     total_source_packets = sum(len(item.sources) for item in payload.searches)
     all_failed = bool(
@@ -620,6 +668,12 @@ async def execute_v2_packet(
                 "status": "complete" if search_complete else "partial",
                 "source": source,
                 "page": page,
+                # Additiv seit 1.9.1: ob DIESE Quelle mit diesem Paket fertig
+                # wurde. Ohne das Feld schrieb der Browser jeder mitten im
+                # Lauf endenden Quelle den Paket-Stop-Grund
+                # `packet_budget_reached` zu — das erfundene
+                # „Kleinanzeigen-Paketbudget" aus drei Eventlogs.
+                "source_complete": bool(page_complete),
                 "listings": listings,
                 "sources": {source: source_status},
             }
@@ -627,6 +681,10 @@ async def execute_v2_packet(
         "continuation_token": continuation,
         "deployment": deployment,
     }
+    if pacing:
+        # Additiv: Wartehinweis, wenn nur noch Vinted offen ist und die
+        # Abklingzeit läuft. Der Browser entscheidet über die Pause selbst.
+        body["pacing"] = pacing
     return body, 502 if all_failed else 200
 
 

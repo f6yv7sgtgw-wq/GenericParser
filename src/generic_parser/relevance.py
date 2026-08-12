@@ -14,7 +14,7 @@ from typing import Any
 
 from .normalization import normalize_text
 
-RULESET = "relevance-v1"
+RULESET = "relevance-v2"
 
 # Füllwörter dürfen allein keinen Treffer rechtfertigen. Die Liste ist bewusst
 # klein und in normalisierter Schreibweise gehalten (normalize_text macht aus
@@ -85,6 +85,30 @@ def _abbreviations(words: list[str], numbers: list[str]) -> dict[str, tuple[str,
     return abbreviations
 
 
+def _close_variant(term: str, token: str) -> bool:
+    """Schreibvariante mit Editierabstand 1 — nur für lange Begriffe.
+
+    Deckt Singular/Plural („lemminge"/„lemmings") und Tippfehler („tribess").
+    Erst ab sechs Zeichen und nur bei gleichem Anfangsbuchstaben, damit
+    „wario" nicht „mario" trifft und „karte" nicht „kart".
+    """
+
+    if len(term) < 6 or not token or token[0] != term[0]:
+        return False
+    if abs(len(term) - len(token)) > 1:
+        return False
+    if len(term) == len(token):
+        # Genau eine Ersetzung.
+        return sum(a != b for a, b in zip(term, token)) == 1
+    shorter, longer = sorted((term, token), key=len)
+    # Genau eine Einfügung: bis zur ersten Abweichung gleich, danach passt
+    # der Rest der kürzeren Form auf das Ende der längeren.
+    for index in range(len(shorter)):
+        if shorter[index] != longer[index]:
+            return shorter[index:] == longer[index + 1:]
+    return True
+
+
 def _match_in_tokens(
     words: list[str],
     numbers: list[str],
@@ -101,6 +125,12 @@ def _match_in_tokens(
         if word in token_set:
             matched.add(word)
             matching_tokens.add(word)
+            continue
+        for token in token_set:
+            if _close_variant(word, token):
+                matched.add(word)
+                matching_tokens.add(token)
+                break
 
     # Zusammenschreibungen: „MarioKart" deckt beide Wörter.
     for first, second in zip(words, words[1:]):
