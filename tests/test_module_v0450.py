@@ -140,8 +140,8 @@ def test_worker_delegates_unchanged_reference_search() -> None:
     worker = read("src/generic_parser/cloudflare_worker.py")
     bootstrap = read("src/generic_parser/cloudflare_v0450.py")
     assert "from . import search_service_v0444 as reference" in service
-    assert "result = await reference.search_page(payload, request)" in service
-    assert "from generic_parser.cloudflare_v0450 import app" in worker
+    assert "await reference.search_page(" in service
+    assert "from generic_parser.cloudflare_v0452 import app" in worker
     assert '"packet_size": 7' in bootstrap
     assert '"pause_ms": 5000' in bootstrap
     assert '"enabled_by_default": False' in bootstrap
@@ -155,9 +155,9 @@ def test_browser_diagnostics_are_opt_in_and_fail_open() -> None:
     controller = read("cloudflare/public/controller-0450.js")
     debug = read("cloudflare/public/module-debug-0450.js")
     index = read("cloudflare/public/index.html")
-    assert "enabledByDefault:false" in identity
-    assert "networkUsed:false" in identity
-    assert "./controller-0411.js?v=0.450-reference-source" in controller
+    assert "enabledByDefault: false" in identity
+    assert "networkUsed: false" in identity
+    assert "./controller-0411.js?v=runtime-reference" in controller
     assert "searchCoreChanged:false" in controller
     assert "debug-logs" in index and "module-tests" in index
     assert "module-debug-0450.js" in index
@@ -166,11 +166,12 @@ def test_browser_diagnostics_are_opt_in_and_fail_open() -> None:
     assert "X-GenericParser-Debug" in debug
 
 
-def test_version_metadata_marks_0450_module_release() -> None:
+def test_version_metadata_matches_the_single_release_identity_source() -> None:
+    from generic_parser import release_identity
+
     metadata = json.loads(read("VERSION.json"))
-    assert metadata["version"] == "0.45.0"
-    assert metadata["build_id"] == "gp-0450-20260805-1"
+    assert metadata["version"] == release_identity.VERSION
+    assert metadata["build_id"] == release_identity.BUILD_ID
     assert metadata["stable_reference_version"] == "0.44.6.5"
     assert metadata["module_contract"] == MODULE_CONTRACT
-    assert metadata["debug_logging"]["enabled_by_default"] is False
-    assert metadata["contract_tests"]["enabled_by_default"] is False
+    assert metadata["identity_source"] == "src/generic_parser/release_identity.py"

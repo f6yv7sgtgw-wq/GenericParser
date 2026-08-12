@@ -5,13 +5,20 @@ import argparse
 import json
 import os
 import sys
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
-EXPECTED_VERSION = "1.0.0"
-EXPECTED_BUILD = "gp-100-20260808-1"
-EXPECTED_CONTRACT = "generic-parser-module-v1"
+# Die Release-Identität hat genau eine Quelle. VERSION.json wird daraus
+# generiert und im Deploy-Workflow mit --check verifiziert; ein hart kodierter
+# Wert hier würde bei jedem Release still veralten.
+_METADATA = json.loads(
+    (Path(__file__).resolve().parents[1] / "VERSION.json").read_text(encoding="utf-8")
+)
+EXPECTED_VERSION = os.environ.get("EXPECTED_VERSION") or _METADATA["version"]
+EXPECTED_BUILD = os.environ.get("EXPECTED_BUILD") or _METADATA["build_id"]
+EXPECTED_CONTRACT = os.environ.get("EXPECTED_CONTRACT") or _METADATA["api_contract"]
 
 
 def call(base_url: str, path: str, *, method: str = "GET", body: dict | None = None,
