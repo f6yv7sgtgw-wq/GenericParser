@@ -130,11 +130,18 @@ klären: Wo das Budget gesetzt wird, ob es ein Schutz gegen Sperren ist, und ob 
 angehoben oder pro Quelle unterschiedlich gefasst werden kann. Mindestens sollte
 die Oberfläche sagen, dass hier gekürzt wurde.
 
-**Vinted-Sitzungslimit.** `vinted_session_bootstrap_access_limit` im
-Browser-Worker (`pocs/vinted-browser/src/index.js`). Vinted begrenzt den
-anonymen Katalogzugriff. Zu prüfen: ob ein erneuter Bootstrap nach Ablauf hilft,
-ob die Rotation die Frequenz erhöht hat (seit 1.8.6 gibt es keine Pausen mehr
-zwischen Paketen) und ob ein bewusster Abstand nur für Vinted sinnvoll wäre.
+**Vinted-Sitzungslimit — eingeplant für 1.9.1.** `vinted_session_bootstrap_access_limit`
+im Browser-Worker (`pocs/vinted-browser/src/index.js`). Vinted begrenzt den
+anonymen Katalogzugriff. Ein zweiter Lauf (`zelda link to the past`, direkt
+nach dem Mario-Lauf) wurde schon nach 6 statt 11 Paketen blockiert — das
+spricht für ein kumulatives Zeitfenster-Budget, nicht für eine Momentanrate.
+Ein Zurück zur sequenziellen Suche hilft dann nicht (gleiche Gesamtzahl,
+dichter gebündelt). Beschlossener Ansatz: **bewusster Abstand nur für Vinted**
+innerhalb der Rotation — Vinted lässt seinen Zug aus, bis eine Abklingzeit
+verstrichen ist, die übrigen Quellen rotieren pausenlos weiter. Vorher zu
+klären: Fenstergröße aus mehreren Läufen mit Blockade-Zeitstempeln vermessen,
+und ob ein erneuter Bootstrap nach Ablauf die Quelle wieder öffnet (dann
+Wiederaufnahme statt endgültigem `blocked`).
 
 **Ungleiche Schrittweiten.** Der Turnus liefert 7/25/25 pro Runde. Gleichziehen
 beim Abruf ist teuer (Kleinanzeigen bräuchte drei bis vier Abrufe je Zug). Falls
@@ -187,6 +194,26 @@ Hintergrundpfad wie bei Vinted würde das heben.
 **Deploy-Flakiness.** Ein Deploy scheiterte einmal am Pyodide-Download von GitHub
 (`http2 error: refused stream`). Reine Netzwerkstörung, der Neustart lief durch.
 Falls es sich häuft: Retry um den `pywrangler deploy`-Schritt.
+
+## 5a. Befunde aus dem 1.9.0-Abnahmelauf (`lemmings snes`)
+
+Die Relevanzprüfung ist abgenommen (249 Treffer, 97 Rot, sichtbare Grüne alle
+echt, Grauzone korrekt Gelb). Drei Beobachtungen für die Nacharbeit:
+
+- **Schreibvarianten sind der nächste Hebel (relevance-v2):** „SNES Lemminge
+  Verpackt…" und „…Lemminge 2 Tribess…" sind echte Lemmings-Angebote, landeten
+  aber auf Gelb, weil „lemminge"/„tribess" nicht exakt „lemmings" decken.
+  Einfache Singular-/Plural- und Tippfehler-Toleranz (kleine Editierdistanz nur
+  bei langen Begriffen) würde beide heben, ohne „Mario Party 8" wieder
+  hereinzulassen.
+- **Klassifizierer-Lücke „nur Anleitung":** „nur Spielanleitung", „NUR
+  HANDBUCH", „Notice seule" (frz.) laufen als Hauptprodukt auf Grün durch —
+  die `_ACCESSORY`-Liste kennt nur „anleitung einzeln"/„manual only".
+- **Vinted-Kacheln verlieren die Relevanz-Begründung:** Nach der
+  Hintergrund-Anreicherung mit Rescore zeigt „Warum?" bei Vinted nur noch
+  „Suchbegriff teilweise erkannt", bei eBay dagegen beide Teile inklusive
+  „(fehlt: …)". Die Farbe stimmt, nur die Begründung geht beim
+  browserseitigen Rescore verloren — kosmetisch, aber inkonsistent.
 
 ## 6. Reihenfolge-Empfehlung
 

@@ -4,7 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 1.9.0 RC | `gp-190-20260812-1` | ausstehend | Quellenneutrale Relevanzprüfung: Deckung der tragenden Suchbegriffe im Titel als additive Ampelregel - ODER-Treffer wie jedes Mario-Spiel bei `super mario kart 8` werden Rot/Gelb statt Gruen, ohne stille Kuerzung |
+| 1.9.0 | `gp-190-20260812-1` | `e85f1860058c3b4b1d9919ca4508e6445ac20c3c` | Quellenneutrale Relevanzprüfung: Deckung der tragenden Suchbegriffe im Titel als additive Ampelregel - ODER-Treffer wie jedes Mario-Spiel bei `super mario kart 8` werden Rot/Gelb statt Gruen, ohne stille Kuerzung |
 | 1.8.9 | `gp-189-20260812-1` | `84f789cd54c443e01fa4c755f70e6ed520d39cf3` | Zwei dynamisch geladene Assets wiederhergestellt, die 1.6.5 entfernt hatte - Ursache des Fuenf-Sekunden-Timers und der toten Wiederaufnahme; Lauf wird vollstaendig geloggt |
 | 1.8.8 | `gp-188-20260812-1` | `6012f33896da993fa6715c6d2d8af55f31557179` | Fehlenden Eventlog-Schreiber nachgeliefert - das Log war nie befuellt und der 1.8.7-Download damit wirkungslos; Angebotsformat als deutscher Text statt als v2-Code |
 | 1.8.7 RC | `gp-187-20260812-1` | ausstehend | Abbruchgrund je Quelle wird festgehalten und angezeigt; Eventlog als JSON-Datei herunterladbar, mit Release-Identität im Export |
