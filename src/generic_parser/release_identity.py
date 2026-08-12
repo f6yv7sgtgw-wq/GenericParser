@@ -5,8 +5,8 @@ identity must be imported from here. Do not duplicate VERSION/BUILD_ID in
 workflows, tests, browser assets or transport wrappers.
 """
 
-VERSION = "1.8.0"
-BUILD_ID = "gp-180-20260812-1"
+VERSION = "1.8.1"
+BUILD_ID = "gp-181-20260812-1"
 API_CONTRACT = "generic-parser-module-v1"
 MODULE_CONTRACT = API_CONTRACT
 PREFERRED_MODULE_CONTRACT = "generic-parser-module-v2"

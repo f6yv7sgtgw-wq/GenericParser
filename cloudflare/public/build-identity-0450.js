@@ -5,8 +5,8 @@
   // must never lock the browser search. Live identity verification runs in the
   // background and updates this object in place when it succeeds.
   const identity = {
-    version: '1.8.0',
-    buildId: 'gp-180-20260812-1',
+    version: '1.8.1',
+    buildId: 'gp-181-20260812-1',
     apiContract: 'generic-parser-module-v1',
     moduleContract: 'generic-parser-module-v1',
     supportedModuleContracts: ['generic-parser-module-v1', 'generic-parser-module-v2'],

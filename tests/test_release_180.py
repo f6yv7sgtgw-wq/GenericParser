@@ -245,3 +245,51 @@ def test_new_browser_assets_are_wired_and_precached():
     # Ohne Precache liefert der Service Worker die neue Ebene nicht mit aus.
     assert '"./ui-180.css",' in worker
     assert '"./ui-180.js",' in worker
+
+
+def test_a_per_unit_filler_does_not_end_up_in_the_derived_title():
+    from generic_parser.kleinanzeigen_bundles import parse_bundle_items
+
+    items = parse_bundle_items(
+        "Extreme-G 2 je 15€\nZelda à 25 €\nMario Kart pro Stück 20€\nTurok Stk. 12 €\n"
+    )
+    assert [item["title"] for item in items] == [
+        "Extreme-G 2",
+        # Das führende \s+ im Füllwortmuster verhindert, dass "à" das
+        # Schluss-a von "Zelda" verschluckt.
+        "Zelda",
+        "Mario Kart",
+        "Turok",
+    ]
+
+
+def test_a_per_unit_price_line_is_still_no_article():
+    from generic_parser.kleinanzeigen_bundles import parse_bundle_items
+
+    items = parse_bundle_items("Preis pro Stück 20 €\nArtikel B 9 €\nArtikel C 8 €")
+    assert [item["title"] for item in items] == ["Artikel B", "Artikel C"]
+
+
+def test_derived_from_names_the_parent_as_a_listing_key():
+    bare = listing_to_v2(
+        {
+            "id": "kleinanzeigen:1#item-1",
+            "title": "Zelda",
+            "url": "https://www.kleinanzeigen.de/s-anzeige/1",
+            "source": "kleinanzeigen",
+            "derived_from": "3482755595",
+        },
+        "kleinanzeigen",
+    )
+    already_keyed = listing_to_v2(
+        {
+            "id": "kleinanzeigen:1#item-2",
+            "title": "Mario",
+            "url": "https://www.kleinanzeigen.de/s-anzeige/1",
+            "source": "kleinanzeigen",
+            "derived_from": "kleinanzeigen:3482755595",
+        },
+        "kleinanzeigen",
+    )
+    assert bare["offer"]["derived_from"] == "kleinanzeigen:3482755595"
+    assert already_keyed["offer"]["derived_from"] == "kleinanzeigen:3482755595"
