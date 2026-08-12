@@ -407,6 +407,9 @@ def listing_to_v2(raw: dict[str, Any], fallback_source: str) -> dict[str, Any]:
             "ruleset": str(product.get("ruleset") or "product-classification-v1"),
         },
         "condition": raw.get("condition") or result_info.get("condition"),
+        # Additive since 1.7.0: sources without a structured size report null
+        # rather than a filler label, so consumers can tell "no size" apart.
+        "size": raw.get("size") or result_info.get("size") or None,
         "timestamps": {
             "published_at": raw.get("posted_at"),
             "ends_at": raw.get("item_end_date"),

@@ -58,6 +58,18 @@ def _condition_text(value: Any) -> str:
     return "Zustand offen"
 
 
+# Marketplaces spell an absent size in several ways. An unknown size stays None
+# so that a size filter can tell "no size given" from an actual label.
+_SIZE_PLACEHOLDERS = frozenset(
+    {"", "-", "--", "n/a", "na", "unknown", "unbekannt", "keine angabe", "onbekend"}
+)
+
+
+def _size_text(value: Any) -> str | None:
+    text = " ".join(str(value or "").split())
+    return None if text.casefold() in _SIZE_PLACEHOLDERS else text
+
+
 def _listing(
     item_id: str,
     title: str,
@@ -68,6 +80,7 @@ def _listing(
     image_url: str | None = None,
     place: str | None = None,
     condition: str = "Zustand offen",
+    size: str | None = None,
     description: str | None = None,
     detail_status: str | None = None,
     detail_fields: list[str] | None = None,
@@ -94,9 +107,14 @@ def _listing(
         "result_info": {
             "offer_type": "Produkt",
             "condition": condition,
+            "size": size,
             "scope": "Einzelangebot",
             "fit": "prüfen",
-            "display_text": f"Vinted · {condition} · Einzelangebot",
+            "display_text": " · ".join(
+                part
+                for part in ("Vinted", condition, f"Größe {size}" if size else None, "Einzelangebot")
+                if part
+            ),
         },
     }
 
@@ -135,6 +153,7 @@ def _from_structured_data(soup: BeautifulSoup, query: str) -> list[dict[str, Any
                 price=_money(offers.get("price") or obj.get("price")),
                 image_url=str(image) if image else None,
                 condition=_condition_text(obj.get("itemCondition") or obj.get("condition")),
+                size=_size_text(obj.get("size")),
                 description=str(obj.get("description") or "").strip() or None,
             )
     return list(results.values())
@@ -178,6 +197,7 @@ def _normalize_api(item: dict[str, Any], query: str) -> dict[str, Any] | None:
         image_url=photo.get("url") or photo.get("full_size_url"),
         place=user.get("city") or user.get("country_title"),
         condition=_condition_text(item.get("status") or item.get("status_title")),
+        size=_size_text(item.get("size_title") or item.get("size")),
         description=str(item.get("description") or "").strip() or None,
     )
 
@@ -197,6 +217,7 @@ def _normalize_browser_item(item: dict[str, Any], query: str) -> dict[str, Any] 
         image_url=item.get("image_url"),
         place=item.get("place"),
         condition=_condition_text(item.get("condition")),
+        size=_size_text(item.get("size") or item.get("size_title")),
         description=str(item.get("description") or "").strip() or None,
         detail_status=str(item.get("detail_status") or "not_requested"),
         detail_fields=[str(value) for value in fields],

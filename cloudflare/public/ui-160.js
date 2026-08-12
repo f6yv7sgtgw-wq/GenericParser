@@ -15,9 +15,10 @@
     {id: 'filter-price-max', defaultValue: '', label: 'Preis bis', suffix: ' €'},
     {id: 'filter-shipping', defaultValue: 'all', label: 'Versand'},
     {id: 'filter-scope', defaultValue: 'all', label: 'Umfang'},
-    {id: 'filter-format', defaultValue: 'all', label: 'Angebotsart'},
+    {id: 'filter-format', defaultValue: 'no-auction', label: 'Angebotsart'},
     {id: 'filter-known-total', defaultValue: 'all', label: 'Gesamtpreis'},
-    {id: 'filter-favorites', defaultValue: 'all', label: 'Favoriten'}
+    {id: 'filter-favorites', defaultValue: 'all', label: 'Favoriten'},
+    {id: 'filter-size', defaultValue: 'all', label: 'Größe'}
   ];
   const sourceState = new Map();
   const editors = new Map();
@@ -130,7 +131,9 @@
   function updateCriteriaCount() {
     const count = TERM_FIELDS.reduce((sum, id) => sum + parseTermList(document.getElementById(id)?.value).length, 0)
       + ['max-price', 'postal-code', 'location-id', 'radius-km', 'max-results'].filter(id => document.getElementById(id)?.value?.trim()).length
-      + ['accept-bundles', 'accept-incomplete', 'include-ebay-auctions'].filter(id => document.getElementById(id)?.checked).length;
+      + ['accept-bundles', 'accept-incomplete'].filter(id => document.getElementById(id)?.checked).length
+      // Auctions are searched by default; only switching them off is a deviation.
+      + (document.getElementById('include-ebay-auctions')?.checked === false ? 1 : 0);
     const badge = document.getElementById('criteria-count');
     if (badge) badge.textContent = count ? `${count} aktiv` : 'optional';
   }

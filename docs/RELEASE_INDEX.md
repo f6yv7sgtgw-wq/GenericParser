@@ -4,6 +4,8 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
+| 1.7.1 RC | `gp-171-20260812-1` | ausstehend | Vinted-Hintergrundbatches laufen zu zweit statt seriell; Abbruch je Anfrage statt geteiltem Controller; 429 einmal wiederholbar; Vorrang der Hauptsuche und alle Verträge unverändert |
+| 1.7.0 RC | `gp-170-20260812-1` | ausstehend | Angebotsformat und Größe als Ergebnisfilter: eBay-Auktionen werden standardmäßig gesucht und über `Ohne Auktionen` ausgeblendet; Vinted-Größe als additives Modul-v2-Feld mit Größenfacette im Browser; Vertrags-Defaults unverändert |
 | 1.6.5 RC | `gp-165-20260812-1` | ausstehend | Aufräumen ohne fachliche Änderung: 94 unerreichbare Module und 129 ungenutzte Browser-Assets entfernt; Release-Identität aus einer Quelle generiert und im Deploy-Gate geprüft |
 | 1.6.4 RC | `gp-164-20260812-1` | ausstehend | Reiner Versionsbump ohne funktionale Änderung; verifiziert Build, Deployment und Auslieferung einer neuen Version bis auf das Endgerät |
 | 1.6.3 RC | `gp-163-20260810-1` | ausstehend | Mobiles `Load failed` in langen API-v2-Läufen automatisch wiederholen; Vinted-Hintergrunddetails geben der Hauptsuche Vorrang; gleicher Seitenstand behält flüchtige eBay-Treffer; eindeutige Quellen- und klare Detailzähler |

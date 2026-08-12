@@ -2,14 +2,18 @@
   'use strict';
 
   const BATCH_SIZE = 3;
+  // Two batches in flight means six detail pages at once. The Browser Rendering
+  // limit for concurrent sessions is the ceiling here, not the client: three
+  // batches would already sit at nine and risk 429s for the whole run.
+  const BATCH_CONCURRENCY = 2;
   const REQUIRED_FIELDS = ['image', 'price', 'description'];
   let installed = false;
   let generation = 0;
   let runKey = '';
   let queue = [];
   let running = false;
-  let activeBatchSize = 0;
-  let controller = null;
+  let activeCount = 0;
+  const controllers = new Set();
   let totalQueued = 0;
   let attempted = 0;
   let failed = 0;
@@ -37,12 +41,12 @@
     generation += 1;
     if (drainTimer) clearTimeout(drainTimer);
     drainTimer = null;
-    controller?.abort();
-    controller = null;
+    for (const active of controllers) active.abort();
+    controllers.clear();
     runKey = run;
     queue = [];
     running = false;
-    activeBatchSize = 0;
+    activeCount = 0;
     totalQueued = 0;
     attempted = 0;
     failed = 0;
@@ -67,14 +71,14 @@
       return;
     }
     section.classList.remove('hidden');
-    const pending = queue.length + activeBatchSize;
+    const pending = queue.length + activeCount;
     const full = complete.size;
     const terminal = pending === 0 && attempted + cancelled >= totalQueued;
     chip.textContent = `${full}/${seen.size}`;
     text.className = `compact-status ${terminal ? 'done' : 'working'}`;
     text.innerHTML = terminal
       ? `<strong>${stopped ? 'Vinted-Details nach Stopp beendet' : 'Vinted-Details abgeschlossen'}</strong><span>${full} vollständig · ${failed} unvollständig/fehlgeschlagen · ${cancelled} nicht mehr geladen · ${unavailable.size} ohne Detail-URL</span>`
-      : `<strong>Vinted-Details werden nachgeladen</strong><span>${full}/${seen.size} vollständig · ${pending} ausstehend${failed ? ` · ${failed} unvollständig/fehlgeschlagen` : ''} · 3 parallel je Batch</span>`;
+      : `<strong>Vinted-Details werden nachgeladen</strong><span>${full}/${seen.size} vollständig · ${pending} ausstehend${failed ? ` · ${failed} unvollständig/fehlgeschlagen` : ''} · ${BATCH_CONCURRENCY} Batches à ${BATCH_SIZE} parallel</span>`;
   }
 
   function mergeUpdate(existing, update) {
@@ -136,13 +140,16 @@
     let lastError;
     for (let attempt = 1; attempt <= 2; attempt += 1) {
       if (token !== generation) throw new DOMException('superseded', 'AbortError');
-      controller = new AbortController();
+      // One controller per in-flight request: parallel batches must stay
+      // individually abortable, and reset() aborts the whole set.
+      const active = new AbortController();
+      controllers.add(active);
       try {
         const response = await fetch(apiUrl('api/vinted/enrich'), {
           method: 'POST',
           headers: headers(),
           body: JSON.stringify({search: batch[0].search, listings: batch.map(row => row.listing)}),
-          signal: controller.signal
+          signal: active.signal
         });
         const text = await response.text();
         let data = null;
@@ -155,8 +162,15 @@
         return data;
       } catch (error) {
         lastError = error;
-        if (error?.name === 'AbortError' || attempt >= 2 || Number(error?.status) < 500) throw error;
-        log('vinted_background_retry', 'Vinted-Hintergrundbatch wird unmittelbar wiederholt', {attempt, batchSize: batch.length, message: error?.message});
+        const status = Number(error?.status);
+        // Parallel batches make a rate limit a realistic answer, so 429 is
+        // retryable now — but only after a pause, unlike a plain server error.
+        const rateLimited = status === 429;
+        if (error?.name === 'AbortError' || attempt >= 2 || (status < 500 && !rateLimited)) throw error;
+        log('vinted_background_retry', 'Vinted-Hintergrundbatch wird wiederholt', {attempt, batchSize: batch.length, rateLimited, message: error?.message});
+        if (rateLimited) await sleep(1500);
+      } finally {
+        controllers.delete(active);
       }
     }
     throw lastError;
@@ -169,7 +183,20 @@
     }
     running = true;
     try {
-      while (queue.length && token === generation) {
+      await Promise.all(Array.from({length: BATCH_CONCURRENCY}, () => processQueue(token)));
+    } finally {
+      running = false;
+      renderProgress();
+      if (token === generation && !queue.length && totalQueued && !stopped) {
+        log('vinted_background_complete', 'Vinted-Hintergrundanreicherung beendet', {seen: seen.size, queued: totalQueued, attempted, complete: complete.size, failed, cancelled, unavailable: unavailable.size, batchSize: BATCH_SIZE, concurrency: BATCH_CONCURRENCY, mainSearchBlocked: false});
+      }
+    }
+  }
+
+  // One worker per concurrency slot. All of them share the same queue, so a slow
+  // batch no longer holds up the ones behind it.
+  async function processQueue(token) {
+    while (queue.length && token === generation) {
         if (window.GP_SEARCH_RUNNING === true) {
           break;
         }
@@ -182,7 +209,8 @@
           break;
         }
         const batch = queue.splice(0, BATCH_SIZE);
-        activeBatchSize = batch.length;
+        if (!batch.length) break;
+        activeCount += batch.length;
         renderProgress();
         const started = performance.now();
         log('vinted_background_batch_start', 'Vinted-Hintergrundbatch gestartet', {batchSize: batch.length, remaining: queue.length, ids: batch.map(row => listingId(row.listing))});
@@ -218,17 +246,9 @@
           }
           log('vinted_background_batch_error', 'Vinted-Hintergrundbatch fehlgeschlagen', {batchSize: batch.length, elapsedMs: Math.round(performance.now() - started), message: error?.message, remaining: queue.length});
         } finally {
-          activeBatchSize = 0;
-          controller = null;
+          activeCount -= batch.length;
           renderProgress();
         }
-      }
-    } finally {
-      running = false;
-      renderProgress();
-      if (token === generation && !queue.length && totalQueued && !stopped) {
-        log('vinted_background_complete', 'Vinted-Hintergrundanreicherung beendet', {seen: seen.size, queued: totalQueued, attempted, complete: complete.size, failed, cancelled, unavailable: unavailable.size, batchSize: BATCH_SIZE, mainSearchBlocked: false});
-      }
     }
   }
 
@@ -249,7 +269,7 @@
       renderProgress();
       return value;
     };
-    log('vinted_background_ready', 'Vinted-Hintergrundanreicherung bereit', {batchSize: BATCH_SIZE, requiredFields: REQUIRED_FIELDS, blocksMainSearch: false});
+    log('vinted_background_ready', 'Vinted-Hintergrundanreicherung bereit', {batchSize: BATCH_SIZE, concurrency: BATCH_CONCURRENCY, requiredFields: REQUIRED_FIELDS, blocksMainSearch: false});
   }
 
   window.addEventListener('gp-controller-ready', install, {once: true});
