@@ -12,7 +12,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Das Log beschreibt jetzt einen Lauf: `search_started` mit Suchbegriff und Quellen, `search_packet` je Paket mit Quelle, Seite, Trefferzahl und Laufzeit, `search_finished` mit Bilanz je Quelle. Das Ende wird auch bei manueller Pause und bei Abbruch geschrieben — vorher entstand nur ein Eintrag, wenn etwas schiefging.
 - Die Aufklappzeile „Warum?" entfällt bei passenden Treffern und bleibt bei Prüf- und Ablehnfällen, wo die Begründung trägt.
 - Neue Suite `tests/test_release_189.py` (6).
-- Produktionsabnahme: ausstehend. Rollback-Ziel: 1.8.8 / `gp-188-20260812-1`.
+- Produktionsabnahme erfolgreich: Deploy-Workflow `31638968773` lief auf Commit `84f789cd54c443e01fa4c755f70e6ed520d39cf3` grün durch. Ein vollständiger Lauf `super mario kart 8` lieferte 1291 Treffer in 64 Paketen ohne Retry; das Log enthielt 150 Einträge und keinen `auto_resume_loader_error` mehr. Erstmals belegt: eBay endet mit `batch_complete`, Kleinanzeigen läuft ins `packet_budget_reached`, Vinted wird mit `vinted_session_bootstrap_access_limit` blockiert. Rollback-Ziel: 1.8.8 / `gp-188-20260812-1`.
 
 ## 1.8.8 – 2026-08-12 – Der fehlende Log-Schreiber
 

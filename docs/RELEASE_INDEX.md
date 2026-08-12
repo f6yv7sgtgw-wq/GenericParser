@@ -4,7 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 1.8.9 RC | `gp-189-20260812-1` | ausstehend | Zwei dynamisch geladene Assets wiederhergestellt, die 1.6.5 entfernt hatte - Ursache des Fuenf-Sekunden-Timers und der toten Wiederaufnahme; Lauf wird vollstaendig geloggt |
+| 1.8.9 | `gp-189-20260812-1` | `84f789cd54c443e01fa4c755f70e6ed520d39cf3` | Zwei dynamisch geladene Assets wiederhergestellt, die 1.6.5 entfernt hatte - Ursache des Fuenf-Sekunden-Timers und der toten Wiederaufnahme; Lauf wird vollstaendig geloggt |
 | 1.8.8 | `gp-188-20260812-1` | `6012f33896da993fa6715c6d2d8af55f31557179` | Fehlenden Eventlog-Schreiber nachgeliefert - das Log war nie befuellt und der 1.8.7-Download damit wirkungslos; Angebotsformat als deutscher Text statt als v2-Code |
 | 1.8.7 RC | `gp-187-20260812-1` | ausstehend | Abbruchgrund je Quelle wird festgehalten und angezeigt; Eventlog als JSON-Datei herunterladbar, mit Release-Identität im Export |
 | 1.8.6 | `gp-186-20260812-1` | `18118a163695378ad14d2b9ddc60a80a4433ac26` | Latenzdrosselung wird vom Browser selbst entschieden statt von einer stumm ausfallenden Neutralisierung; während der Quellenrotation entfällt die Paketpause ganz |
