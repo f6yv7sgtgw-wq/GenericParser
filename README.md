@@ -6,8 +6,8 @@ remain optional module-v1 compatibility helpers.
 
 ## Current release
 
-- **Version:** `1.8.8`
-- **Build:** `gp-188-20260812-1`
+- **Version:** `1.8.9`
+- **Build:** `gp-189-20260812-1`
 - **Status:** Release candidate; production acceptance pending
 - **Worker profile:** Cloudflare Workers Paid
 - **Preferred module contract:** `generic-parser-module-v2`

@@ -1,8 +1,8 @@
 {
   "product": "GenericParser",
-  "version": "1.8.8",
+  "version": "1.8.9",
   "package_version": "dynamic:generic_parser.release_identity.VERSION",
-  "build_id": "gp-188-20260812-1",
+  "build_id": "gp-189-20260812-1",
   "identity_source": "src/generic_parser/release_identity.py",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
@@ -19,7 +19,7 @@
   "release_date": "2026-08-12",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "release-candidate",
-  "purpose": "supply the event log writer that every caller had only ever checked for, so that the log stops being permanently empty and the 1.8.7 download works at all, and show the offer format as German text instead of the raw module-v2 code",
+  "purpose": "restore the auto-resume recovery source that the 1.6.5 cleanup removed because only a dynamically built fetch path referenced it, guard that class of loss with a test, log a run from start to finish including a manual pause, and drop the reason disclosure where it carries nothing",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted", "ebay"],
@@ -119,6 +119,9 @@
     "source_stop_reason_visible": "required",
     "event_log_download": "required",
     "event_log_writer": "required",
+    "dynamic_asset_paths_resolve": "required",
+    "run_logged_start_to_finish": "required",
+    "auto_resume_recovery_source": "required",
     "offer_format_label_localised": "required",
     "no_inter_packet_pause_while_rotating": "required",
     "same_page_transient_result_resume": true,
@@ -126,6 +129,6 @@
     "source_progress_unique_listing_keys": true,
     "production_acceptance": "pending"
   },
-  "rollback_plan": {"last_stable_baseline": "1.8.7", "build_id": "gp-187-20260812-1"},
-  "metadata_schema": 59
+  "rollback_plan": {"last_stable_baseline": "1.8.8", "build_id": "gp-188-20260812-1"},
+  "metadata_schema": 60
 }
