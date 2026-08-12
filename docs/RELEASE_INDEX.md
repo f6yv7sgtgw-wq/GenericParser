@@ -4,6 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
+| 1.8.1 RC | `gp-181-20260812-1` | ausstehend | Korrekturen aus dem Livelauf: Stückpreis-Füllwörter aus abgeleiteten Titeln entfernt, `derived_from` als vollständiger `listing_key` |
 | 1.8.0 RC | `gp-180-20260812-1` | ausstehend | Quellenneutrale Zustands- und Versandcodes; Kleinanzeigen-Konvolute mit Einzelpreisliste werden zu Einzelkacheln mit Verweis auf die Ursprungsanzeige; Vinted-Katalogbilder ab dem ersten Paket; moderne Suchmaske mit einklappbarem Filterpanel |
 | 1.7.1 | `gp-171-20260812-1` | `5f7ed1d07b6fd92f2f76f73962f9dd31fb4c5893` | Vinted-Hintergrundbatches laufen zu zweit statt seriell; Abbruch je Anfrage statt geteiltem Controller; 429 einmal wiederholbar; Vorrang der Hauptsuche und alle Verträge unverändert |
 | 1.7.0 | `gp-170-20260812-1` | `5f7ed1d07b6fd92f2f76f73962f9dd31fb4c5893` | Angebotsformat und Größe als Ergebnisfilter: eBay-Auktionen werden standardmäßig gesucht und über `Ohne Auktionen` ausgeblendet; Vinted-Größe als additives Modul-v2-Feld mit Größenfacette im Browser; Vertrags-Defaults unverändert |

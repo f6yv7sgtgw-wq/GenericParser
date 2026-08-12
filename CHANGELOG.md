@@ -2,6 +2,15 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.8.1 – 2026-08-12 – Korrekturen aus dem 1.8.0-Livelauf
+
+- Füllwörter für Stückpreise (`je`, `jeweils`, `à`, `Stk.`, `pro Stück`) bleiben nicht mehr im abgeleiteten Artikelnamen stehen; der Livelauf zeigte eine Kachel „Extreme-G 2 je".
+- Das Füllwortmuster verlangt ein führendes Leerzeichen. Ohne das verschluckte `à` das Schluss-a von „Zelda".
+- `pro Stück` aus der Stoppliste entfernt: Es verwarf echte Artikel wie „Mario Kart pro Stück 20 €". Der gemeinte Fall „Preis pro Stück 20 €" wird weiterhin über `preis pro` abgefangen.
+- `offer.derived_from` nennt die Ursprungsanzeige jetzt als vollständigen `listing_key` statt als nackte Anzeigen-ID.
+- Keine weiteren Änderungen gegenüber 1.8.0.
+- Produktionsabnahme: ausstehend. Rollback-Ziel: 1.7.1 / `gp-171-20260812-1`.
+
 ## 1.8.0 – 2026-08-12 – Quellenqualität, Konvolutauflösung und neue Suchmaske
 
 - Zustand und Versand werden quellenneutral normalisiert: `normalization.py` liefert stabile Codes, das v2-Schema trägt sie additiv als `condition_code` und `delivery.mode` neben dem unveränderten Anzeigetext. Vorher leitete erst der Browser per Regex einen Code aus dem Anzeigetext ab, ein Zustandsfilter matchte damit faktisch auf Anzeigestrings.

@@ -341,6 +341,15 @@ def _number(value: Any) -> float | None:
     return result if math.isfinite(result) else None
 
 
+def _derived_key(value: Any, source: str) -> str | None:
+    """Gibt die Ursprungsanzeige als listing_key zurück, nicht als nackte ID."""
+
+    text = str(value or "").strip()
+    if not text:
+        return None
+    return text if text.startswith(f"{source}:") else f"{source}:{text}"
+
+
 def listing_to_v2(raw: dict[str, Any], fallback_source: str) -> dict[str, Any]:
     source = str(raw.get("source") or fallback_source).casefold()
     if source not in DEFAULT_SOURCES:
@@ -402,7 +411,7 @@ def listing_to_v2(raw: dict[str, Any], fallback_source: str) -> dict[str, Any]:
             # Additiv seit 1.8.0: gesetzt, wenn diese Zeile aus der
             # Einzelpreisliste eines Konvoluts abgeleitet wurde. Die URL zeigt
             # dann weiterhin auf die Ursprungsanzeige.
-            "derived_from": raw.get("derived_from") or None,
+            "derived_from": _derived_key(raw.get("derived_from"), source),
             "bundle": str(product.get("code") or "") == "bundle"
             or "bundle" in str(result_info.get("scope") or "").casefold()
             or "konvolut" in str(result_info.get("scope") or "").casefold(),

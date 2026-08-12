@@ -25,6 +25,15 @@ MIN_ITEMS = 2
 _PRICE_RE = re.compile(r"(\d{1,5}(?:[.,]\d{1,2})?)\s*(?:€|EUR\b|Euro\b)", re.I)
 _LEADING_NOISE_RE = re.compile(r"^[\s\-–—*•·>+]*(?:\d{1,2}\s*[.)]\s*)?(?:\d{1,2}\s*[xX]\s*)?")
 _TRAILING_NOISE_RE = re.compile(r"[\s:\-–—=.,;]+$")
+# "Extreme-G 2 je 15 €" meint den Stückpreis; das Füllwort gehört nicht in
+# den Artikelnamen.
+_TRAILING_FILLER_RE = re.compile(
+    # Das führende \s+ ist wesentlich: mit \s* würde "à" das Schluss-a von
+    # "Zelda" verschlucken.
+    r"\s+(?:je|jeweils|pro\s+st(?:ü|ue)ck|das\s+st(?:ü|ue)ck|st(?:ü|ue)ck|"
+    r"pro\s+stk\.?|stk\.?|à)\s*$",
+    re.I,
+)
 
 # Zeilen, die zwar einen Betrag tragen, aber keinen Artikel bezeichnen. Ohne
 # diese Liste würden "Versand 5 €" und "Neupreis 60 €" zu eigenen Kacheln.
@@ -32,7 +41,7 @@ _NON_ITEM_SIGNALS = (
     "versand", "porto", "verschick", "gesamt", "zusammen", "insgesamt", "summe",
     "alles", "komplett", "neupreis", "originalpreis", "uvp", "einzeln je",
     "abholung", "selbstabholung", "festpreis", "verhandlungsbasis", "vb",
-    "preis pro", "pro stück", "zzgl", "inkl. versand", "paypal", "überweisung",
+    "preis pro", "zzgl", "inkl. versand", "paypal", "überweisung",
     "nachlass", "rabatt", "gebot", "tausch",
 )
 
@@ -74,7 +83,12 @@ def parse_bundle_items(description: str) -> list[dict[str, Any]]:
         if price is None or price <= 0:
             continue
         name = text[: match.start()] + text[match.end() :]
-        name = _TRAILING_NOISE_RE.sub("", _LEADING_NOISE_RE.sub("", _clean(name)))
+        name = _LEADING_NOISE_RE.sub("", _clean(name))
+        for _ in range(3):
+            stripped = _TRAILING_NOISE_RE.sub("", _TRAILING_FILLER_RE.sub("", name))
+            if stripped == name:
+                break
+            name = stripped
         if len(name) < 3 or len(name) > 120 or not re.search(r"[A-Za-zÄÖÜäöüß]{3}", name):
             continue
         key = name.casefold()

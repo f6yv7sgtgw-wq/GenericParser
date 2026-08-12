@@ -1,8 +1,8 @@
 {
   "product": "GenericParser",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "package_version": "dynamic:generic_parser.release_identity.VERSION",
-  "build_id": "gp-180-20260812-1",
+  "build_id": "gp-181-20260812-1",
   "identity_source": "src/generic_parser/release_identity.py",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
@@ -19,7 +19,7 @@
   "release_date": "2026-08-12",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "release-candidate",
-  "purpose": "normalize condition and delivery into source-neutral codes so filters stop matching display text, resolve Kleinanzeigen bundles that list individual items with individual prices into derived per-item tiles that keep the original advert URL, take Vinted catalog card photos so the grid fills with the first packet instead of the detail queue, and rebuild the browser around a modern search mask with a collapsible filter panel and loading placeholders",
+  "purpose": "correct two flaws found in the 1.8.0 live run: a per-unit filler word such as \"je\" or \"à\" stayed in the derived article title, and offer.derived_from reported the bare advert id instead of a listing key",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted", "ebay"],
@@ -116,5 +116,5 @@
     "production_acceptance": "pending"
   },
   "rollback_plan": {"last_stable_baseline": "1.7.1", "build_id": "gp-171-20260812-1"},
-  "metadata_schema": 54
+  "metadata_schema": 55
 }
