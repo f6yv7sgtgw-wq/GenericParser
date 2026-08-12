@@ -84,8 +84,8 @@ production long-run acceptance is pending.
 - expand deterministic fixtures for spelling, punctuation and marketplace edge cases;
 - keep catalog, collection, valuation and deal decisions in consuming clients.
 
-Current status: **1.8.6 release candidate**; 1.8.5 is the accepted stable
-baseline and the rollback target. 1.8.6 fixes an interaction the rotation
+Current status: **1.8.6 stable and production-accepted** (2026-08-12); 1.8.5
+remains the rollback target. 1.8.6 fixes an interaction the rotation
 exposed: a single shared inter-packet delay let the slowest source throttle
 all the others, and the throttle itself was only ever disabled by an external
 assignment that failed silently. 1.8.0 closes the remaining 1.7 scope and adds
