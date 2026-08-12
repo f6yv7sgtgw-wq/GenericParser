@@ -18,7 +18,7 @@
   "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+mobile-transport-recovery+deferred-vinted-details+responsive-web-ui-162+signed-continuations-v2+vinted-size-normalization+default-auction-search-with-result-filter+parallel-vinted-background-batches+source-neutral-condition-delivery-codes+derived-bundle-listings+modern-search-mask+round-robin-source-rotation",
   "release_date": "2026-08-12",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "release-candidate",
+  "status": "stable",
   "purpose": "rotate the marketplace sources instead of draining them one after another, so a mixed result set appears from the second packet on, and back the normalizers with a shared deterministic case collection that both the Python adapters and the Vinted worker are checked against",
   "worker_plan": "paid",
   "sources": {
@@ -117,7 +117,10 @@
     "same_page_transient_result_resume": true,
     "vinted_background_yields_to_primary_search": true,
     "source_progress_unique_listing_keys": true,
-    "production_acceptance": "pending"
+    "production_acceptance": "passed",
+    "production_commit": "3486cb4aeb1365ab3b2f0777283e23872f2c70da",
+    "production_workflow_run": 31629667313,
+    "accepted_at": "2026-08-12T19:03:18Z"
   },
   "rollback_plan": {"last_stable_baseline": "1.7.1", "build_id": "gp-171-20260812-1"},
   "metadata_schema": 56

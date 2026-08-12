@@ -13,7 +13,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Die Sammlung deckte sofort drei echte Lücken auf: „wie-neu" galt wegen des Bindestrichs als **neu** statt `like_new`; `_size_text` kannte die Zwölf-Zeichen-Grenze des Workers nicht und ließ Fließtext als Größe durch; „1.200 €" wurde zu Titel „Konsole 1" mit Preis 200.
 - Zustandsangaben werden vor dem Vergleich von Interpunktion befreit, die Regeln enthalten entsprechend keine mehr — ein neuer Test hält das fest.
 - Beträge verstehen Tausenderpunkte. Ein Punkt gilt nur bei genau drei Folgeziffern als Trennzeichen, sonst als Dezimalpunkt.
-- Produktionsabnahme: ausstehend. Rollback-Ziel: 1.7.1 / `gp-171-20260812-1`.
+- Produktionsabnahme erfolgreich: Deploy-Workflow `31629667313` lief auf Commit `3486cb4aeb1365ab3b2f0777283e23872f2c70da` grün durch. Live bestätigt: `/health` meldet 1.8.5 / `gp-185-20260812-1`, und ein Lauf über sechs Fortsetzungspakete zeigte den Turnus `kleinanzeigen:0 → vinted:0 → ebay:0 → kleinanzeigen:1 → vinted:1 → ebay:1`. Rollback-Ziel bleibt 1.7.1 / `gp-171-20260812-1`.
 
 ## 1.8.1 – 2026-08-12 – Korrekturen aus dem 1.8.0-Livelauf
 
@@ -22,7 +22,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - `pro Stück` aus der Stoppliste entfernt: Es verwarf echte Artikel wie „Mario Kart pro Stück 20 €". Der gemeinte Fall „Preis pro Stück 20 €" wird weiterhin über `preis pro` abgefangen.
 - `offer.derived_from` nennt die Ursprungsanzeige jetzt als vollständigen `listing_key` statt als nackte Anzeigen-ID.
 - Keine weiteren Änderungen gegenüber 1.8.0.
-- Produktionsabnahme: ausstehend. Rollback-Ziel: 1.7.1 / `gp-171-20260812-1`.
+- Produktionsabnahme erfolgreich: Deploy-Workflow `31616736358` lief grün durch; der Livelauf `Nintendo 64 Konvolut` lieferte 21 abgeleitete Kacheln ohne Füllwort-Reste und mit vollständigen `listing_key`-Verweisen. Von 1.8.5 in Produktion abgelöst.
 
 ## 1.8.0 – 2026-08-12 – Quellenqualität, Konvolutauflösung und neue Suchmaske
 
@@ -38,7 +38,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Ladeplatzhalter erscheinen nur, solange die Trefferliste leer ist; ein Folgeabruf verdeckt bereits gelieferte Treffer nicht.
 - Neue Suiten `tests/test_release_180.py` (17) und `tests/js/ui-180.test.mjs` (4).
 - Modul-v1 unverändert; alle neuen v2-Felder sind additiv, bestehende Bedeutungen bleiben gleich.
-- Produktionsabnahme: ausstehend. Rollback-Ziel: 1.7.1 / `gp-171-20260812-1`.
+- Produktionsabnahme erfolgreich: Deploy-Workflow `31616043977` und Vinted-Worker-Workflow `31616043940` liefen grün durch; live bestätigt waren 25 von 25 Vinted-Treffern mit Bild im ersten Paket und 21 aufgelöste Konvolutpositionen. Zwei Schönheitsfehler in den abgeleiteten Titeln wurden unmittelbar mit 1.8.1 nachgezogen.
 
 ## 1.7.1 – 2026-08-12 – Parallele Vinted-Detailbatches
 

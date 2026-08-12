@@ -4,9 +4,9 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 1.8.5 RC | `gp-185-20260812-1` | ausstehend | Quellen rotieren statt nacheinander ausgelesen zu werden, je Quelle ein eigener Seitenzeiger; geteilte deterministische Fallsammlung deckte drei Normalisierungslücken auf |
-| 1.8.1 RC | `gp-181-20260812-1` | ausstehend | Korrekturen aus dem Livelauf: Stückpreis-Füllwörter aus abgeleiteten Titeln entfernt, `derived_from` als vollständiger `listing_key` |
-| 1.8.0 RC | `gp-180-20260812-1` | ausstehend | Quellenneutrale Zustands- und Versandcodes; Kleinanzeigen-Konvolute mit Einzelpreisliste werden zu Einzelkacheln mit Verweis auf die Ursprungsanzeige; Vinted-Katalogbilder ab dem ersten Paket; moderne Suchmaske mit einklappbarem Filterpanel |
+| 1.8.5 | `gp-185-20260812-1` | `3486cb4aeb1365ab3b2f0777283e23872f2c70da` | Quellen rotieren statt nacheinander ausgelesen zu werden, je Quelle ein eigener Seitenzeiger; geteilte deterministische Fallsammlung deckte drei Normalisierungslücken auf |
+| 1.8.1 | `gp-181-20260812-1` | `4d1ce29` | Korrekturen aus dem Livelauf: Stückpreis-Füllwörter aus abgeleiteten Titeln entfernt, `derived_from` als vollständiger `listing_key` |
+| 1.8.0 | `gp-180-20260812-1` | `dfa3c18` | Quellenneutrale Zustands- und Versandcodes; Kleinanzeigen-Konvolute mit Einzelpreisliste werden zu Einzelkacheln mit Verweis auf die Ursprungsanzeige; Vinted-Katalogbilder ab dem ersten Paket; moderne Suchmaske mit einklappbarem Filterpanel |
 | 1.7.1 | `gp-171-20260812-1` | `5f7ed1d07b6fd92f2f76f73962f9dd31fb4c5893` | Vinted-Hintergrundbatches laufen zu zweit statt seriell; Abbruch je Anfrage statt geteiltem Controller; 429 einmal wiederholbar; Vorrang der Hauptsuche und alle Verträge unverändert |
 | 1.7.0 | `gp-170-20260812-1` | `5f7ed1d07b6fd92f2f76f73962f9dd31fb4c5893` | Angebotsformat und Größe als Ergebnisfilter: eBay-Auktionen werden standardmäßig gesucht und über `Ohne Auktionen` ausgeblendet; Vinted-Größe als additives Modul-v2-Feld mit Größenfacette im Browser; Vertrags-Defaults unverändert |
 | 1.6.5 RC | `gp-165-20260812-1` | ausstehend | Aufräumen ohne fachliche Änderung: 94 unerreichbare Module und 129 ungenutzte Browser-Assets entfernt; Release-Identität aus einer Quelle generiert und im Deploy-Gate geprüft |
