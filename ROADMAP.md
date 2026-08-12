@@ -84,7 +84,24 @@ production long-run acceptance is pending.
 - expand deterministic fixtures for spelling, punctuation and marketplace edge cases;
 - keep catalog, collection, valuation and deal decisions in consuming clients.
 
-Current status: **1.7.1 stable and production-accepted** (2026-08-12). 1.7.1 runs the deferred Vinted
+Current status: **1.8.0 release candidate**; 1.7.1 is the accepted stable
+baseline and the rollback target. 1.8.0 closes the remaining 1.7 scope and adds
+work requested from production use:
+
+- condition and delivery are normalized into source-neutral codes, exposed
+  additively as `condition_code` and `delivery.mode`, so filters stop matching
+  display text. `like_new` becomes its own code instead of counting as new;
+- Kleinanzeigen bundles that list individual items with individual prices are
+  resolved into derived per-item tiles that keep the original advert URL;
+- Vinted catalog cards carry their photo, so the grid fills with the first
+  packet instead of waiting for the detail queue;
+- the browser is rebuilt around a modern search mask with a collapsible filter
+  panel and loading placeholders.
+
+Still open in this line: broader deterministic fixtures for spelling,
+punctuation and marketplace edge cases.
+
+Earlier status: **1.7.1 stable and production-accepted** (2026-08-12). 1.7.1 runs the deferred Vinted
 detail batches two at a time instead of strictly one after another, with a
 per-request abort controller and a retryable rate limit, without giving
 background work priority over the primary packet stream. It changes no schema,

@@ -1,0 +1,221 @@
+/* GenericParser 1.8.0 - moderne Suchmaske.
+ *
+ * Baut auf den Tokens aus ui-161/ui-162 auf und ändert nur die Anordnung:
+ * die Suche wird zur zentralen Maske, die Filter ziehen sich in ein
+ * einklappbares Panel zurück, die aktiven Filter bleiben immer sichtbar.
+ */
+
+.search-card-180 {
+  padding: clamp(20px, 3vw, 36px) clamp(16px, 3vw, 32px);
+}
+
+.search-card-180 .search-heading {
+  margin-bottom: clamp(14px, 2vw, 22px);
+}
+
+/* --- Suchleiste ------------------------------------------------------- */
+
+.search-card-180 .search-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "query submit" "sources sources";
+  gap: 12px;
+  align-items: end;
+}
+
+.search-card-180 .query-field {
+  grid-area: query;
+}
+
+.search-card-180 .query-field input {
+  min-height: 56px;
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  padding-inline: 18px;
+  border-radius: 16px;
+}
+
+.search-card-180 .search-submit {
+  grid-area: submit;
+  min-height: 56px;
+  padding-inline: clamp(20px, 3vw, 34px);
+  border-radius: 16px;
+  font-size: 1rem;
+}
+
+/* Die Plattformwahl bleibt als <select> die Datenquelle; sichtbar ist sie
+ * als Segmentleiste, die ui-180.js aufbaut und synchron hält. */
+.search-card-180 .source-field {
+  grid-area: sources;
+}
+
+.search-card-180 .source-field.has-segments > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.search-card-180 .source-field.has-segments select {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.source-segments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.source-segment {
+  flex: 1 1 auto;
+  min-height: 42px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border, #315565);
+  background: var(--surface, #132b3a);
+  color: var(--text-soft, #d7e7ea);
+  font-weight: 600;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.source-segment:hover {
+  border-color: var(--border-bright, #467082);
+}
+
+.source-segment[aria-pressed="true"] {
+  background: var(--accent, #70d7d2);
+  border-color: var(--accent, #70d7d2);
+  color: #06222a;
+}
+
+.source-segment:focus-visible {
+  outline: 2px solid var(--accent-light, #b7eee7);
+  outline-offset: 2px;
+}
+
+/* --- Filterpanel ------------------------------------------------------ */
+
+.result-filters-180 .filter-body {
+  display: none;
+}
+
+.result-filters-180.is-open .filter-body {
+  display: block;
+  margin-top: 14px;
+}
+
+/* Der Umschalter war bisher nur mobil sichtbar. Jetzt trägt er das Panel auf
+ * allen Breiten, damit die Ergebnisse nicht dauerhaft nach unten gedrückt
+ * werden. */
+.results-heading-actions .mobile-filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.results-heading-actions .mobile-filter-toggle::after {
+  content: "▾";
+  font-size: .8em;
+  transition: transform .15s ease;
+}
+
+.result-filters-180.is-open ~ * .mobile-filter-toggle::after,
+.results-heading-actions .mobile-filter-toggle[aria-expanded="true"]::after {
+  transform: rotate(180deg);
+}
+
+.result-filters-180 .active-result-filters:empty {
+  display: none;
+}
+
+/* --- Ergebniskarten --------------------------------------------------- */
+
+.derived-badge {
+  border-color: var(--accent-deep, #3caeac) !important;
+  color: var(--accent-light, #b7eee7) !important;
+}
+
+/* --- Ladeplatzhalter -------------------------------------------------- */
+
+.skeleton-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.skeleton-card {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border, #315565);
+  border-radius: 18px;
+  background: var(--surface, #132b3a);
+}
+
+.skeleton-card > * {
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    var(--surface-raised, #193545) 25%,
+    var(--surface-soft, #214353) 50%,
+    var(--surface-raised, #193545) 75%
+  );
+  background-size: 200% 100%;
+  animation: gp-skeleton 1.4s ease-in-out infinite;
+}
+
+.skeleton-media {
+  height: 92px;
+}
+
+.skeleton-lines {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  background: none !important;
+  animation: none !important;
+}
+
+.skeleton-lines span {
+  height: 12px;
+  border-radius: 6px;
+  background: inherit;
+}
+
+.skeleton-lines span:nth-child(1) { width: 85%; }
+.skeleton-lines span:nth-child(2) { width: 60%; }
+.skeleton-lines span:nth-child(3) { width: 40%; }
+
+@keyframes gp-skeleton {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-card > * { animation: none; }
+}
+
+/* --- Schmale Ansichten ------------------------------------------------ */
+
+@media (max-width: 620px) {
+  .search-card-180 .search-bar {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "query" "sources" "submit";
+  }
+
+  .search-card-180 .search-submit {
+    width: 100%;
+  }
+
+  .source-segment {
+    flex: 1 1 calc(50% - 8px);
+  }
+}

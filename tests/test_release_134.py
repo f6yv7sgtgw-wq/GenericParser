@@ -20,10 +20,14 @@ def test_release_134_layout_contract_remains_active_in_current_release() -> None
     assert metadata["build_id"] == BUILD_ID
     assert metadata["verification"]["dense_result_card_grid"] == "required"
     assert metadata["verification"]["side_by_side_card_media"] == "required"
-    assert metadata["rollback_plan"] == {
-        "last_stable_baseline": "1.6.2",
-        "build_id": "gp-162-20260810-1",
-    }
+    rollback = metadata["rollback_plan"]
+    # Das Rollback-Ziel wandert mit jeder abgenommenen Version weiter.
+    # Festgeschrieben ist nur, dass es ein anderes, formal gültiges Release
+    # benennt - ein Rollback auf sich selbst wäre keines.
+    assert set(rollback) == {"last_stable_baseline", "build_id"}
+    assert re.fullmatch(r"\d+\.\d+(?:\.\d+)?", rollback["last_stable_baseline"])
+    assert re.fullmatch(r"gp-\w+-\d{8}-\d+", rollback["build_id"])
+    assert rollback["last_stable_baseline"] != metadata["version"]
     assert public["version"] == VERSION
     assert public["build_id"] == BUILD_ID
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from generic_parser.release_identity import BUILD_ID, VERSION
@@ -20,10 +21,14 @@ def test_release_identity_and_rollback_target_are_consistent():
     assert metadata["build_id"] == public["build_id"] == BUILD_ID
     assert metadata["status"] in {"release-candidate", "stable"}
     assert metadata["verification"]["production_acceptance"] in {"pending", "passed"}
-    assert metadata["rollback_plan"] == {
-        "last_stable_baseline": "1.6.2",
-        "build_id": "gp-162-20260810-1",
-    }
+    rollback = metadata["rollback_plan"]
+    # Das Rollback-Ziel wandert mit jeder abgenommenen Version weiter.
+    # Festgeschrieben ist nur, dass es ein anderes, formal gültiges Release
+    # benennt - ein Rollback auf sich selbst wäre keines.
+    assert set(rollback) == {"last_stable_baseline", "build_id"}
+    assert re.fullmatch(r"\d+\.\d+(?:\.\d+)?", rollback["last_stable_baseline"])
+    assert re.fullmatch(r"gp-\w+-\d{8}-\d+", rollback["build_id"])
+    assert rollback["last_stable_baseline"] != metadata["version"]
 
 
 def test_manual_stop_is_never_presented_as_complete():

@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "GenericParser Module API v2",
-    "version": "1.7.1",
+    "version": "1.8.0",
     "description": "Project-independent, packet-based marketplace search for Kleinanzeigen, Vinted and eBay. Module API v1 remains available."
   },
   "servers": [
@@ -207,12 +207,28 @@
           "image_url": {"type": ["string", "null"]},
           "description": {"type": ["string", "null"]},
           "pricing": {"$ref": "#/components/schemas/Pricing"},
-          "delivery": {"type": "object"},
+          "delivery": {
+            "type": "object",
+            "properties": {
+              "shipping_available": {"type": ["boolean", "null"]},
+              "pickup_available": {"type": ["boolean", "null"]},
+              "mode": {"enum": ["free", "available", "pickup", "unknown"], "description": "Additiv seit 1.8.0. Quellenneutraler Versandmodus."}
+            }
+          },
           "location": {"type": "object"},
-          "offer": {"type": "object"},
+          "offer": {
+            "type": "object",
+            "properties": {
+              "format": {"enum": ["fixed_price", "auction", "best_offer"]},
+              "auction": {"type": "boolean"},
+              "bundle": {"type": "boolean"},
+              "derived_from": {"type": ["string", "null"], "description": "Additiv seit 1.8.0. Gesetzt, wenn die Zeile aus der Einzelpreisliste eines Konvoluts abgeleitet wurde; url zeigt dann auf die Ursprungsanzeige."}
+            }
+          },
           "classification": {"type": "object"},
           "condition": {"type": ["string", "null"]},
           "size": {"type": ["string", "null"], "description": "Additive seit 1.7.0. Größenangabe der Quelle, null wenn die Quelle keine strukturierte Größe liefert."},
+          "condition_code": {"enum": ["new", "like_new", "used", "defective", "unknown"], "description": "Additiv seit 1.8.0. Quellenneutraler Zustandscode; condition bleibt der Anzeigetext der Quelle."},
           "timestamps": {"type": "object"}
         }
       },

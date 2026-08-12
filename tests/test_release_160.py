@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -145,10 +146,14 @@ def test_release_identity_publishes_v2_additively():
     assert metadata["verification"]["vinted_background_yields_to_primary_search"] is True
     assert metadata["verification"]["source_progress_unique_listing_keys"] is True
     assert metadata["compatibility"]["module_v1_unchanged"] is True
-    assert metadata["rollback_plan"] == {
-        "last_stable_baseline": "1.6.2",
-        "build_id": "gp-162-20260810-1",
-    }
+    rollback = metadata["rollback_plan"]
+    # Das Rollback-Ziel wandert mit jeder abgenommenen Version weiter.
+    # Festgeschrieben ist nur, dass es ein anderes, formal gültiges Release
+    # benennt - ein Rollback auf sich selbst wäre keines.
+    assert set(rollback) == {"last_stable_baseline", "build_id"}
+    assert re.fullmatch(r"\d+\.\d+(?:\.\d+)?", rollback["last_stable_baseline"])
+    assert re.fullmatch(r"gp-\w+-\d{8}-\d+", rollback["build_id"])
+    assert rollback["last_stable_baseline"] != metadata["version"]
 
 
 def test_v2_capabilities_and_v1_capabilities_are_both_available():

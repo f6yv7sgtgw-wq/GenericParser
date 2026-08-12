@@ -17,6 +17,7 @@ from .build_identity_v0452 import (
     WORKER_UNIT,
 )
 from .ebay_adapter import search_ebay
+from .kleinanzeigen_bundles import resolve_bundles
 from .integrations import evercade_profile, snes_pal_profile
 from .module_api import (
     MODULE_CONTRACT,
@@ -74,6 +75,26 @@ def _include_listing(listing: dict[str, Any], payload: SearchRequest) -> bool:
     return True
 
 
+async def _fetch_detail_html(url: str) -> str:
+    """Holt eine Kleinanzeigen-Detailseite für die Konvolutauflösung."""
+
+    import httpx
+
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 "
+            "Version/18.0 Mobile Safari/604.1"
+        ),
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "de-DE,de;q=0.9",
+    }
+    async with httpx.AsyncClient(follow_redirects=True, timeout=8.0) as client:
+        response = await client.get(url, headers=headers)
+    if response.status_code >= 400:
+        raise RuntimeError(f"Detailseite antwortet mit HTTP {response.status_code}")
+    return response.text
+
+
 def _decorate_listing(listing: dict[str, Any], payload: SearchRequest) -> dict[str, Any]:
     classification = classify_listing(listing, str(payload.query))
     apply_classification_metadata(listing, classification)
@@ -104,6 +125,17 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
             item.setdefault("source", "kleinanzeigen")
             item.setdefault("source_label", "Kleinanzeigen")
             _decorate_listing(item, payload)
+        # Konvolute mit einer Einzelpreisliste werden in Einzelkacheln
+        # aufgelöst. Die abgeleiteten Zeilen tragen einen neuen Titel und
+        # müssen deshalb erneut klassifiziert werden.
+        bundles = await resolve_bundles(
+            list(ka_result.get("listings") or []), fetch_html=_fetch_detail_html
+        )
+        ka_result["listings"] = bundles["listings"]
+        ka_result["bundle_resolution"] = bundles["stats"]
+        for item in ka_result["listings"]:
+            if item.get("derived"):
+                _decorate_listing(item, payload)
 
     vinted_result: dict[str, Any] | None = None
     vinted_visible: list[dict[str, Any]] = []

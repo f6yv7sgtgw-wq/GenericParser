@@ -2,6 +2,22 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.8.0 – 2026-08-12 – Quellenqualität, Konvolutauflösung und neue Suchmaske
+
+- Zustand und Versand werden quellenneutral normalisiert: `normalization.py` liefert stabile Codes, das v2-Schema trägt sie additiv als `condition_code` und `delivery.mode` neben dem unveränderten Anzeigetext. Vorher leitete erst der Browser per Regex einen Code aus dem Anzeigetext ab, ein Zustandsfilter matchte damit faktisch auf Anzeigestrings.
+- Dabei zwei Fehlgriffe behoben: „wie neu" galt als **neu**, „Sehr gut" als **gebraucht**. Beide sind jetzt `like_new` mit eigener Filteroption, damit die Treffer nach der Trennung nicht unsichtbar werden.
+- Ein Defekt schlägt eine neu klingende Formulierung: „Neu, aber defekt" ist `defective`.
+- Kleinanzeigen-Konvolute mit Einzelpreisliste werden in Einzelkacheln aufgelöst. Die Detailseite wird nur für Treffer geholt, die die Klassifizierung ohnehin als Konvolut ausweist — das begrenzt die Kosten von selbst; Budget sind drei Detailseiten je Ergebnisseite.
+- Abgeleitete Kacheln sind keine eigenständigen Angebote: Sie tragen die URL der Ursprungsanzeige, verweisen über `offer.derived_from` auf sie und zeigen im Browser ein „aus Konvolut"-Merkmal. Es wird keine URL erfunden.
+- Versandzeilen, Neupreise und Gesamtsummen werden nicht zu Artikeln, mehrdeutige Preisspannen ebenso wenig. Unter zwei erkannten Positionen bleibt es bei einer als Konvolut markierten Kachel. Jeder Fehler beim Abruf oder Parsen lässt die Konvolutkachel unverändert stehen.
+- Vinted-Katalogkarten liefern jetzt ihr Foto mit. `extractHtmlListings` erzeugte Treffer bisher ganz ohne `image_url`; die Bilder kamen erst über die Detailwarteschlange mit Budget drei, weshalb das Raster spürbar langsam gefüllt wurde. Fremde Hosts, Icons und Tracking-Pixel werden dabei nicht als Foto akzeptiert.
+- Neue Suchmaske: große zentrale Suchleiste, Plattformwahl als Segmentleiste über dem unveränderten `<select>`, Filter in einem einklappbaren Panel statt als Dauerraster, Ladeplatzhalter statt leerer Fläche.
+- Die aktiven Filter-Chips stehen bewusst außerhalb des einklappbaren Bereichs — sonst wäre nach dem Zuklappen nicht mehr sichtbar, was gerade filtert.
+- Ladeplatzhalter erscheinen nur, solange die Trefferliste leer ist; ein Folgeabruf verdeckt bereits gelieferte Treffer nicht.
+- Neue Suiten `tests/test_release_180.py` (17) und `tests/js/ui-180.test.mjs` (4).
+- Modul-v1 unverändert; alle neuen v2-Felder sind additiv, bestehende Bedeutungen bleiben gleich.
+- Produktionsabnahme: ausstehend. Rollback-Ziel: 1.7.1 / `gp-171-20260812-1`.
+
 ## 1.7.1 – 2026-08-12 – Parallele Vinted-Detailbatches
 
 - Vinted-Hintergrundbatches laufen zu zweit statt streng nacheinander; die Warteschlange wird auf zwei Arbeiter verteilt, die sich dieselbe Queue teilen. Bei 25 Treffern waren das bisher neun serielle Runden, die Wandzeit halbiert sich etwa.

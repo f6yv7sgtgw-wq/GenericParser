@@ -21,6 +21,7 @@ from fastapi import Request
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .module_api import ModuleDebugOptions, ModuleSearchProfile
+from .normalization import normalize_condition, normalize_delivery_mode
 from .release_identity import PREFERRED_MODULE_CONTRACT
 
 
@@ -384,6 +385,12 @@ def listing_to_v2(raw: dict[str, Any], fallback_source: str) -> dict[str, Any]:
         "delivery": {
             "shipping_available": raw.get("shipping_available"),
             "pickup_available": True if raw.get("shipping_available") is False else None,
+            # Additiv seit 1.8.0: der Modus trägt die Bedeutung, damit Clients
+            # nicht selbst aus drei Feldern schließen müssen.
+            "mode": normalize_delivery_mode(
+                shipping_available=raw.get("shipping_available"),
+                shipping_cost=shipping,
+            ),
         },
         "location": {
             "postal_code": raw.get("postal_code"),
@@ -392,6 +399,10 @@ def listing_to_v2(raw: dict[str, Any], fallback_source: str) -> dict[str, Any]:
         "offer": {
             "format": offer_format,
             "auction": offer_format == "auction",
+            # Additiv seit 1.8.0: gesetzt, wenn diese Zeile aus der
+            # Einzelpreisliste eines Konvoluts abgeleitet wurde. Die URL zeigt
+            # dann weiterhin auf die Ursprungsanzeige.
+            "derived_from": raw.get("derived_from") or None,
             "bundle": str(product.get("code") or "") == "bundle"
             or "bundle" in str(result_info.get("scope") or "").casefold()
             or "konvolut" in str(result_info.get("scope") or "").casefold(),
@@ -407,6 +418,11 @@ def listing_to_v2(raw: dict[str, Any], fallback_source: str) -> dict[str, Any]:
             "ruleset": str(product.get("ruleset") or "product-classification-v1"),
         },
         "condition": raw.get("condition") or result_info.get("condition"),
+        # Additiv seit 1.8.0: der Anzeigetext bleibt, die Bedeutung trägt der
+        # Code. Vorher leitete erst der Browser per Regex einen Code ab.
+        "condition_code": normalize_condition(
+            raw.get("condition"), result_info.get("condition")
+        ),
         # Additive since 1.7.0: sources without a structured size report null
         # rather than a filler label, so consumers can tell "no size" apart.
         "size": raw.get("size") or result_info.get("size") or None,
