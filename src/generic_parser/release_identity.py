@@ -5,8 +5,8 @@ identity must be imported from here. Do not duplicate VERSION/BUILD_ID in
 workflows, tests, browser assets or transport wrappers.
 """
 
-VERSION = "1.8.5"
-BUILD_ID = "gp-185-20260812-1"
+VERSION = "1.8.6"
+BUILD_ID = "gp-186-20260812-1"
 API_CONTRACT = "generic-parser-module-v1"
 MODULE_CONTRACT = API_CONTRACT
 PREFERRED_MODULE_CONTRACT = "generic-parser-module-v2"
@@ -15,7 +15,7 @@ ENTRYPOINT = "generic_parser.cloudflare_worker:Default.fetch"
 BOOTSTRAP_MODULE = "generic_parser.cloudflare_v0452"
 SEARCH_MODULE = "generic_parser.search_service_v111_runtime"
 SEARCH_RUNTIME = "0.45.0+multisource-runtime-bridge"
-WORKER_UNIT = "stable-paid+runtime-bridge+three-sources+product-classification+result-filters+explicit-browser-favorites+signed-ebay-deletion-endpoint+truthful-stop-status+fail-open-browser-startup+mobile-transport-recovery+web-ui-162+module-v1+module-v2+vinted-size-facet+auction-result-filter+parallel-vinted-detail-batches+normalized-condition-delivery+kleinanzeigen-bundle-resolution+search-mask-180+round-robin-sources"
+WORKER_UNIT = "stable-paid+runtime-bridge+three-sources+product-classification+result-filters+explicit-browser-favorites+signed-ebay-deletion-endpoint+truthful-stop-status+fail-open-browser-startup+mobile-transport-recovery+web-ui-162+module-v1+module-v2+vinted-size-facet+auction-result-filter+parallel-vinted-detail-batches+normalized-condition-delivery+kleinanzeigen-bundle-resolution+search-mask-180+round-robin-sources+browser-owned-throttle"
 FUNCTIONAL_REFERENCE = "0.44.4"
 OPERATIONAL_REFERENCE = "0.44.6.5"
 RUNTIME_REFERENCE = "0.44.6.2"

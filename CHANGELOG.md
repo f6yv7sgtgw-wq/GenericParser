@@ -2,6 +2,16 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.8.6 – 2026-08-12 – Drosselung entschärft
+
+- Der Fünf-Sekunden-Timer war keine Kleinanzeigen-Pause, sondern die latenzabhängige Drosselung `adaptiveDelay`: Ab vier Sekunden Paketlaufzeit wartete der Lauf danach fünf Sekunden.
+- Abgeschaltet werden sollte sie längst — `controller-0450.js` setzt `adaptiveDelay = () => 0` und `countdown = async () => {}`. Diese Zuweisung sitzt aber in einem `.then()`: Schlägt das Laden der Controller-Quelle oder eines der Ersetzungsmuster fehl, unterbleibt sie stillschweigend und die Drosselung ist wieder scharf. `app.js` entscheidet das jetzt selbst anhand von `workerPlan` und `protectionDelays` aus der Build-Identität.
+- Fehlt die Identität ganz, bleibt die Drosselung vorsichtshalber aktiv.
+- Während die Quellen rotieren, entfällt die Pause zwischen Paketen vollständig. Sie war ein einziger Wert für den gesamten Lauf: Seit 1.8.5 konnte damit ein langsames Vinted- oder eBay-Paket fünf Sekunden Wartezeit vor dem nächsten **Kleinanzeigen**-Paket erzwingen — die langsamste Quelle bremste alle übrigen aus. Der Turnus sorgt selbst für den Abstand, weil bis zur nächsten Runde einer Quelle die anderen bedient wurden.
+- Bei einer Suche auf genau eine Quelle bleibt die Drosselung als Schutz erhalten.
+- Neue Suite `tests/js/throttle-186.test.mjs` (6) und `tests/test_release_186.py` (4).
+- Produktionsabnahme: ausstehend. Rollback-Ziel: 1.8.5 / `gp-185-20260812-1`.
+
 ## 1.8.5 – 2026-08-12 – Quellen im Turnus und geteilte Fallsammlung
 
 - Die Quellen wechseln sich jetzt ab: nach jeder verarbeiteten Seite ist die nächste noch offene Quelle an der Reihe. Bisher wurde Kleinanzeigen vollständig ausgelesen, dann Vinted, dann eBay — ein gemischtes Ergebnisbild entstand erst spät oder gar nicht, wenn der Lauf vorher gestoppt wurde.
