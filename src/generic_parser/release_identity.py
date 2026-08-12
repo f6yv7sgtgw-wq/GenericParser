@@ -5,8 +5,8 @@ identity must be imported from here. Do not duplicate VERSION/BUILD_ID in
 workflows, tests, browser assets or transport wrappers.
 """
 
-VERSION = "1.6.3"
-BUILD_ID = "gp-163-20260810-1"
+VERSION = "1.6.4"
+BUILD_ID = "gp-164-20260812-1"
 API_CONTRACT = "generic-parser-module-v1"
 MODULE_CONTRACT = API_CONTRACT
 PREFERRED_MODULE_CONTRACT = "generic-parser-module-v2"
@@ -20,5 +20,5 @@ FUNCTIONAL_REFERENCE = "0.44.4"
 OPERATIONAL_REFERENCE = "0.44.6.5"
 RUNTIME_REFERENCE = "0.44.6.2"
 TECHNICAL_BASE = "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+mobile-transport-recovery+deferred-vinted-details+responsive-web-ui-162+signed-continuations-v2"
-RELEASE_DATE = "2026-08-10"
+RELEASE_DATE = "2026-08-12"
 WORKER_PLAN = "paid"

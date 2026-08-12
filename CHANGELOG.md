@@ -2,6 +2,14 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.6.4 – 2026-08-12 – Reiner Versionsbump zur Verifikation der Release-Kette
+
+- Release-Identität von `1.6.3` / `gp-163-20260810-1` auf `1.6.4` / `gp-164-20260812-1` gehoben.
+- Keine funktionalen Änderungen: Suchkern, Marktplatzadapter, Klassifizierung, Scoring, Modul-v1, Modul-v2, Fortsetzungstoken und Browseroberfläche sind gegenüber 1.6.3 unverändert.
+- Zweck dieses Releases ist ausschließlich die Verifikation, dass Build, Deployment und die Auslieferung einer neuen Version bis auf das Endgerät im Browser durchlaufen.
+- Service-Worker-Cache auf `generic-parser-mobile-gp-164` umgestellt, damit Endgeräte die neue Version nicht aus dem alten Asset-Cache bedienen.
+- Produktionsabnahme: ausstehend. Rollback-Ziel unverändert: 1.6.2 / `gp-162-20260810-1`.
+
 ## 1.6.3 – 2026-08-10 – Mobile Transporterholung bei langen Suchläufen
 
 - Safari-Fehler `Load failed` aus dem Hauptsuchpfad als wiederholbare Transportunterbrechung klassifiziert, statt den Lauf nach dem ersten verlorenen API-v2-Paket zu beenden.

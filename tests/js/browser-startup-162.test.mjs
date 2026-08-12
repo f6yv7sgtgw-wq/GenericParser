@@ -38,13 +38,13 @@ test('a failed live identity request keeps the embedded release ready', async ()
   vm.runInNewContext(identitySource, context, {filename: 'build-identity-0450.js'});
 
   const ready = await window.GP_BUILD_IDENTITY_READY;
-  assert.equal(ready.version, '1.6.3');
-  assert.equal(ready.buildId, 'gp-163-20260810-1');
+  assert.equal(ready.version, '1.6.4');
+  assert.equal(ready.buildId, 'gp-164-20260812-1');
   assert.equal(ready.webUiApiContract, 'generic-parser-module-v2');
   assert.equal(ready.identityVerified, false);
 
   const live = await window.GP_LIVE_IDENTITY_READY;
-  assert.equal(live.version, '1.6.3');
+  assert.equal(live.version, '1.6.4');
   assert.match(live.identityError, /Load failed/);
   assert.equal(window.GP_BUILD_IDENTITY_STATUS.ok, false);
   assert.equal(events.at(-1).type, 'gp-identity-status');
@@ -63,8 +63,8 @@ test('optional controller diagnostics fail open instead of locking search', asyn
   const state = {className: '', innerHTML: ''};
   const footer = {textContent: ''};
   const identity = {
-    version: '1.6.3',
-    buildId: 'gp-163-20260810-1',
+    version: '1.6.4',
+    buildId: 'gp-164-20260812-1',
     apiContract: 'generic-parser-module-v1',
     moduleContract: 'generic-parser-module-v1',
     preferredModuleContract: 'generic-parser-module-v2',

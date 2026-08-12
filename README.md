@@ -6,8 +6,8 @@ remain optional module-v1 compatibility helpers.
 
 ## Current release
 
-- **Version:** `1.6.3`
-- **Build:** `gp-163-20260810-1`
+- **Version:** `1.6.4`
+- **Build:** `gp-164-20260812-1`
 - **Status:** Release candidate; production acceptance pending
 - **Worker profile:** Cloudflare Workers Paid
 - **Preferred module contract:** `generic-parser-module-v2`
@@ -16,7 +16,13 @@ remain optional module-v1 compatibility helpers.
 - **Functional search core:** `0.44.4`
 - **Operational reference:** `0.44.6.5`
 
-GenericParser 1.6.3 keeps the project-independent module API v2 and the proven
+GenericParser 1.6.4 is a version bump without functional change. It exists to
+verify that build, deployment and delivery of a new version reach an end device
+in the browser. Search core, marketplace adapters, classification, module-v1,
+module-v2 and the browser interface are identical to 1.6.3.
+
+The behavior described below is unchanged since 1.6.3, which kept the
+project-independent module API v2 and the proven
 three-source search core, while making long mobile packet sequences resilient.
 A transient Safari `Load failed` is classified as a retryable transport
 interruption and the unchanged API-v2 packet is resent with a short bounded
@@ -219,4 +225,4 @@ change extraction or pagination. 1.6.0 adds module-v2 and the browser client;
 1.6.1 corrects its runtime state forwarding while keeping module-v1 and the
 marketplace core compatible.
 
-Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.6.0.md`](docs/API_1.6.0.md), [`docs/openapi-module-v2.json`](docs/openapi-module-v2.json), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.6.3.md`](docs/releases/1.6.3.md).
+Further documentation: [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md), [`VERSION.json`](VERSION.json), [`docs/API_1.6.0.md`](docs/API_1.6.0.md), [`docs/openapi-module-v2.json`](docs/openapi-module-v2.json), [`docs/RELEASE_INDEX.md`](docs/RELEASE_INDEX.md) and [`docs/releases/1.6.4.md`](docs/releases/1.6.4.md).
