@@ -10,7 +10,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Während die Quellen rotieren, entfällt die Pause zwischen Paketen vollständig. Sie war ein einziger Wert für den gesamten Lauf: Seit 1.8.5 konnte damit ein langsames Vinted- oder eBay-Paket fünf Sekunden Wartezeit vor dem nächsten **Kleinanzeigen**-Paket erzwingen — die langsamste Quelle bremste alle übrigen aus. Der Turnus sorgt selbst für den Abstand, weil bis zur nächsten Runde einer Quelle die anderen bedient wurden.
 - Bei einer Suche auf genau eine Quelle bleibt die Drosselung als Schutz erhalten.
 - Neue Suite `tests/js/throttle-186.test.mjs` (6) und `tests/test_release_186.py` (4).
-- Produktionsabnahme: ausstehend. Rollback-Ziel: 1.8.5 / `gp-185-20260812-1`.
+- Produktionsabnahme erfolgreich: Deploy-Workflow `31631370116` lief auf Commit `18118a163695378ad14d2b9ddc60a80a4433ac26` grün durch — im zweiten Anlauf, nachdem der erste am Pyodide-Download von GitHub gescheitert war (`http2 error: refused stream`, reine Netzwerkstörung). Der Fünf-Sekunden-Timer tritt produktiv nicht mehr auf. Rollback-Ziel: 1.8.5 / `gp-185-20260812-1`.
 
 ## 1.8.5 – 2026-08-12 – Quellen im Turnus und geteilte Fallsammlung
 
