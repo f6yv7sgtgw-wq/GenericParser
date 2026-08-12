@@ -27,22 +27,32 @@ def test_release_identity_and_rollback_target_are_consistent():
 
 
 def test_manual_stop_is_never_presented_as_complete():
-    controller = read("cloudflare/public/controller-0411.js")
-    stop_block = controller[
-        controller.index("async function stopCurrent") : controller.index(
-            "window.fetch = async function controlledFetch"
-        )
-    ]
-    assert "Suche pausiert" in stop_block
-    assert "wurde manuell gestoppt" in stop_block
-    assert "Der Stand ist gespeichert und fortsetzbar" in stop_block
-    assert "Suchlauf manuell gestoppt" in stop_block
-    assert "complete:false" in stop_block
-    assert "resumable:true" in stop_block
-    assert "vollständig beendet" not in stop_block
+    """Ein manuell gestoppter Lauf gilt als pausiert und fortsetzbar.
+
+    Geprüft wird der ausgelieferte Auslieferungsstand `app.js`. Bis 1.6.4 hing
+    die erste Hälfte dieses Tests am Controller 0411, der seit Langem nicht
+    mehr ausgeliefert wurde; die Zusicherung selbst ist unverändert.
+    """
 
     app = read("cloudflare/public/app.js")
-    assert "else if(s.stopped){workerState('Suche pausiert'" in app
+    marker = "else if(s.stopped){"
+    assert marker in app
+    stop_block = app[app.index(marker) : app.index("else if(", app.index(marker) + len(marker))]
+
+    # Der Zustand wird als Pause dargestellt, nicht als Abschluss.
+    assert "Suche pausiert" in stop_block
+    assert "Fortsetzbarer Stand gespeichert" in stop_block
+    assert "Ergebnisse gespeichert" in stop_block
+    # Der Fortsetzen-Knopf wird sichtbar gemacht.
+    assert "$('resume-button').classList.remove('hidden')" in stop_block
+    # Keine Abschlussformulierung im Pausenzweig.
+    for finished in ("vollständig beendet", "abgeschlossen", "Suche beendet"):
+        assert finished not in stop_block
+
+    # Der Lauf startet nicht als abgeschlossen und der Stopp ist ein
+    # eigener Zustand neben `complete`.
+    assert "complete:false" in app
+    assert "stopped:false" in app
 
 
 def test_eventlog_normalizes_existing_and_new_manual_stop_events():
