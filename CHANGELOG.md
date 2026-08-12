@@ -12,7 +12,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Zähler der laufenden Details von einer einzelnen Batchgröße auf eine Summe umgestellt; die Statuszeile nennt die tatsächliche Aufteilung.
 - Neue Suiten `tests/js/vinted-parallel-171.test.mjs` (3) und `tests/test_release_171.py` (5). Der Parallelitätstest misst das Verhalten, nicht die Konstante, und schlägt gegen den seriellen Stand fehl.
 - Schema, Modulverträge, Suchsemantik, Adapter und Oberfläche sind gegenüber 1.7.0 unverändert.
-- Produktionsabnahme: ausstehend. Rollback-Ziel unverändert: 1.6.2 / `gp-162-20260810-1`.
+- Produktionsabnahme erfolgreich: Deploy-Workflow `31609957226` und Vinted-Worker-Workflow `31609957253` liefen auf Commit `5f7ed1d07b6fd92f2f76f73962f9dd31fb4c5893` grün durch. Live bestätigt: `/health` meldet 1.7.1 / `gp-171-20260812-1`, eine eBay-Suche nach `King Louie` liefert mit `include_auctions` sechs Auktionen unter 25 Treffern und ohne die Option null, das additive `size`-Feld steht auf allen Treffern, und eine Vinted-Suche lieferte Größen bereits aus den Katalogkarten. Der Gerätetest im Browser war erfolgreich. Rollback-Ziel bleibt 1.6.2 / `gp-162-20260810-1`.
 
 ## 1.7.0 – 2026-08-12 – Angebotsformat und Größe als Ergebnisfilter
 
@@ -25,8 +25,8 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Zwölfter Ergebnisfilter „Größe" als Facette: angeboten werden nur real vorkommende Größen plus `Ohne Größenangabe`. Die Größe erscheint zusätzlich als Chip auf der Ergebniskarte. Das Filterraster wird dadurch gleichmäßig (6 + 3 + 3).
 - Quellen ohne strukturierte Größe melden `null` statt eines Füllwerts, damit „Ohne Größenangabe" eine echte Auswahl bleibt und nicht dieselbe Falle aufmacht wie zuvor der Auktionsfilter.
 - Neue Testsuiten `tests/test_release_170.py` (9) und `tests/js/vinted-size-170.test.mjs` (6), beide im Deploy-Workflow und im Integritätsgate verankert.
-- Deployment-Hinweis: Die Größenextraktion sitzt im separat ausgelieferten Vinted-Browser-Worker. Ohne dessen Deployment bleibt `size` in Produktion leer.
-- Produktionsabnahme: ausstehend. Rollback-Ziel unverändert: 1.6.2 / `gp-162-20260810-1`.
+- Der Vinted-Browser-Worker wird vom selben Deploy-Workflow ausgeliefert; die Größenextraktion ist damit Teil desselben Releases.
+- Produktionsabnahme: gemeinsam mit 1.7.1 auf Commit `5f7ed1d07b6fd92f2f76f73962f9dd31fb4c5893` erfolgt; 1.7.0 wurde nie einzeln ausgeliefert.
 
 ## 1.6.5 – 2026-08-12 – Aufräumen und eine Quelle für die Release-Identität
 

@@ -18,7 +18,7 @@
   "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+mobile-transport-recovery+deferred-vinted-details+responsive-web-ui-162+signed-continuations-v2+vinted-size-normalization+default-auction-search-with-result-filter+parallel-vinted-background-batches",
   "release_date": "2026-08-12",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "release-candidate",
+  "status": "stable",
   "purpose": "run the deferred Vinted detail batches two at a time instead of strictly one after another, with a per-request abort controller and a retryable rate limit, so that long Vinted result sets finish their background enrichment in roughly half the wall-clock time without taking priority away from the primary packet stream",
   "worker_plan": "paid",
   "sources": {
@@ -103,7 +103,11 @@
     "same_page_transient_result_resume": true,
     "vinted_background_yields_to_primary_search": true,
     "source_progress_unique_listing_keys": true,
-    "production_acceptance": "pending"
+    "production_acceptance": "passed",
+    "production_commit": "5f7ed1d07b6fd92f2f76f73962f9dd31fb4c5893",
+    "production_workflow_run": 31609957226,
+    "vinted_browser_workflow_run": 31609957253,
+    "accepted_at": "2026-08-12T15:11:00Z"
   },
   "rollback_plan": {"last_stable_baseline": "1.6.2", "build_id": "gp-162-20260810-1"},
   "metadata_schema": 53
