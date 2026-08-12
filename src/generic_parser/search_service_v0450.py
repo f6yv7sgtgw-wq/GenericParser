@@ -33,6 +33,11 @@ from .product_classification import (
     apply_classification_metadata,
     classify_listing,
 )
+from .relevance import (
+    apply_relevance_evaluation,
+    apply_relevance_metadata,
+    evaluate_relevance,
+)
 from .vinted_adapter import search_vinted
 
 class SearchRequest(reference.SearchRequest):
@@ -98,8 +103,13 @@ async def _fetch_detail_html(url: str) -> str:
 def _decorate_listing(listing: dict[str, Any], payload: SearchRequest) -> dict[str, Any]:
     classification = classify_listing(listing, str(payload.query))
     apply_classification_metadata(listing, classification)
+    relevance = evaluate_relevance(
+        str(payload.query), listing.get("title"), listing.get("description")
+    )
+    apply_relevance_metadata(listing, relevance)
     evaluation = reference._evaluate(listing, payload)
     evaluation = apply_classification_evaluation(evaluation, classification)
+    evaluation = apply_relevance_evaluation(evaluation, relevance)
     listing["traffic_light"] = evaluation
     listing["match"] = {
         "listing_class": evaluation["label"],
