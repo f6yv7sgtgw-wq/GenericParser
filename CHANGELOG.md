@@ -21,7 +21,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Das Log ist auf 800 Einträge begrenzt. Ein voller Speicher wirft die ältere Hälfte weg, statt eine laufende Suche abzubrechen; eine nicht serialisierbare Nutzlast kostet den Eintrag nicht.
 - **`fixed_price` stand roh in der Kachel.** `listingFromV2` reichte den Modul-v2-Code als Anzeigetext durch. Angebotsformate erscheinen jetzt als „Festpreis", „Auktion" und „Preisvorschlag" — die Bezeichnungen sind so gewählt, dass der Angebotsart-Filter sie weiterhin richtig einordnet.
 - Neue Suiten `tests/js/eventlog-writer-188.test.mjs` (5) und `tests/test_release_188.py` (5).
-- Produktionsabnahme: ausstehend. Rollback-Ziel: 1.8.7 / `gp-187-20260812-1`.
+- Produktionsabnahme erfolgreich: Deploy-Workflow `31637164241` lief auf Commit `6012f33896da993fa6715c6d2d8af55f31557179` grün durch. Live bestätigt durch zwei heruntergeladene Logdateien mit echten Einträgen — der Download funktioniert, und die Kacheln zeigen `Festpreis` statt `fixed_price`. Rollback-Ziel: 1.8.7 / `gp-187-20260812-1`.
 
 ## 1.8.7 – 2026-08-12 – Abbruchgrund je Quelle und Log-Download
 
