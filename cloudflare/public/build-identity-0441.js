@@ -1,1 +1,0 @@
-window.GP_BUILD_IDENTITY={version:'0.44.1',buildId:'gp-0441-20260803-1',apiContract:'match-v6.9.1-stable-card-worker',eventLogKey:'generic-parser-eventlog-0441'};

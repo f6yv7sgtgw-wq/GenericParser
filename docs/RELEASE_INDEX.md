@@ -4,6 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
+| 1.6.5 RC | `gp-165-20260812-1` | ausstehend | Aufräumen ohne fachliche Änderung: 94 unerreichbare Module und 129 ungenutzte Browser-Assets entfernt; Release-Identität aus einer Quelle generiert und im Deploy-Gate geprüft |
 | 1.6.4 RC | `gp-164-20260812-1` | ausstehend | Reiner Versionsbump ohne funktionale Änderung; verifiziert Build, Deployment und Auslieferung einer neuen Version bis auf das Endgerät |
 | 1.6.3 RC | `gp-163-20260810-1` | ausstehend | Mobiles `Load failed` in langen API-v2-Läufen automatisch wiederholen; Vinted-Hintergrunddetails geben der Hauptsuche Vorrang; gleicher Seitenstand behält flüchtige eBay-Treffer; eindeutige Quellen- und klare Detailzähler |
 | 1.6.2 | `gp-162-20260810-1` | `9e2a09b71c6d6cea7bca4e13b0ecd2a515758907` | Safari-Startpfad fail-open; dynamische Endpunkte vom Asset-Cache getrennt; Log & Diagnose im aktuellen responsiven Farbschema; Produktions- und direkter Browser-v2-Test grün; Suchkern unverändert |
@@ -29,9 +30,9 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 ## Aktueller Release-Kandidat
 
 ```text
-Version:                    1.6.4
-Paketversion:               1.6.4
-Build-ID:                   gp-164-20260812-1
+Version:                    1.6.5
+Paketversion:               1.6.5
+Build-ID:                   gp-165-20260812-1
 Bevorzugter Modulvertrag:   generic-parser-module-v2
 Kompatibler Modulvertrag:   generic-parser-module-v1
 Worker-Profil:              Paid

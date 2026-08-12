@@ -52,7 +52,7 @@ jobs:
       - name: Run regression tests
         run: uv run pytest -q tests/test_release_100.py tests/test_release_132.py tests/test_release_133.py tests/test_release_134.py tests/test_release_140.py tests/test_release_150.py tests/test_release_151.py tests/test_release_160.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py tests/test_vinted_browser_production.py tests/test_vinted_service_binding_122.py tests/test_ebay_adapter.py tests/test_ebay_multi_source.py tests/test_product_classification.py
       - name: Compile active runtime
-        run: uv run python -m py_compile src/generic_parser/release_identity.py src/generic_parser/module_api_v2.py src/generic_parser/cloudflare_worker.py src/generic_parser/cloudflare_v0450.py src/generic_parser/cloudflare_v0452.py src/generic_parser/build_identity_v0450.py src/generic_parser/build_identity_v0452.py src/generic_parser/search_service_v0450.py src/generic_parser/search_service_v111_runtime.py src/generic_parser/vinted_adapter.py src/generic_parser/vinted_enrichment.py src/generic_parser/ebay_adapter.py src/generic_parser/product_classification.py scripts/check_deployment.py
+        run: uv run python -m py_compile src/generic_parser/release_identity.py src/generic_parser/module_api_v2.py src/generic_parser/cloudflare_worker.py src/generic_parser/cloudflare_v0450.py src/generic_parser/cloudflare_v0452.py src/generic_parser/build_identity_v0450.py src/generic_parser/build_identity_v0452.py src/generic_parser/search_service_v0450.py src/generic_parser/search_service_v111_runtime.py src/generic_parser/vinted_adapter.py src/generic_parser/vinted_enrichment.py src/generic_parser/ebay_adapter.py src/generic_parser/product_classification.py scripts/check_deployment.py scripts/sync_release_identity.py
       - name: Validate browser controller syntax
         run: |
           node --check cloudflare/public/controller-0450.js
@@ -73,6 +73,9 @@ jobs:
           node --check pocs/ebay-notifications/src/index.js
           node --test pocs/ebay-notifications/test/*.test.js
           node --check pocs/vinted-browser/src/index.js
+      - name: Validate release identity is derived from a single source
+        run: uv run python scripts/sync_release_identity.py --check
+
       - name: Validate release metadata and service binding
         run: |
           uv run python - <<'PY'

@@ -2,6 +2,20 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.6.5 – 2026-08-12 – Aufräumen und eine Quelle für die Release-Identität
+
+- 94 Python-Module entfernt, die von keinem Einstiegspunkt mehr erreichbar waren (7.988 Zeilen), samt der 30 Testdateien, die ausschließlich sie geprüft haben.
+- Erreichbarkeit über den Import-Graph ab den echten Einstiegspunkten bestimmt, einschließlich der dynamisch per `importlib` geladenen Suchmodule; Paket-Initialisierer und Konsolen-Entrypoints blieben ausgenommen.
+- 129 Browser-Assets entfernt, die von keiner Seite und keinem Service-Worker-Precache mehr geladen wurden; `cloudflare/public` schrumpft auf die 33 tatsächlich ausgelieferten Dateien.
+- Verwaisten `cloudflare_worker.py` im Repo-Wurzelverzeichnis gelöscht: er zeigte auf den 0.3-Stand, während produktiv `src/generic_parser/cloudflare_worker.py` läuft.
+- 19 `RELEASE_NOTES_*.md` aus dem Wurzelverzeichnis entfernt; die Inhalte stehen unverändert in `CHANGELOG.md` und `docs/releases/`.
+- Zehn versionsgebundene Einmal-Workflows entfernt; es bleiben Deploy, Publish, das PR-Integritätsgate und der Vinted-PoC.
+- `scripts/sync_release_identity.py` ergänzt: `release_identity.py` ist die einzige Quelle, zwölf abgeleitete Artefakte werden erzeugt statt gepflegt. Der Deploy-Workflow prüft die Konsistenz mit `--check` und bricht bei Abweichung ab.
+- Versionsgebundene Assertions aus den Gate-Tests entfernt; sie leiten Version, Build-ID und Asset-Kennung jetzt aus der Quelle ab.
+- Fehler nebenbei behoben: die Asset-Query-Strings der drei HTML-Seiten hingen noch auf `gp-163`, obwohl 1.6.4 ausgeliefert war.
+- Suchkern, Paginierung, Marktplatzadapter, Klassifizierung, Scoring, Modul-v1, Modul-v2, Fortsetzungstoken und Browseroberfläche sind unverändert.
+- Produktionsabnahme: ausstehend. Rollback-Ziel unverändert: 1.6.2 / `gp-162-20260810-1`.
+
 ## 1.6.4 – 2026-08-12 – Reiner Versionsbump zur Verifikation der Release-Kette
 
 - Release-Identität von `1.6.3` / `gp-163-20260810-1` auf `1.6.4` / `gp-164-20260812-1` gehoben.

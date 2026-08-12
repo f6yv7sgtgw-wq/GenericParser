@@ -1,1 +1,0 @@
-window.GP_BUILD_IDENTITY={version:'0.44.6.1',buildId:'gp-04461-20260804-1',apiContract:'match-v6.11.2-reference-diagnostics',eventLogKey:'generic-parser-eventlog-04461',referenceVersion:'0.44.4',diagnosticMode:'reference_optional'};

@@ -1,1 +1,0 @@
-window.GP_BUILD_IDENTITY={version:'0.44.3',buildId:'gp-0443-20260803-1',apiContract:'match-v6.10-traffic-light-worker',eventLogKey:'generic-parser-eventlog-0443'};
