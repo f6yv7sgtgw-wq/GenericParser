@@ -69,13 +69,14 @@ def test_thumbnail_and_text_remain_side_by_side_at_every_breakpoint() -> None:
 
 
 def test_current_ui_asset_and_cache_are_versioned() -> None:
+    asset_tag = "-".join(BUILD_ID.split("-")[:2])
     html = read("cloudflare/public/index.html")
     service_worker = read("cloudflare/public/service-worker.js")
     app = read("cloudflare/public/app.js")
     assert html.index("ui-133.css") < html.index("ui-134.css")
     assert '"./ui-134.css"' in service_worker
-    assert "generic-parser-mobile-gp-164" in service_worker
-    assert "service-worker.js?v=gp-164" in app
+    assert f"generic-parser-mobile-{asset_tag}" in service_worker
+    assert f"service-worker.js?v={asset_tag}" in app
 
 
 def test_compact_layout_keeps_vinted_description_behavior() -> None:

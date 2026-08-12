@@ -1,8 +1,0 @@
-"""Shared deployment identity for GenericParser 0.43.2."""
-VERSION = "0.43.2"
-BUILD_ID = "gp-0432-20260803-1"
-API_CONTRACT = "match-v6.4-clean-flow-worker"
-ENTRYPOINT = "generic_parser.cloudflare_worker:Default.fetch"
-BOOTSTRAP_MODULE = "generic_parser.cloudflare_v0432"
-SEARCH_MODULE = "generic_parser.search_service_v0432"
-WORKER_UNIT = "clean-bootstrap+free-cpu+source-next-link"

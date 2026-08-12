@@ -7,6 +7,11 @@ const app = fs.readFileSync(new URL('../../cloudflare/public/app.js', import.met
 const css = fs.readFileSync(new URL('../../cloudflare/public/ui-161.css', import.meta.url), 'utf8');
 const serviceWorker = fs.readFileSync(new URL('../../cloudflare/public/service-worker.js', import.meta.url), 'utf8');
 
+// Die Release-Identität kommt aus dem generierten Artefakt, damit ein
+// Versionsbump diese Tests nicht mehr anfasst.
+const releaseIdentity = JSON.parse(fs.readFileSync(new URL('../../cloudflare/public/release-identity.json', import.meta.url), 'utf8'));
+const assetTag = releaseIdentity.build_id.split('-').slice(0, 2).join('-');
+
 test('runtime controller forwards the v2 search state through every wrapper', () => {
   assert.match(controller, /requestPage = async function\(payload, state\)/);
   assert.match(controller, /originalRequestPage\(payload, state\)/);
@@ -23,8 +28,8 @@ test('v2 browser request remains bound to batch and continuation state', () => {
 
 test('browser storage cleanup is fail-open and the hotfix cache is isolated', () => {
   assert.match(app, /Gespeicherter Suchstand konnte nicht gelöscht werden/);
-  assert.match(app, /service-worker\.js\?v=gp-164/);
-  assert.match(serviceWorker, /generic-parser-mobile-gp-164/);
+  assert.match(app, new RegExp(`service-worker\\.js\\?v=${assetTag}`));
+  assert.match(serviceWorker, new RegExp(`generic-parser-mobile-${assetTag}`));
   assert.match(serviceWorker, /\.\/ui-161\.css/);
 });
 

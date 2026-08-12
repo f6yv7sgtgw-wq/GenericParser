@@ -1,8 +1,8 @@
 {
   "product": "GenericParser",
-  "version": "1.6.4",
+  "version": "1.6.5",
   "package_version": "dynamic:generic_parser.release_identity.VERSION",
-  "build_id": "gp-164-20260812-1",
+  "build_id": "gp-165-20260812-1",
   "identity_source": "src/generic_parser/release_identity.py",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",

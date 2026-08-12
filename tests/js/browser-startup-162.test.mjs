@@ -17,6 +17,11 @@ class TestCustomEvent {
   }
 }
 
+// Die Release-Identität kommt aus dem generierten Artefakt, damit ein
+// Versionsbump diese Tests nicht mehr anfasst.
+const releaseIdentity = JSON.parse(fs.readFileSync(new URL('../../cloudflare/public/release-identity.json', import.meta.url), 'utf8'));
+const assetTag = releaseIdentity.build_id.split('-').slice(0, 2).join('-');
+
 test('a failed live identity request keeps the embedded release ready', async () => {
   const events = [];
   const window = {
@@ -38,13 +43,13 @@ test('a failed live identity request keeps the embedded release ready', async ()
   vm.runInNewContext(identitySource, context, {filename: 'build-identity-0450.js'});
 
   const ready = await window.GP_BUILD_IDENTITY_READY;
-  assert.equal(ready.version, '1.6.4');
-  assert.equal(ready.buildId, 'gp-164-20260812-1');
+  assert.equal(ready.version, releaseIdentity.version);
+  assert.equal(ready.buildId, releaseIdentity.build_id);
   assert.equal(ready.webUiApiContract, 'generic-parser-module-v2');
   assert.equal(ready.identityVerified, false);
 
   const live = await window.GP_LIVE_IDENTITY_READY;
-  assert.equal(live.version, '1.6.4');
+  assert.equal(live.version, releaseIdentity.version);
   assert.match(live.identityError, /Load failed/);
   assert.equal(window.GP_BUILD_IDENTITY_STATUS.ok, false);
   assert.equal(events.at(-1).type, 'gp-identity-status');
@@ -63,8 +68,8 @@ test('optional controller diagnostics fail open instead of locking search', asyn
   const state = {className: '', innerHTML: ''};
   const footer = {textContent: ''};
   const identity = {
-    version: '1.6.4',
-    buildId: 'gp-164-20260812-1',
+    version: releaseIdentity.version,
+    buildId: releaseIdentity.build_id,
     apiContract: 'generic-parser-module-v1',
     moduleContract: 'generic-parser-module-v1',
     preferredModuleContract: 'generic-parser-module-v2',
