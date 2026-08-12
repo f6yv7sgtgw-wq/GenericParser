@@ -84,11 +84,14 @@ production long-run acceptance is pending.
 - expand deterministic fixtures for spelling, punctuation and marketplace edge cases;
 - keep catalog, collection, valuation and deal decisions in consuming clients.
 
-Current status: **1.7.1 release candidate**. 1.7.1 runs the deferred Vinted
+Current status: **1.7.1 stable and production-accepted** (2026-08-12). 1.7.1 runs the deferred Vinted
 detail batches two at a time instead of strictly one after another, with a
 per-request abort controller and a retryable rate limit, without giving
 background work priority over the primary packet stream. It changes no schema,
-contract or search semantics.
+contract or search semantics. Live acceptance confirmed six auctions among
+twenty-five eBay results with the option on and none with it off, the additive
+`size` field on every listing, and Vinted sizes already coming from catalog
+cards. 1.6.2 remains the rollback target.
 
 1.7.0 remains the functional step of this line. 1.6.2 remains the production
 rollback target. 1.7.0 turns offer format and size into properties of a result
