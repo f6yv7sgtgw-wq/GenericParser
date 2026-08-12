@@ -2,6 +2,18 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.9.0 – 2026-08-12 – Relevanzprüfung: Passt der Treffer zur Suche?
+
+- Die Marktplatzsuchen arbeiten mit ODER-Semantik über die Anfragewörter: `super mario kart 8` lieferte 1291 Treffer, davon 975 von eBay — jedes Mario-Spiel, jeder Kart-Artikel, alles mit einer 8. Der Produktklassifizierer hatte keinen Grund abzulehnen, weil er nur die **Produktart** beurteilt, nicht die Passung zur Anfrage.
+- Neues Modul `relevance.py` misst die Deckung der **tragenden** Anfragebegriffe im Titel; Füllwörter wie „super", „neu", „original" rechtfertigen allein keinen Treffer. Die Beschreibung zählt schwächer, weil sie bei Konvoluten alles Mögliche nennt.
+- Zahlen sind streng: die „8" zählt nur neben einem gedeckten Wort („Mario Kart **8**"), nicht frei stehend („Set von 8") und nicht gar nicht („Mario Kart Wii"). Abkürzungen wie „MK8" und Zusammenschreibungen wie „MarioKart 8" werden erkannt.
+- Das Ergebnis ist additiv: `relevance` mit `score` (0..1), `matched_terms`, `missing_terms` — analog zu `classification`. Bestehende v2-Bedeutungen bleiben unberührt.
+- Ampel: unter der Schwelle Rot, im Graubereich Gelb (Prüffall). **Nicht hart gefiltert** — die Zusage „keine stille Kürzung" gilt, rote Treffer bleiben über den Statusfilter sichtbar. Genau die Falle aus dem 1.7.0-Auktionsfilter wird nicht wiederholt.
+- Aufruf in `_decorate_listing`, damit alle drei Quellen gleich behandelt werden und auch abgeleitete Konvolut-Kacheln erneut geprüft werden.
+- Die geteilte Fallsammlung `tests/fixtures/normalization_cases.json` bekommt einen Abschnitt `relevance` mit 14 Fällen aus dem echten Lauf („Mario Party 8" passt nicht, „MK8 Deluxe" passt, „Mario Kart Wii" ist Prüffall).
+- Neue Suite `tests/test_release_190.py` (24).
+- Produktionsabnahme: ausstehend. Abnahmekriterium: derselbe Lauf `super mario kart 8` zeigt deutlich weniger grüne Treffer, ohne dass ein tatsächliches „Mario Kart 8" auf Rot landet. Rollback-Ziel: 1.8.9 / `gp-189-20260812-1`.
+
 ## 1.8.9 – 2026-08-12 – Zwei verlorene Assets und ein Log, das den Lauf beschreibt
 
 - Das 1.6.5-Aufräumen entfernte **zwei Browser-Assets, die sehr wohl geladen werden** — über zusammengebaute `fetch`-Pfade, die eine statische Erreichbarkeitsanalyse nicht sieht. Genau die Falle, vor der derselbe Changelog-Eintrag bei den per `importlib` geladenen Python-Modulen noch gewarnt hatte.

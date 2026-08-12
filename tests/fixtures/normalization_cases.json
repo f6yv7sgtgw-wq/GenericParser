@@ -478,5 +478,92 @@
       },
       "unknown"
     ]
+  ],
+  "relevance": [
+    {
+      "name": "Volltreffer mit Zusatzwörtern",
+      "query": "super mario kart 8",
+      "title": "Mario Kart 8 Deluxe Nintendo Switch",
+      "expected": "match"
+    },
+    {
+      "name": "Abkürzung mit Zahl",
+      "query": "super mario kart 8",
+      "title": "MK8 Deluxe",
+      "expected": "match"
+    },
+    {
+      "name": "Zusammenschreibung",
+      "query": "super mario kart 8",
+      "title": "MarioKart 8 für Switch",
+      "expected": "match"
+    },
+    {
+      "name": "Gleiche Zahl, anderes Spiel",
+      "query": "super mario kart 8",
+      "title": "Mario Party 8",
+      "expected": "mismatch"
+    },
+    {
+      "name": "Nur die Konsole",
+      "query": "super mario kart 8",
+      "title": "Nintendo Switch Konsole",
+      "expected": "mismatch"
+    },
+    {
+      "name": "Anderes Mario-Spiel",
+      "query": "super mario kart 8",
+      "title": "Super Mario Odyssey",
+      "expected": "mismatch"
+    },
+    {
+      "name": "Richtige Serie, falsche Ausgabe",
+      "query": "super mario kart 8",
+      "title": "Mario Kart Wii",
+      "expected": "review"
+    },
+    {
+      "name": "Zahl darf nicht aus einer Mengenangabe kommen",
+      "query": "super mario kart 8",
+      "title": "Nintendo Spiele Set von 8",
+      "expected": "mismatch"
+    },
+    {
+      "name": "Mengenangabe neben echtem Treffer stört nicht",
+      "query": "super mario kart 8",
+      "title": "Mario Kart 8 Deluxe Set von 8 Spielen",
+      "expected": "match"
+    },
+    {
+      "name": "Konvolut nennt das Produkt nur in der Beschreibung",
+      "query": "super mario kart 8",
+      "title": "Nintendo Konvolut",
+      "description": "Verkaufe Zelda, Mario Kart 8 Deluxe und Splatoon 3",
+      "expected": "review"
+    },
+    {
+      "name": "Füllwörter allein rechtfertigen keinen Treffer",
+      "query": "super mario kart 8",
+      "title": "Super tolles Angebot, neu und original im Set",
+      "expected": "mismatch"
+    },
+    {
+      "name": "Anfrage ohne Zahl bleibt einfache Wortdeckung",
+      "query": "evercade alpha",
+      "title": "Evercade Alpha Bartop Arcade",
+      "expected": "match"
+    },
+    {
+      "name": "Angeschriebene Zahl wie Kart8",
+      "query": "mario kart 8",
+      "title": "Mario Kart8 Nintendo Switch",
+      "expected": "match"
+    },
+    {
+      "name": "Umlaut- und Bindestrich-Schreibweisen",
+      "query": "König der Löwen SNES",
+      "title": "Koenig der Loewen - Super Nintendo (SNES)",
+      "expected": "match"
+    }
   ]
 }

@@ -84,10 +84,14 @@ production long-run acceptance is pending.
 - expand deterministic fixtures for spelling, punctuation and marketplace edge cases;
 - keep catalog, collection, valuation and deal decisions in consuming clients.
 
-Current status: **1.8.9 stable and production-accepted** (2026-08-12); 1.8.8
-remains the rollback target. The next step is documented in `docs/HANDOVER-1.9.0.md`:
-a source-neutral relevance check, because a search for `super mario kart 8`
-returns 1291 results that the classifier has no reason to reject.
+Current status: **1.9.0 release candidate** (2026-08-12), production acceptance
+pending; 1.8.9 is the accepted stable baseline and the rollback target. 1.9.0
+adds the source-neutral relevance check from `docs/HANDOVER-1.9.0.md`: a search
+for `super mario kart 8` returned 1291 results that the classifier had no
+reason to reject, because it judges the product kind, not the fit to the query.
+The new `relevance.py` measures how well the carrying query terms are covered
+in the title and maps low coverage to red/yellow additively — never silently
+hiding a result.
 
 Earlier status: 1.8.6 is the accepted stable
 baseline and the rollback target. 1.8.7 records why each source stops and
