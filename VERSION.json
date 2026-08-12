@@ -1,8 +1,8 @@
 {
   "product": "GenericParser",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "package_version": "dynamic:generic_parser.release_identity.VERSION",
-  "build_id": "gp-170-20260812-1",
+  "build_id": "gp-171-20260812-1",
   "identity_source": "src/generic_parser/release_identity.py",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
@@ -15,16 +15,16 @@
   "functional_reference_version": "0.44.4",
   "stable_reference_version": "0.44.6.5",
   "runtime_reference_version": "0.44.6.2",
-  "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+mobile-transport-recovery+deferred-vinted-details+responsive-web-ui-162+signed-continuations-v2+vinted-size-normalization+default-auction-search-with-result-filter",
+  "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+mobile-transport-recovery+deferred-vinted-details+responsive-web-ui-162+signed-continuations-v2+vinted-size-normalization+default-auction-search-with-result-filter+parallel-vinted-background-batches",
   "release_date": "2026-08-12",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "release-candidate",
-  "purpose": "normalize the Vinted size as an additive module-v2 listing field with a browser size facet, and search eBay auctions by default while hiding them through a result filter, so that offer format and size become filterable properties of a result set instead of hidden search preconditions; module-v1 and module-v2 request defaults stay unchanged",
+  "purpose": "run the deferred Vinted detail batches two at a time instead of strictly one after another, with a per-request abort controller and a retryable rate limit, so that long Vinted result sets finish their background enrichment in roughly half the wall-clock time without taking priority away from the primary packet stream",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted", "ebay"],
     "kleinanzeigen": {"strategy": "proven html search core", "search_path_changed": false},
-    "vinted": {"strategy": "cloudflare service binding catalog search plus bounded inline enrichment and deferred fail-open background batches, anonymous public-web fallback", "binding": "VINTED_BROWSER", "detail_enrichment": true, "detail_budget_per_page": 3, "detail_timeout_ms": 6000, "catalog_timeout_ms": 15000, "size_source": "catalog card plus detail page, labelled short token only", "size_unknown_value": null, "background_detail_enrichment": true, "background_endpoint": "/api/vinted/enrich", "background_batch_size": 3, "background_batch_concurrency": 1, "details_parallel_per_batch": 3, "main_search_blocked": false, "yields_to_primary_search": true, "rescore_after_enrichment": true, "fail_open": true, "access_control_bypass": false},
+    "vinted": {"strategy": "cloudflare service binding catalog search plus bounded inline enrichment and deferred fail-open background batches, anonymous public-web fallback", "binding": "VINTED_BROWSER", "detail_enrichment": true, "detail_budget_per_page": 3, "detail_timeout_ms": 6000, "catalog_timeout_ms": 15000, "size_source": "catalog card plus detail page, labelled short token only", "size_unknown_value": null, "background_detail_enrichment": true, "background_endpoint": "/api/vinted/enrich", "background_batch_size": 3, "background_batch_concurrency": 2, "details_parallel_per_batch": 3, "main_search_blocked": false, "yields_to_primary_search": true, "rescore_after_enrichment": true, "fail_open": true, "access_control_bypass": false},
     "ebay": {"strategy": "official Browse API", "marketplace": "EBAY_DE", "oauth_grant": "client_credentials", "page_size": 25, "fixed_price_default": true, "auctions_optional": true, "auctions_enabled_by_default": false, "browser_searches_auctions_by_default": true, "browser_result_filter_default": "no-auction", "delivery_country": "DE", "price_semantics": "item plus known shipping total", "unknown_shipping_total": null, "token_cache": "in-memory until expiry", "search_result_persistence": false, "favorite_persistence": "explicit browser-local user selection", "favorite_fields_contain_seller_data": false, "marketplace_account_deletion_endpoint": "https://genericparser-ebay-notifications.f6yv7sgtgw.workers.dev/marketplace-account-deletion", "notification_signature_verification": "ECDSA via eBay public-key API", "fail_open": true}
   },
   "compatibility": {
@@ -59,6 +59,9 @@
     "vinted_size_normalization": "required",
     "size_result_filter": "required",
     "size_unknown_distinguishable": "required",
+    "vinted_background_batch_concurrency": 2,
+    "vinted_background_abort_per_request": "required",
+    "vinted_background_rate_limit_retry": "required",
     "module_v2_size_field_additive": "required",
     "ebay_search_result_persistence": "forbidden",
     "ebay_explicit_favorites": "required",
@@ -103,5 +106,5 @@
     "production_acceptance": "pending"
   },
   "rollback_plan": {"last_stable_baseline": "1.6.2", "build_id": "gp-162-20260810-1"},
-  "metadata_schema": 52
+  "metadata_schema": 53
 }

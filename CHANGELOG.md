@@ -2,6 +2,18 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.7.1 – 2026-08-12 – Parallele Vinted-Detailbatches
+
+- Vinted-Hintergrundbatches laufen zu zweit statt streng nacheinander; die Warteschlange wird auf zwei Arbeiter verteilt, die sich dieselbe Queue teilen. Bei 25 Treffern waren das bisher neun serielle Runden, die Wandzeit halbiert sich etwa.
+- Obergrenze bewusst bei zwei Batches: sechs gleichzeitige Detailseiten. Die Grenze für gleichzeitige Browser-Rendering-Sitzungen ist hier die Beschränkung, nicht der Client — drei Batches lägen bei neun und würden ganze Läufe durch 429-Antworten gefährden.
+- Vorrang der Hauptsuche unverändert: Die `GP_SEARCH_RUNNING`-Prüfung sitzt in der Arbeiterschleife und greift damit für jeden Arbeiter, nicht nur für den ersten.
+- Geteilten `AbortController` durch ein Set ersetzt. Bei seriellem Ablauf war ein einzelner Controller korrekt; parallel hätte jeder neue Batch den vorherigen überschrieben und ein Laufwechsel nur noch den zuletzt gestarteten Batch abbrechen können.
+- Status 429 gilt jetzt als wiederholbar — einmal, nach 1,5 Sekunden Pause. Übrige 4xx-Antworten bleiben terminal.
+- Zähler der laufenden Details von einer einzelnen Batchgröße auf eine Summe umgestellt; die Statuszeile nennt die tatsächliche Aufteilung.
+- Neue Suiten `tests/js/vinted-parallel-171.test.mjs` (3) und `tests/test_release_171.py` (5). Der Parallelitätstest misst das Verhalten, nicht die Konstante, und schlägt gegen den seriellen Stand fehl.
+- Schema, Modulverträge, Suchsemantik, Adapter und Oberfläche sind gegenüber 1.7.0 unverändert.
+- Produktionsabnahme: ausstehend. Rollback-Ziel unverändert: 1.6.2 / `gp-162-20260810-1`.
+
 ## 1.7.0 – 2026-08-12 – Angebotsformat und Größe als Ergebnisfilter
 
 - eBay-Auktionen werden in der Browseroberfläche standardmäßig mitgesucht; der Ergebnisfilter „Angebotsart" steht neu auf `Ohne Auktionen`. Vorher war die Suchoption aus, wodurch der Filterwert „Auktion" bei jeder Standardsuche zwangsläufig null Treffer ergab — bei rund 700 Treffern für `King Louie` ebenso wie bei jeder anderen Suche.
