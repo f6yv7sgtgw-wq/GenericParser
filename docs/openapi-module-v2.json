@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "GenericParser Module API v2",
-    "version": "1.8.8",
+    "version": "1.8.9",
     "description": "Project-independent, packet-based marketplace search for Kleinanzeigen, Vinted and eBay. Module API v1 remains available."
   },
   "servers": [

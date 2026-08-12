@@ -2,6 +2,18 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.8.9 – 2026-08-12 – Zwei verlorene Assets und ein Log, das den Lauf beschreibt
+
+- Das 1.6.5-Aufräumen entfernte **zwei Browser-Assets, die sehr wohl geladen werden** — über zusammengebaute `fetch`-Pfade, die eine statische Erreichbarkeitsanalyse nicht sieht. Genau die Falle, vor der derselbe Changelog-Eintrag bei den per `importlib` geladenen Python-Modulen noch gewarnt hatte.
+- `auto-resume-04462.js` wiederhergestellt: Ohne sie brach `auto-resume-0450.js` bei jedem Seitenaufruf mit `0.44.6.2 recovery key fragment missing` ab, die automatische Wiederaufnahme war seit 1.6.5 tot.
+- `controller-0411.js` wiederhergestellt: Ohne sie scheiterte `loadControllerSource()`, und damit unterblieb der gesamte `.then()`-Block — **einschließlich der Abschaltung der Latenzdrosselung**. Das war der Fünf-Sekunden-Timer, den 1.8.6 behandelt hat; hier liegt seine eigentliche Ursache.
+- Beide Fehler waren unsichtbar, weil das Eventlog bis 1.8.8 niemanden hatte, der es beschrieb.
+- Neuer Test prüft **jeden** per `new URL('./…')` zusammengebauten Asset-Pfad gegen das Dateisystem. Er fand `controller-0411.js` unmittelbar nach dem Wiederherstellen von `auto-resume-04462.js`.
+- Das Log beschreibt jetzt einen Lauf: `search_started` mit Suchbegriff und Quellen, `search_packet` je Paket mit Quelle, Seite, Trefferzahl und Laufzeit, `search_finished` mit Bilanz je Quelle. Das Ende wird auch bei manueller Pause und bei Abbruch geschrieben — vorher entstand nur ein Eintrag, wenn etwas schiefging.
+- Die Aufklappzeile „Warum?" entfällt bei passenden Treffern und bleibt bei Prüf- und Ablehnfällen, wo die Begründung trägt.
+- Neue Suite `tests/test_release_189.py` (6).
+- Produktionsabnahme: ausstehend. Rollback-Ziel: 1.8.8 / `gp-188-20260812-1`.
+
 ## 1.8.8 – 2026-08-12 – Der fehlende Log-Schreiber
 
 - **Das Eventlog war nie befüllt.** Jeder Aufrufer prüfte nur `typeof window.gpEventLog === 'function'`, und die Log-Seite las einen Speicher, den niemand beschrieb. Alle Log-Aufrufe im Suchpfad waren wirkungslos — auch die in 1.8.7 ergänzten `source_finished`-Einträge. Der Download aus 1.8.7 konnte damit nur „Log ist leer" melden.
