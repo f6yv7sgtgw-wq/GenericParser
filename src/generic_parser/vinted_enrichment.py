@@ -17,7 +17,7 @@ from .product_classification import (
 from .vinted_adapter import DETAIL_BATCH_LIMIT, enrich_vinted_details
 
 
-_DETAIL_FIELDS = ("image", "price", "description", "condition")
+_DETAIL_FIELDS = ("image", "price", "description", "condition", "size")
 
 
 def _detail_fields(listing: dict[str, Any]) -> list[str]:
@@ -43,6 +43,12 @@ def _merge_listing(original: dict[str, Any], enriched: dict[str, Any]) -> dict[s
             merged_info[key] = enriched_info[key]
     if "condition" in fields:
         merged_info["condition"] = enriched_info.get("condition")
+        if enriched_info.get("display_text"):
+            merged_info["display_text"] = enriched_info["display_text"]
+    # A detail page only overrides the catalog size when it actually carries one;
+    # a missing size must not erase what the catalog already delivered.
+    if "size" in fields and enriched_info.get("size"):
+        merged_info["size"] = enriched_info["size"]
         if enriched_info.get("display_text"):
             merged_info["display_text"] = enriched_info["display_text"]
     merged["result_info"] = merged_info

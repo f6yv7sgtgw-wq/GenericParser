@@ -2,6 +2,20 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.7.0 – 2026-08-12 – Angebotsformat und Größe als Ergebnisfilter
+
+- eBay-Auktionen werden in der Browseroberfläche standardmäßig mitgesucht; der Ergebnisfilter „Angebotsart" steht neu auf `Ohne Auktionen`. Vorher war die Suchoption aus, wodurch der Filterwert „Auktion" bei jeder Standardsuche zwangsläufig null Treffer ergab — bei rund 700 Treffern für `King Louie` ebenso wie bei jeder anderen Suche.
+- Auktions-Checkbox bleibt als Ausweg erhalten, ist vorausgewählt und zählt nur noch als aktives Suchkriterium, wenn sie abgewählt wird.
+- Anfrage-Defaults der Modulverträge unverändert: `include_auctions` (Modul-v2) und `include_ebay_auctions` (Modul-v1) bleiben `false`, damit Evercade-, SNES-PAL- und andere Modulkonsumenten keine Verhaltensänderung sehen. `ebay_auction_default_off` gilt ab hier nur noch für den Modulvertrag.
+- Vinted-Größe über die gesamte Kette geführt: Extraktion im Vinted-Browser-Worker auf Katalogkarte *und* Detailseite, Normalisierung im Adapter, additives Feld `size` in Modul-v2 samt OpenAPI-Beschreibung, Aufnahme in die Hintergrundanreicherung.
+- Größe wird nur als kurzes Label akzeptiert; Platzhalter wie `n/a` oder `unbekannt` werden zu `null`. Fließtext nach dem Wort „Größe" ergibt keine Größe — die Wortgrenze allein hätte bei „Größe könnte" das `k` geliefert.
+- Eine Detailseite ohne Größe überschreibt eine bereits bekannte Katalogangabe nicht.
+- Zwölfter Ergebnisfilter „Größe" als Facette: angeboten werden nur real vorkommende Größen plus `Ohne Größenangabe`. Die Größe erscheint zusätzlich als Chip auf der Ergebniskarte. Das Filterraster wird dadurch gleichmäßig (6 + 3 + 3).
+- Quellen ohne strukturierte Größe melden `null` statt eines Füllwerts, damit „Ohne Größenangabe" eine echte Auswahl bleibt und nicht dieselbe Falle aufmacht wie zuvor der Auktionsfilter.
+- Neue Testsuiten `tests/test_release_170.py` (9) und `tests/js/vinted-size-170.test.mjs` (6), beide im Deploy-Workflow und im Integritätsgate verankert.
+- Deployment-Hinweis: Die Größenextraktion sitzt im separat ausgelieferten Vinted-Browser-Worker. Ohne dessen Deployment bleibt `size` in Produktion leer.
+- Produktionsabnahme: ausstehend. Rollback-Ziel unverändert: 1.6.2 / `gp-162-20260810-1`.
+
 ## 1.6.5 – 2026-08-12 – Aufräumen und eine Quelle für die Release-Identität
 
 - 94 Python-Module entfernt, die von keinem Einstiegspunkt mehr erreichbar waren (7.988 Zeilen), samt der 30 Testdateien, die ausschließlich sie geprüft haben.

@@ -115,7 +115,7 @@
       <div class="option-checks">
         <label><input id="accept-bundles" type="checkbox"> Konvolute akzeptieren</label>
         <label><input id="accept-incomplete" type="checkbox"> Defekte/unvollständige Treffer akzeptieren</label>
-        <label><input id="include-ebay-auctions" type="checkbox"> eBay-Auktionen einbeziehen</label>
+        <label><input id="include-ebay-auctions" type="checkbox" checked> eBay-Auktionen mitsuchen</label>
         <label><input id="include-review" type="checkbox" checked> Prüffälle laden</label>
         <label><input id="include-rejected" type="checkbox" checked> Unpassende Ergebnisse laden</label>
       </div>
@@ -173,9 +173,10 @@
         <label>Gesamtpreis bis €<input id="filter-price-max" inputmode="decimal" aria-label="Gesamtpreis höchstens"></label>
         <label>Versand<select id="filter-shipping"><option value="all">Alle Versandarten</option><option value="available">Versand möglich</option><option value="free">Kostenloser Versand</option><option value="pickup">Nur Abholung</option><option value="unknown">Versand offen</option></select></label>
         <label>Umfang<select id="filter-scope"><option value="all">Einzel &amp; Bundle</option><option value="single">Einzelangebot</option><option value="bundle">Bundle/Konvolut</option></select></label>
-        <label>Angebotsart<select id="filter-format"><option value="all">Alle Angebotsarten</option><option value="fixed">Sofort-Kaufen/Festpreis</option><option value="auction">Auktion</option><option value="offer">Preisvorschlag/VB</option></select></label>
+        <label>Angebotsart<select id="filter-format"><option value="no-auction" selected>Ohne Auktionen</option><option value="all">Alle Angebotsarten</option><option value="fixed">Sofort-Kaufen/Festpreis</option><option value="auction">Auktion</option><option value="offer">Preisvorschlag/VB</option></select></label>
         <label>Gesamtpreis bekannt<select id="filter-known-total"><option value="all">Alle Preise</option><option value="known">Nur bekannte Gesamtpreise</option></select></label>
         <label>Favoriten<select id="filter-favorites"><option value="all">Alle Treffer</option><option value="only">Nur Favoriten</option></select></label>
+        <label>Größe<select id="filter-size"><option value="all">Alle Größen</option><option value="none">Ohne Größenangabe</option></select></label>
       </div>
       <p class="filter-note">Passende Treffer bleiben vor Prüffällen und unpassenden Ergebnissen; innerhalb der Gruppe gilt deine Sortierung.</p>
     </section>
@@ -185,13 +186,13 @@
 
   <footer><span>GenericParser · Build …</span></footer>
 </main>
-<script src="./build-identity-0450.js?v=gp-165" defer></script>
+<script src="./build-identity-0450.js?v=gp-170" defer></script>
 <script src="./favorites-store-150.js" defer></script>
-<script src="./app.js?v=gp-165" defer></script>
-<script src="./controller-0450.js?v=gp-165" defer></script>
+<script src="./app.js?v=gp-170" defer></script>
+<script src="./controller-0450.js?v=gp-170" defer></script>
 <script src="./vinted-background-132.js" defer></script>
 <script src="./module-debug-0450.js" defer></script>
-<script src="./auto-resume-0450.js?v=gp-165" defer></script>
+<script src="./auto-resume-0450.js?v=gp-170" defer></script>
 <script src="./source-colors-110.js" defer></script>
 <script src="./source-colors-140.js" defer></script>
 <script src="./ui-160.js" defer></script>

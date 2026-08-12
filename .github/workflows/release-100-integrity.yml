@@ -52,11 +52,12 @@ jobs:
           node --test tests/js/controller-v2-bridge-161.test.mjs
           node --test tests/js/browser-startup-162.test.mjs
           node --test tests/js/mobile-transport-163.test.mjs
+          node --test tests/js/vinted-size-170.test.mjs
           node --check pocs/ebay-notifications/src/index.js
           node --test pocs/ebay-notifications/test/*.test.js
           node --check pocs/vinted-browser/src/index.js
       - name: Run stable, bridge, Vinted and eBay regression tests
-        run: pytest -q tests/test_release_100.py tests/test_release_132.py tests/test_release_133.py tests/test_release_134.py tests/test_release_140.py tests/test_release_150.py tests/test_release_151.py tests/test_release_160.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py tests/test_vinted_browser_production.py tests/test_vinted_service_binding_122.py tests/test_ebay_adapter.py tests/test_ebay_multi_source.py tests/test_product_classification.py
+        run: pytest -q tests/test_release_100.py tests/test_release_132.py tests/test_release_133.py tests/test_release_134.py tests/test_release_140.py tests/test_release_150.py tests/test_release_151.py tests/test_release_160.py tests/test_release_170.py tests/test_search_service_v0444.py tests/test_vinted_multi_source.py tests/test_vinted_browser_production.py tests/test_vinted_service_binding_122.py tests/test_ebay_adapter.py tests/test_ebay_multi_source.py tests/test_product_classification.py
       - name: Validate metadata from single release identity
         run: |
           python - <<'PY'
