@@ -501,27 +501,51 @@ def _advance_state(
     if failed:
         updated["failed_sources"] = int(updated.get("failed_sources") or 0) + 1
 
-    completed_search = False
-    if not page_complete and next_page is not None:
-        updated["page"] = next_page
-        return updated, False, False
-
-    updated["sources_complete"] = int(updated.get("sources_complete") or 0) + 1
     search_index = int(updated.get("search_index") or 0)
-    source_index = int(updated.get("source_index") or 0) + 1
     current = request.searches[search_index]
-    if source_index < len(current.sources):
-        updated["source_index"] = source_index
-        updated["page"] = 0
+    sources = list(current.sources)
+    source_index = int(updated.get("source_index") or 0)
+    source = sources[source_index] if source_index < len(sources) else None
+
+    # Seit 1.8.5 rotieren die Quellen: nach jeder verarbeiteten Seite ist die
+    # nächste noch offene Quelle an der Reihe. Dafür braucht jede Quelle einen
+    # eigenen Seitenzeiger, sonst könnte die Rotation nicht dort weitermachen,
+    # wo die Quelle stehen geblieben ist. Ältere Fortsetzungstoken tragen die
+    # Felder nicht und starten deshalb mit leeren Vorgaben.
+    cursors = dict(updated.get("source_pages") or {})
+    done = list(updated.get("sources_done") or [])
+
+    if page_complete or next_page is None:
+        if source is not None and source not in done:
+            done.append(source)
+            updated["sources_complete"] = int(updated.get("sources_complete") or 0) + 1
+        cursors.pop(source, None)
+    elif source is not None:
+        cursors[source] = next_page
+
+    updated["source_pages"] = cursors
+    updated["sources_done"] = done
+
+    next_index = None
+    for step in range(1, len(sources) + 1):
+        candidate = (source_index + step) % len(sources)
+        if sources[candidate] not in done:
+            next_index = candidate
+            break
+
+    if next_index is not None:
+        updated["source_index"] = next_index
+        updated["page"] = int(cursors.get(sources[next_index], 0))
         return updated, False, False
 
     search_index += 1
     updated["search_index"] = search_index
     updated["source_index"] = 0
     updated["page"] = 0
+    updated["source_pages"] = {}
+    updated["sources_done"] = []
     updated["searches_complete"] = int(updated.get("searches_complete") or 0) + 1
-    completed_search = True
-    return updated, search_index >= len(request.searches), completed_search
+    return updated, search_index >= len(request.searches), True
 
 
 async def execute_v2_packet(

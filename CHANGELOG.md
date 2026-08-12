@@ -2,6 +2,19 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.8.5 – 2026-08-12 – Quellen im Turnus und geteilte Fallsammlung
+
+- Die Quellen wechseln sich jetzt ab: nach jeder verarbeiteten Seite ist die nächste noch offene Quelle an der Reihe. Bisher wurde Kleinanzeigen vollständig ausgelesen, dann Vinted, dann eBay — ein gemischtes Ergebnisbild entstand erst spät oder gar nicht, wenn der Lauf vorher gestoppt wurde.
+- Jede Quelle führt einen eigenen Seitenzeiger (`source_pages`) und meldet ihr Ende getrennt (`sources_done`). Ohne das könnte die Rotation nicht dort weitermachen, wo eine Quelle stehen geblieben ist.
+- Eine erschöpfte Quelle fällt aus dem Turnus; die übrigen laufen ohne Leerlauf weiter. Bei einer Ein-Quellen-Suche bleibt das Verhalten unverändert.
+- Fortsetzungstoken aus Läufen vor 1.8.5 tragen die neuen Felder nicht und starten mit leeren Vorgaben; laufende Suchen brechen dadurch nicht ab.
+- Die Paketgröße bleibt eine Marktplatzseite je Anfrage — rund 25 Treffer bei allen drei Quellen. Kleiner geht nicht, weil eine Seite die kleinste Abrufeinheit ist; größer würde die Mischung nur verzögern.
+- Deterministische Fallsammlung `tests/fixtures/normalization_cases.json` mit 41 Zustands-, 16 Größen-, 12 beschrifteten Größen-, 11 Konvolut- und 7 Versandfällen. Python-Adapter und Vinted-Worker werden gegen dieselbe Datei geprüft.
+- Die Sammlung deckte sofort drei echte Lücken auf: „wie-neu" galt wegen des Bindestrichs als **neu** statt `like_new`; `_size_text` kannte die Zwölf-Zeichen-Grenze des Workers nicht und ließ Fließtext als Größe durch; „1.200 €" wurde zu Titel „Konsole 1" mit Preis 200.
+- Zustandsangaben werden vor dem Vergleich von Interpunktion befreit, die Regeln enthalten entsprechend keine mehr — ein neuer Test hält das fest.
+- Beträge verstehen Tausenderpunkte. Ein Punkt gilt nur bei genau drei Folgeziffern als Trennzeichen, sonst als Dezimalpunkt.
+- Produktionsabnahme: ausstehend. Rollback-Ziel: 1.7.1 / `gp-171-20260812-1`.
+
 ## 1.8.1 – 2026-08-12 – Korrekturen aus dem 1.8.0-Livelauf
 
 - Füllwörter für Stückpreise (`je`, `jeweils`, `à`, `Stk.`, `pro Stück`) bleiben nicht mehr im abgeleiteten Artikelnamen stehen; der Livelauf zeigte eine Kachel „Extreme-G 2 je".

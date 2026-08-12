@@ -1,0 +1,482 @@
+{
+  "_comment": "Deterministische Fälle für Schreibweisen, Interpunktion und Marktplatz-Eigenheiten. Erweitert die 1.7-Zusage aus ROADMAP.md.",
+  "condition": [
+    [
+      "Neu mit Etikett",
+      "new"
+    ],
+    [
+      "Neu ohne Etikett",
+      "new"
+    ],
+    [
+      "NEU MIT ETIKETT",
+      "new"
+    ],
+    [
+      "neu/ovp",
+      "new"
+    ],
+    [
+      "Neu / OVP",
+      "new"
+    ],
+    [
+      "  Neu   OVP  ",
+      "new"
+    ],
+    [
+      "Originalverpackt, ungeöffnet",
+      "new"
+    ],
+    [
+      "nagelneu",
+      "new"
+    ],
+    [
+      "New with tags",
+      "new"
+    ],
+    [
+      "Brand new",
+      "new"
+    ],
+    [
+      "ungetragen",
+      "new"
+    ],
+    [
+      "wie neu",
+      "like_new"
+    ],
+    [
+      "Wie Neu!",
+      "like_new"
+    ],
+    [
+      "wie-neu",
+      "like_new"
+    ],
+    [
+      "Sehr gut",
+      "like_new"
+    ],
+    [
+      "sehr gut erhalten",
+      "like_new"
+    ],
+    [
+      "Very good",
+      "like_new"
+    ],
+    [
+      "neuwertig",
+      "like_new"
+    ],
+    [
+      "kaum getragen",
+      "like_new"
+    ],
+    [
+      "gebraucht",
+      "used"
+    ],
+    [
+      "Gebraucht, gut erhalten",
+      "used"
+    ],
+    [
+      "Zufriedenstellend",
+      "used"
+    ],
+    [
+      "Satisfactory",
+      "used"
+    ],
+    [
+      "pre-owned",
+      "used"
+    ],
+    [
+      "Second Hand",
+      "used"
+    ],
+    [
+      "Gut",
+      "used"
+    ],
+    [
+      "defekt",
+      "defective"
+    ],
+    [
+      "Defekt / Bastler",
+      "defective"
+    ],
+    [
+      "nur als Ersatzteil",
+      "defective"
+    ],
+    [
+      "unvollständig",
+      "defective"
+    ],
+    [
+      "For parts, not working",
+      "defective"
+    ],
+    [
+      "Neu, aber defekt",
+      "defective"
+    ],
+    [
+      "Wie neu, leider beschädigt",
+      "defective"
+    ],
+    [
+      "Zustand offen",
+      "unknown"
+    ],
+    [
+      "",
+      "unknown"
+    ],
+    [
+      "   ",
+      "unknown"
+    ],
+    [
+      "k. A.",
+      "unknown"
+    ],
+    [
+      "siehe Bilder",
+      "unknown"
+    ],
+    [
+      "wie_neu",
+      "like_new"
+    ],
+    [
+      "Neu·OVP",
+      "new"
+    ],
+    [
+      "sehr  gut",
+      "like_new"
+    ]
+  ],
+  "size": [
+    [
+      "M",
+      "M"
+    ],
+    [
+      "  M  ",
+      "M"
+    ],
+    [
+      "38",
+      "38"
+    ],
+    [
+      "38 / S",
+      "38 / S"
+    ],
+    [
+      "XS",
+      "XS"
+    ],
+    [
+      "XXL",
+      "XXL"
+    ],
+    [
+      "one size",
+      "one size"
+    ],
+    [
+      "Eine sehr lange Beschreibung der Passform",
+      null
+    ],
+    [
+      "unbekannt",
+      null
+    ],
+    [
+      "n/a",
+      null
+    ],
+    [
+      "-",
+      null
+    ],
+    [
+      "",
+      null
+    ],
+    [
+      "onbekend",
+      null
+    ],
+    [
+      "36-38",
+      "36-38"
+    ],
+    [
+      "   XL   ",
+      "XL"
+    ],
+    [
+      "Größe steht im Etikett",
+      null
+    ]
+  ],
+  "size_labelled": [
+    [
+      "Zustand Sehr gut Größe M Marke King Louie",
+      "M"
+    ],
+    [
+      "Grösse: 38",
+      "38"
+    ],
+    [
+      "Groesse 40 / L",
+      "40 / L"
+    ],
+    [
+      "GRÖSSE XL",
+      "XL"
+    ],
+    [
+      "Size XL",
+      "XL"
+    ],
+    [
+      "Maat 36",
+      "36"
+    ],
+    [
+      "Taille 42",
+      "42"
+    ],
+    [
+      "Größe:M",
+      "M"
+    ],
+    [
+      "Größe - 44",
+      "44"
+    ],
+    [
+      "Die Größe könnte etwas kleiner ausfallen",
+      null
+    ],
+    [
+      "Größe steht nicht im Etikett",
+      null
+    ],
+    [
+      "King Louie Kleid ohne Angabe",
+      null
+    ]
+  ],
+  "bundle": [
+    {
+      "name": "Aufzählung mit Bindestrichen und gemischter Währungsschreibweise",
+      "description": "Verkaufe einzeln:\n- Zelda 25€\n- Mario Kart 20 €\n- Turok 12,50 EUR",
+      "expected": [
+        [
+          "Zelda",
+          25.0
+        ],
+        [
+          "Mario Kart",
+          20.0
+        ],
+        [
+          "Turok",
+          12.5
+        ]
+      ]
+    },
+    {
+      "name": "Mengenpräfix und Stückpreis-Füllwörter",
+      "description": "1x Super Mario 64 15€\n2. Donkey Kong je 30 €\nGoldeneye à 18 €",
+      "expected": [
+        [
+          "Super Mario 64",
+          15.0
+        ],
+        [
+          "Donkey Kong",
+          30.0
+        ],
+        [
+          "Goldeneye",
+          18.0
+        ]
+      ]
+    },
+    {
+      "name": "Versand, Gesamtsumme und Neupreis sind keine Artikel",
+      "description": "Spiel A 10 €\nSpiel B 12 €\nVersand 5 €\nGesamt 22 €\nNeupreis war 60 €\nUVP 79 €",
+      "expected": [
+        [
+          "Spiel A",
+          10.0
+        ],
+        [
+          "Spiel B",
+          12.0
+        ]
+      ]
+    },
+    {
+      "name": "Preisspanne in einer Zeile ist mehrdeutig",
+      "description": "Spiel A 10 € bis 20 €\nSpiel B 15 €\nSpiel C 12 €",
+      "expected": [
+        [
+          "Spiel B",
+          15.0
+        ],
+        [
+          "Spiel C",
+          12.0
+        ]
+      ]
+    },
+    {
+      "name": "Doppelte Nennung wird einmal übernommen",
+      "description": "Zelda 25 €\nzelda 25 €\nMario 20 €",
+      "expected": [
+        [
+          "Zelda",
+          25.0
+        ],
+        [
+          "Mario",
+          20.0
+        ]
+      ]
+    },
+    {
+      "name": "Eine einzelne Position ist kein Konvolut",
+      "description": "Konvolut, alles zusammen 90 €",
+      "expected": []
+    },
+    {
+      "name": "Beschreibung ohne Beträge",
+      "description": "Sammlung mit vielen Spielen, Preis VB",
+      "expected": []
+    },
+    {
+      "name": "Preis pro Stück bleibt eine Preisangabe",
+      "description": "Preis pro Stück 20 €\nArtikel B 9 €\nArtikel C 8 €",
+      "expected": [
+        [
+          "Artikel B",
+          9.0
+        ],
+        [
+          "Artikel C",
+          8.0
+        ]
+      ]
+    },
+    {
+      "name": "Tausendertrennzeichen im Betrag",
+      "description": "Konsole 1.200 €\nSpiel 1.050,50 €",
+      "expected": [
+        [
+          "Konsole",
+          1200.0
+        ],
+        [
+          "Spiel",
+          1050.5
+        ]
+      ]
+    },
+    {
+      "name": "Doppelpunkt und Semikolon am Zeilenende",
+      "description": "Zelda: 25 €;\nMario Kart - 20 €.",
+      "expected": [
+        [
+          "Zelda",
+          25.0
+        ],
+        [
+          "Mario Kart",
+          20.0
+        ]
+      ]
+    },
+    {
+      "name": "Dezimalpunkt ohne Tausendergruppe bleibt ein Dezimalpunkt",
+      "description": "Spiel A 12.50 €\nSpiel B 9 €",
+      "expected": [
+        [
+          "Spiel A",
+          12.5
+        ],
+        [
+          "Spiel B",
+          9.0
+        ]
+      ]
+    }
+  ],
+  "delivery": [
+    [
+      {
+        "shipping_available": false,
+        "shipping_cost": null
+      },
+      "pickup"
+    ],
+    [
+      {
+        "shipping_available": false,
+        "shipping_cost": 0
+      },
+      "pickup"
+    ],
+    [
+      {
+        "shipping_available": true,
+        "shipping_cost": 0
+      },
+      "free"
+    ],
+    [
+      {
+        "shipping_available": true,
+        "shipping_cost": 4.9
+      },
+      "available"
+    ],
+    [
+      {
+        "shipping_available": true,
+        "shipping_cost": null
+      },
+      "available"
+    ],
+    [
+      {
+        "shipping_available": null,
+        "shipping_cost": null
+      },
+      "unknown"
+    ],
+    [
+      {
+        "shipping_available": null,
+        "shipping_cost": "keine Zahl"
+      },
+      "unknown"
+    ]
+  ]
+}

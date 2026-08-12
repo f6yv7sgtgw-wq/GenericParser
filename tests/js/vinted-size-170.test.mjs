@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import test from 'node:test';
 
 const {normalizeSize, sizeFrom, parseDetail, extractHtmlListings} =
@@ -69,4 +70,19 @@ test('catalog cards carry their photo so the grid is not empty until enrichment'
   assert.equal(imageFrom('<img src="/assets/logo.svg">'), null);
   assert.equal(imageFrom('<img data-src="https://images1.vinted.net/tc/9/9.webp">'),
     'https://images1.vinted.net/tc/9/9.webp');
+});
+
+test('the shared fixture file covers the labelled size spellings', async () => {
+  const {sizeFrom, normalizeSize} = await import('../../pocs/vinted-browser/src/index.js');
+  const cases = JSON.parse(
+    fs.readFileSync(new URL('../fixtures/normalization_cases.json', import.meta.url), 'utf8')
+  );
+  for (const [input, expected] of cases.size_labelled) {
+    assert.equal(sizeFrom(input), expected, `sizeFrom(${JSON.stringify(input)})`);
+  }
+  // Dieselbe Fallsammlung prüft in Python _size_text; beide Seiten müssen die
+  // gleiche Längengrenze ziehen.
+  for (const [input, expected] of cases.size) {
+    assert.equal(normalizeSize(input), expected, `normalizeSize(${JSON.stringify(input)})`);
+  }
 });

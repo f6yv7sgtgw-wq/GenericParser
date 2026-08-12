@@ -22,7 +22,12 @@ DETAIL_BUDGET_PER_PAGE = 3
 DETAIL_TIMEOUT_S = 8.0
 MIN_ITEMS = 2
 
-_PRICE_RE = re.compile(r"(\d{1,5}(?:[.,]\d{1,2})?)\s*(?:€|EUR\b|Euro\b)", re.I)
+# Tausenderpunkte müssen mit erfasst werden, sonst bleibt bei "1.200 €" das
+# "1." im Artikelnamen stehen und der Preis wird zu 200.
+_PRICE_RE = re.compile(
+    r"(\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d{1,6}(?:[.,]\d{1,2})?)\s*(?:€|EUR\b|Euro\b)",
+    re.I,
+)
 _LEADING_NOISE_RE = re.compile(r"^[\s\-–—*•·>+]*(?:\d{1,2}\s*[.)]\s*)?(?:\d{1,2}\s*[xX]\s*)?")
 _TRAILING_NOISE_RE = re.compile(r"[\s:\-–—=.,;]+$")
 # "Extreme-G 2 je 15 €" meint den Stückpreis; das Füllwort gehört nicht in
@@ -51,8 +56,16 @@ def _clean(value: str) -> str:
 
 
 def _price(raw: str) -> float | None:
+    """Liest deutsche Beträge; der Punkt ist nur bei drei Folgeziffern ein
+    Tausendertrennzeichen, sonst ein Dezimalpunkt."""
+
+    text = raw.strip()
+    if "," in text:
+        text = text.replace(".", "").replace(",", ".")
+    elif re.fullmatch(r"\d{1,3}(?:\.\d{3})+", text):
+        text = text.replace(".", "")
     try:
-        return float(raw.replace(".", "").replace(",", "."))
+        return float(text)
     except ValueError:
         return None
 

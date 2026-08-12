@@ -1,8 +1,8 @@
 {
   "product": "GenericParser",
-  "version": "1.8.1",
+  "version": "1.8.5",
   "package_version": "dynamic:generic_parser.release_identity.VERSION",
-  "build_id": "gp-181-20260812-1",
+  "build_id": "gp-185-20260812-1",
   "identity_source": "src/generic_parser/release_identity.py",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
@@ -15,11 +15,11 @@
   "functional_reference_version": "0.44.4",
   "stable_reference_version": "0.44.6.5",
   "runtime_reference_version": "0.44.6.2",
-  "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+mobile-transport-recovery+deferred-vinted-details+responsive-web-ui-162+signed-continuations-v2+vinted-size-normalization+default-auction-search-with-result-filter+parallel-vinted-background-batches+source-neutral-condition-delivery-codes+derived-bundle-listings+modern-search-mask",
+  "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+mobile-transport-recovery+deferred-vinted-details+responsive-web-ui-162+signed-continuations-v2+vinted-size-normalization+default-auction-search-with-result-filter+parallel-vinted-background-batches+source-neutral-condition-delivery-codes+derived-bundle-listings+modern-search-mask+round-robin-source-rotation",
   "release_date": "2026-08-12",
   "repository": "f6yv7sgtgw-wq/GenericParser",
   "status": "release-candidate",
-  "purpose": "correct two flaws found in the 1.8.0 live run: a per-unit filler word such as \"je\" or \"à\" stayed in the derived article title, and offer.derived_from reported the bare advert id instead of a listing key",
+  "purpose": "rotate the marketplace sources instead of draining them one after another, so a mixed result set appears from the second packet on, and back the normalizers with a shared deterministic case collection that both the Python adapters and the Vinted worker are checked against",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted", "ebay"],
@@ -69,6 +69,10 @@
     "bundle_resolution_fail_open": "required",
     "derived_listings_keep_parent_url": "required",
     "search_mask_180": "required",
+    "round_robin_source_rotation": "required",
+    "per_source_page_cursors": "required",
+    "legacy_continuation_tokens_supported": "required",
+    "shared_normalization_fixtures": "required",
     "collapsible_filter_panel": "required",
     "active_filters_visible_when_collapsed": "required",
     "result_skeleton_placeholders": "required",
@@ -116,5 +120,5 @@
     "production_acceptance": "pending"
   },
   "rollback_plan": {"last_stable_baseline": "1.7.1", "build_id": "gp-171-20260812-1"},
-  "metadata_schema": 55
+  "metadata_schema": 56
 }
