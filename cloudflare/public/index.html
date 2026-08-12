@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="./ui-160.css">
   <link rel="stylesheet" href="./ui-161.css">
   <link rel="stylesheet" href="./ui-162.css">
+  <link rel="stylesheet" href="./ui-180.css">
 </head>
 <body>
 <div class="sticky-shell">
@@ -41,7 +42,7 @@
 </div>
 
 <main class="app-shell">
-  <section class="card search-card search-card-160">
+  <section class="card search-card search-card-160 search-card-180">
     <div class="section-heading search-heading">
       <div><p class="eyebrow">Plattformübergreifend</p><h2>Suche</h2></div>
       <span class="contract-badge">API v2</span>
@@ -160,15 +161,16 @@
       <div><p class="eyebrow">Trefferzentrale</p><h2>Suchergebnisse</h2></div>
       <div class="results-heading-actions"><span id="results-count" class="badge">0</span><button id="mobile-filter-toggle" class="secondary mobile-filter-toggle" type="button" aria-expanded="false" aria-controls="result-filters">Filter <span id="active-filter-count">0</span></button></div>
     </div>
-    <section id="result-filters" class="card result-filters result-filters-160" aria-label="Ergebnisse filtern">
+    <section id="result-filters" class="card result-filters result-filters-160 result-filters-180" aria-label="Ergebnisse filtern">
       <div class="filter-heading"><div class="filter-title"><strong>Ergebnisfilter</strong><span class="filter-default">Passend &amp; Prüfen sichtbar</span></div><button id="reset-result-filters" class="filter-reset" type="button">Alle zurücksetzen</button></div>
       <div id="active-result-filters" class="active-result-filters" aria-live="polite"></div>
+      <div class="filter-body" id="filter-body">
       <div class="filter-grid">
         <label>Sortierung<select id="sort-by"><option value="relevance" selected>Beste Treffer</option><option value="date">Neueste Angebote</option><option value="price_asc">Niedrigster Gesamtpreis</option><option value="price_desc">Höchster Gesamtpreis</option><option value="favorites">Favoriten zuerst</option></select></label>
         <label>Status<select id="filter-traffic"><option value="without-red" selected>Passend &amp; Prüfen</option><option value="green">Nur passend</option><option value="review">Nur prüfen</option><option value="red">Nur unpassend</option><option value="all">Alle Status</option></select></label>
         <label>Plattform<select id="filter-source"><option value="all">Alle Plattformen</option><option value="kleinanzeigen">Kleinanzeigen</option><option value="vinted">Vinted</option><option value="ebay">eBay</option></select></label>
         <label>Produktart<select id="filter-product-class"><option value="all">Alle Produktarten</option><option value="main_product">Hauptprodukt</option><option value="accessory_part">Zubehör/Ersatzteil</option><option value="bundle">Bundle/Konvolut</option><option value="wanted">Gesuch</option><option value="rental">Vermietung</option><option value="service">Dienstleistung</option><option value="related_merchandise">Merchandise/anderes Produkt</option><option value="unknown">Produktart offen</option></select></label>
-        <label>Zustand<select id="filter-condition"><option value="all">Alle Zustände</option><option value="new">Neu/OVP</option><option value="used">Gebraucht</option><option value="defective">Defekt/unvollständig</option><option value="unknown">Zustand offen</option></select></label>
+        <label>Zustand<select id="filter-condition"><option value="all">Alle Zustände</option><option value="new">Neu/OVP</option><option value="like_new">Wie neu</option><option value="used">Gebraucht</option><option value="defective">Defekt/unvollständig</option><option value="unknown">Zustand offen</option></select></label>
         <label>Gesamtpreis ab €<input id="filter-price-min" inputmode="decimal" aria-label="Gesamtpreis mindestens"></label>
         <label>Gesamtpreis bis €<input id="filter-price-max" inputmode="decimal" aria-label="Gesamtpreis höchstens"></label>
         <label>Versand<select id="filter-shipping"><option value="all">Alle Versandarten</option><option value="available">Versand möglich</option><option value="free">Kostenloser Versand</option><option value="pickup">Nur Abholung</option><option value="unknown">Versand offen</option></select></label>
@@ -179,6 +181,7 @@
         <label>Größe<select id="filter-size"><option value="all">Alle Größen</option><option value="none">Ohne Größenangabe</option></select></label>
       </div>
       <p class="filter-note">Passende Treffer bleiben vor Prüffällen und unpassenden Ergebnissen; innerhalb der Gruppe gilt deine Sortierung.</p>
+      </div>
     </section>
     <section id="results" class="results" aria-live="polite"></section>
     <button id="show-more" class="secondary load-more hidden">Weitere Ergebnisse anzeigen</button>
@@ -186,15 +189,16 @@
 
   <footer><span>GenericParser · Build …</span></footer>
 </main>
-<script src="./build-identity-0450.js?v=gp-171" defer></script>
+<script src="./build-identity-0450.js?v=gp-180" defer></script>
 <script src="./favorites-store-150.js" defer></script>
-<script src="./app.js?v=gp-171" defer></script>
-<script src="./controller-0450.js?v=gp-171" defer></script>
+<script src="./app.js?v=gp-180" defer></script>
+<script src="./controller-0450.js?v=gp-180" defer></script>
 <script src="./vinted-background-132.js" defer></script>
 <script src="./module-debug-0450.js" defer></script>
-<script src="./auto-resume-0450.js?v=gp-171" defer></script>
+<script src="./auto-resume-0450.js?v=gp-180" defer></script>
 <script src="./source-colors-110.js" defer></script>
 <script src="./source-colors-140.js" defer></script>
 <script src="./ui-160.js" defer></script>
+<script src="./ui-180.js" defer></script>
 </body>
 </html>

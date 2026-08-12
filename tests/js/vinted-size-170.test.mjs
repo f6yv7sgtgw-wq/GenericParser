@@ -57,3 +57,16 @@ test('catalog cards already carry the size so the facet is not limited to enrich
   assert.equal(item.id, 'vinted:123');
   assert.equal(item.size, 'M');
 });
+
+test('catalog cards carry their photo so the grid is not empty until enrichment', async () => {
+  const {imageFrom, extractHtmlListings} = await import('../../pocs/vinted-browser/src/index.js');
+  const card = '<div><img src="https://images1.vinted.net/tc/03_abc/1234.jpeg?s=xyz" alt="King Louie">'
+    + '<a href="/items/321-king-louie-kleid">King Louie</a><span>39,90 €</span></div>';
+  const [item] = extractHtmlListings(card);
+  assert.equal(item.image_url, 'https://images1.vinted.net/tc/03_abc/1234.jpeg?s=xyz');
+  // Avatars, icons and tracking pixels from other hosts must not become a photo.
+  assert.equal(imageFrom('<img src="https://cdn.example.com/avatar.png">'), null);
+  assert.equal(imageFrom('<img src="/assets/logo.svg">'), null);
+  assert.equal(imageFrom('<img data-src="https://images1.vinted.net/tc/9/9.webp">'),
+    'https://images1.vinted.net/tc/9/9.webp');
+});

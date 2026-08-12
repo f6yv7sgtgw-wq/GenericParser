@@ -159,3 +159,63 @@ def parse_posted_at(raw: str | None, *, now: datetime | None = None) -> datetime
         raise ValueError(f"Unbekanntes Datumsformat: {original!r}") from exc
 
     return datetime.combine(absolute_date, time.min, tzinfo=BERLIN)
+
+
+# --- Quellenneutrale Zustands- und Versandcodes ---------------------------
+#
+# Jeder Marktplatz beschreibt Zustand und Versand in eigenen Worten. Bis 1.7.1
+# leitete erst die Browseroberfläche per Regex einen Code aus dem Anzeigetext
+# ab, wodurch ein Filter faktisch auf Anzeigestrings matchte. Die Zuordnung
+# gehört hierher: der Text bleibt zur Anzeige, der Code trägt die Bedeutung.
+
+CONDITION_CODES = ("new", "like_new", "used", "defective", "unknown")
+DELIVERY_MODES = ("free", "available", "pickup", "unknown")
+
+_CONDITION_RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    # Reihenfolge entscheidet: "wie neu" darf nicht als "neu" durchgehen, und
+    # "neu mit Etikett" ist kein Defekt, nur weil "et" darin vorkommt.
+    ("defective", ("defekt", "beschädigt", "bastler", "ersatzteil", "unvollständig",
+                   "reparatur", "for parts", "not working", "damaged")),
+    ("like_new", ("wie neu", "like new", "sehr gut", "very good", "neuwertig",
+                  "kaum getragen", "kaum benutzt")),
+    ("new", ("neu mit etikett", "neu ohne etikett", "new with tags",
+             "new without tags", "neu/ovp", "originalverpackt", "ungeöffnet",
+             "ungetragen", "unbenutzt", "brand new", "nagelneu", "ovp", "neu",
+             "new")),
+    ("used", ("gebraucht", "getragen", "benutzt", "gut", "good", "akzeptabel",
+              "zufriedenstellend", "satisfactory", "used", "pre-owned",
+              "second hand")),
+)
+
+
+def normalize_condition(*values: object) -> str:
+    """Ordnet Zustandsangaben einem stabilen Code zu; unbekannt bleibt unbekannt."""
+
+    for value in values:
+        text = " ".join(str(value or "").split()).casefold()
+        if not text:
+            continue
+        for code, needles in _CONDITION_RULES:
+            if any(needle in text for needle in needles):
+                return code
+    return "unknown"
+
+
+def normalize_delivery_mode(
+    *,
+    shipping_available: object = None,
+    shipping_cost: object = None,
+) -> str:
+    """Leitet den Versandmodus aus den bereits normalisierten Versandfeldern ab."""
+
+    if shipping_available is False:
+        return "pickup"
+    try:
+        cost = None if shipping_cost is None else float(shipping_cost)
+    except (TypeError, ValueError):
+        cost = None
+    if cost is not None and cost == 0 and shipping_available is not False:
+        return "free"
+    if shipping_available is True:
+        return "available"
+    return "unknown"
