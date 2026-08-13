@@ -18,7 +18,7 @@
   "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+mobile-transport-recovery+deferred-vinted-details+responsive-web-ui-162+signed-continuations-v2+vinted-size-normalization+default-auction-search-with-result-filter+parallel-vinted-background-batches+source-neutral-condition-delivery-codes+derived-bundle-listings+modern-search-mask+round-robin-source-rotation",
   "release_date": "2026-08-13",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "release-candidate",
+  "status": "stable",
   "purpose": "let a blocked Vinted resume instead of ending for good: the anonymous session limit is volume-based (~250 listings per bootstrap) and every fallback call bootstraps fresh, so a blocked source now retries the same page after a longer cooldown, bounded to two attempts, before it honestly ends blocked",
   "worker_plan": "paid",
   "sources": {
@@ -140,7 +140,10 @@
     "vinted_block_retry_limit": 2,
     "vinted_retry_cooldown_seconds": 60,
     "vinted_blocked_source_resumes": "required",
-    "production_acceptance": "pending"
+    "production_acceptance": "passed",
+    "production_commit": "1fd1cfe25251fdef0ce858eac797c1b2cc829d45",
+    "production_workflow_run": 31675450576,
+    "accepted_at": "2026-08-13T07:22:03Z"
   },
   "rollback_plan": {"last_stable_baseline": "1.9.1", "build_id": "gp-191-20260812-1"},
   "metadata_schema": 63

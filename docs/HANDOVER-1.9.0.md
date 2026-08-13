@@ -145,9 +145,12 @@ Vinted-Quelle endet nicht mehr sofort, sondern bleibt in der Rotation und
 versucht nach der Retry-Abklingzeit (60 s) dieselbe Seite erneut — der
 Fallback-Pfad bootstrappt bei jedem Aufruf ohnehin frisch, ein erneuter
 Versuch ist also automatisch ein erneuter Bootstrap. Höchstens zwei Anläufe,
-danach ehrlich `blocked`. Offen für die 1.9.2-Abnahme: ob Vinted nach 60 s
-tatsächlich wieder öffnet; falls nicht, ist der nächste Hebel eine längere,
-aus den Eventlogs gelernte Retry-Abklingzeit.
+danach ehrlich `blocked`. **Die 1.9.2-Abnahme hat es gemessen:** Die erste
+Blockade wurde nach 67 s wiedereröffnet (zwei weitere Pakete), die zweite
+überstand beide Anläufe. Die Gesamtausbeute blieb bei ~250 Treffern — das
+Volumenbudget wirkt kumulativ über Bootstraps hinweg. Falls mehr Ausbeute
+nötig ist: längere Retry-Abklingzeit, aus den Blockade-Zeitstempeln der
+Eventlogs zu lernen.
 
 **Ungleiche Schrittweiten.** Der Turnus liefert 7/25/25 pro Runde. Gleichziehen
 beim Abruf ist teuer (Kleinanzeigen bräuchte drei bis vier Abrufe je Zug). Falls
@@ -197,9 +200,12 @@ Live-Identität wirklich — oder löschen.
 Ergebnisseite. Bei konvolutlastigen Suchen bleiben die übrigen unaufgelöst. Ein
 Hintergrundpfad wie bei Vinted würde das heben.
 
-**Deploy-Flakiness.** Ein Deploy scheiterte einmal am Pyodide-Download von GitHub
-(`http2 error: refused stream`). Reine Netzwerkstörung, der Neustart lief durch.
-Falls es sich häuft: Retry um den `pywrangler deploy`-Schritt.
+**Deploy-Flakiness — in 1.9.2 behoben.** Der Pyodide-Download von GitHub
+scheiterte zweimal transient (`refused stream`, Läufe `31640299495` und
+`31675450576`); beim zweiten Mal war der Worker-Upload bereits durch und nur
+die Live-Prüfungen liefen nie — der Fehlerzustand ist also „deployt, aber
+unverifiziert". Der Deploy-Schritt hat seit der 1.9.2-Abnahme den hier
+vorgesehenen Retry (3 Versuche mit wachsendem Abstand).
 
 ## 5a. Befunde aus dem 1.9.0-Abnahmelauf (`lemmings snes`)
 

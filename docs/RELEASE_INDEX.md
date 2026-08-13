@@ -4,7 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 1.9.2 RC | `gp-192-20260813-1` | ausstehend | Blockiertes Vinted bleibt in der Rotation und versucht nach 60 s dieselbe Seite mit frischem Bootstrap erneut (max. zweimal), statt endgueltig zu enden - das Sitzungslimit ist volumenbasiert, jeder Fallback-Aufruf bootstrappt frisch |
+| 1.9.2 | `gp-192-20260813-1` | `1fd1cfe25251fdef0ce858eac797c1b2cc829d45` | Blockiertes Vinted bleibt in der Rotation und versucht nach 60 s dieselbe Seite mit frischem Bootstrap erneut (max. zweimal), statt endgueltig zu enden - das Sitzungslimit ist volumenbasiert, jeder Fallback-Aufruf bootstrappt frisch |
 | 1.9.1 | `gp-191-20260812-1` | `d3f55c8e128187dffc15513b9708044ae2dc1847` | Vinted-Schonfrist in der Rotation statt sequenzieller Suche; ehrlicher Quellen-Endgrund (das Kleinanzeigen-Paketbudget war ein Reporting-Artefakt); Schreibvarianten in relevance-v2; Rescore behaelt die Relevanz; Loader-Fallbacks loggen laut |
 | 1.9.0 | `gp-190-20260812-1` | `e85f1860058c3b4b1d9919ca4508e6445ac20c3c` | Quellenneutrale Relevanzprüfung: Deckung der tragenden Suchbegriffe im Titel als additive Ampelregel - ODER-Treffer wie jedes Mario-Spiel bei `super mario kart 8` werden Rot/Gelb statt Gruen, ohne stille Kuerzung |
 | 1.8.9 | `gp-189-20260812-1` | `84f789cd54c443e01fa4c755f70e6ed520d39cf3` | Zwei dynamisch geladene Assets wiederhergestellt, die 1.6.5 entfernt hatte - Ursache des Fuenf-Sekunden-Timers und der toten Wiederaufnahme; Lauf wird vollstaendig geloggt |
