@@ -9,10 +9,10 @@
   const money = value => Number(value).toLocaleString('de-DE', {minimumFractionDigits: 0, maximumFractionDigits: 2});
   const sourceLabel = source => source === 'ebay' ? 'eBay' : source === 'vinted' ? 'Vinted' : source === 'kleinanzeigen' ? 'Kleinanzeigen' : 'Quelle';
 
-  document.title = `GenericParser Favoriten ${identity.version}`;
+  document.title = 'Searcherix Favoriten';
   document.querySelectorAll('[data-version]').forEach(node => { node.textContent = identity.version; });
   const footer = document.querySelector('footer span');
-  if (footer) footer.textContent = `GenericParser · Build ${identity.buildId}`;
+  if (footer) footer.textContent = 'Searcherix';
 
   function formatPrice(row) {
     if (row.total_price != null) return `${money(row.total_price)} € gesamt`;

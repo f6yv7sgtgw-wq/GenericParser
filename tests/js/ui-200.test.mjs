@@ -27,13 +27,8 @@ test('criterion labels keep their nouns capitalised in the search summary', () =
 
 test('the footer identity dropped the historical Mobile branding everywhere', () => {
   for (const name of ['controller-0450.js', 'favorites-150.js', 'eventlog-0450.js']) {
-    const text = read(name);
-    assert.ok(text.includes('GenericParser · Build'), `${name} soll "GenericParser · Build" schreiben`);
-    assert.ok(!text.includes('GenericParser Mobile'), `${name} soll kein "GenericParser Mobile" mehr tragen`);
+    assert.ok(!read(name).includes('GenericParser Mobile'), `${name} soll kein "GenericParser Mobile" mehr tragen`);
   }
-  const manifest = JSON.parse(read('manifest.webmanifest'));
-  assert.equal(manifest.name, 'GenericParser');
-  assert.equal(manifest.short_name, 'GenericParser');
 });
 
 test('the 2.0 polish stylesheet is linked and precached', () => {

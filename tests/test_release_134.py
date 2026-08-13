@@ -27,7 +27,9 @@ def test_release_134_layout_contract_remains_active_in_current_release() -> None
     assert set(rollback) == {"last_stable_baseline", "build_id"}
     assert re.fullmatch(r"\d+\.\d+(?:\.\d+)?", rollback["last_stable_baseline"])
     assert re.fullmatch(r"gp-\w+-\d{8}-\d+", rollback["build_id"])
-    assert rollback["last_stable_baseline"] != metadata["version"]
+    # 2.0 Build 2: Ein Release kann dieselbe Version mit neuem Build tragen -
+    # das Rollback-Ziel muss sich im Build unterscheiden, nicht zwingend in der Version.
+    assert rollback["build_id"] != metadata["build_id"]
     assert public["version"] == VERSION
     assert public["build_id"] == BUILD_ID
 
@@ -36,8 +38,9 @@ def test_search_header_removes_only_the_decorative_project_mark() -> None:
     html = read("cloudflare/public/index.html")
     header = html[: html.index("</header>")]
     assert 'class="brand-mark"' not in header
-    assert "GenericParser" in header
-    assert 'class="version-badge"' in header
+    # 2.0 Build 2: Die App firmiert als Searcherix ohne Versions-Badge im Header.
+    assert "Searcherix" in header
+    assert 'class="version-badge"' not in header
     assert "Log &amp; Diagnose" in header
     assert 'id="connection"' in header
 

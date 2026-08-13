@@ -84,8 +84,14 @@ production long-run acceptance is pending.
 - expand deterministic fixtures for spelling, punctuation and marketplace edge cases;
 - keep catalog, collection, valuation and deal decisions in consuming clients.
 
-Current status: **2.0.0 stable and production-accepted** (2026-08-13); the
-project is complete with this release. 1.9.5 is the rollback target. 2.0.0
+Current status: **2.0.0 Build 2 release candidate** (2026-08-13), production
+acceptance pending; 2.0.0 Build 1 is the accepted stable baseline and the
+rollback target. Build 2 brands the PWA as **Searcherix** for the iOS
+home-screen install: user-facing pages drop the technical GenericParser
+identity (name, version badge, "Plattformübergreifend" eyebrow), version and
+build stay visible only under Log & Diagnose, and the provided Searcherix
+artwork ships as apple-touch-icon plus manifest icon set. Behaviour,
+contracts and worker identity are unchanged. 2.0.0
 closes the project with a final UI polish for desktop and mobile: footer and
 manifest drop the historical "Mobile" branding, the search summary keeps
 German noun capitalisation ("letzte 90 Tage"), result cards stretch per grid

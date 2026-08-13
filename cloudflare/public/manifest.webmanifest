@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "GenericParser",
-  "short_name": "GenericParser",
+  "name": "Searcherix",
+  "short_name": "Searcherix",
   "description": "Kleinanzeigen, Vinted und eBay mit klaren Suchkriterien plattformübergreifend durchsuchen, filtern und favorisieren.",
   "start_url": "./",
   "scope": "./",
@@ -11,6 +11,8 @@
   "theme_color": "#0b1d29",
   "lang": "de-DE",
   "icons": [
-    {"src":"./icons/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+    {"src":"./icons/searcherix-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"./icons/searcherix-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+    {"src":"./icons/searcherix-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
   ]
 }

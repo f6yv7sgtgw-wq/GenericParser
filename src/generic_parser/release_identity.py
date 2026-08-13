@@ -6,7 +6,7 @@ workflows, tests, browser assets or transport wrappers.
 """
 
 VERSION = "2.0.0"
-BUILD_ID = "gp-200-20260813-1"
+BUILD_ID = "gp-200-20260813-2"
 API_CONTRACT = "generic-parser-module-v1"
 MODULE_CONTRACT = API_CONTRACT
 PREFERRED_MODULE_CONTRACT = "generic-parser-module-v2"

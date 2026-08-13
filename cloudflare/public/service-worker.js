@@ -39,7 +39,11 @@ const ASSETS = [
   "./controller-0411.js",
   "./eventlog-0450.js",
   "./manifest.webmanifest",
-  "./icons/icon.svg"
+  "./icons/icon.svg",
+  "./icons/searcherix-180.png",
+  "./icons/searcherix-192.png",
+  "./icons/searcherix-512.png",
+  "./icons/searcherix-maskable-512.png"
 ];
 
 const isDynamicRequest = url => (

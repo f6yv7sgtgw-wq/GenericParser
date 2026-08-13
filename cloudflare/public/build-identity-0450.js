@@ -6,7 +6,7 @@
   // background and updates this object in place when it succeeds.
   const identity = {
     version: '2.0.0',
-    buildId: 'gp-200-20260813-1',
+    buildId: 'gp-200-20260813-2',
     apiContract: 'generic-parser-module-v1',
     moduleContract: 'generic-parser-module-v1',
     supportedModuleContracts: ['generic-parser-module-v1', 'generic-parser-module-v2'],

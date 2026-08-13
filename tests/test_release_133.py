@@ -28,7 +28,8 @@ def test_search_header_matches_shared_project_pattern() -> None:
     html = read("cloudflare/public/index.html")
     header_end = html.index("</header>")
     assert 'class="sticky-shell"' in html
-    assert 'class="version-badge"' in html
+    # 2.0 Build 2: Die Version ist nur noch unter Log & Diagnose sichtbar.
+    assert 'class="version-badge"' not in html
     assert "Log &amp; Diagnose" in html[:header_end]
     assert 'href="./eventlog.html"' in html[:header_end]
     assert "Kleinanzeigen, Vinted &amp; eBay" in html

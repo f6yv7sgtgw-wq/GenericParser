@@ -6,7 +6,7 @@
   const LEGACY_KEYS = ['generic-parser-eventlog-04465', 'generic-parser-eventlog-04462'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
-  document.title = `GenericParser Log & Diagnose ${I.version}`;
+  document.title = `Searcherix Log & Diagnose ${I.version}`;
   document.querySelectorAll('[data-version]').forEach(node => { node.textContent = I.version; });
   const footer = document.querySelector('footer span');
   if (footer) footer.textContent = `GenericParser · Build ${I.buildId}`;

@@ -4,6 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
+| 2.0.0 Build 2 RC | `gp-200-20260813-2` | ausstehend | Searcherix-Branding fuer die iOS-PWA: Nutzerseiten ohne GenericParser-Identitaet und ohne Version (nur noch unter Log & Diagnose), "Plattformuebergreifend" entfaellt, Searcherix-Iconsatz (apple-touch-icon 180, Manifest 192/512 + maskable) |
 | 2.0.0 | `gp-200-20260813-1` | `eb6a73ed81ce41b66e43b39207c9810b829eac88` | Projektabschluss mit letztem UI-Feinschliff fuer Desktop und Mobile: Footer/Manifest ohne "Mobile"-Altlast, korrekte Substantiv-Grossschreibung in der Suchzusammenfassung, buendige "Anzeige oeffnen"-Buttons je Rasterzeile, einzeiliger Filter-Reset |
 | 1.9.5 | `gp-195-20260813-1` | `16ea151015a101275c9a7a763d77ab54faaa221d` | Anonyme Vinted-Blaettertiefe (~10 Seiten) als natuerliches Quellen-Ende: keine Retries, kein aussichtsloser Fallback, klares "Abgeschlossen - anonyme Blaettertiefe erreicht" statt "Blockiert" |
 | 1.9.4 | `gp-194-20260813-1` | `07b4290e37e45b430a381173acbdf6f51dfdf762` | Trefferzentrale buendig mit der Suchmaske statt 1.3.4-Ausbruch auf 1460 px - eine fuenfte Kachelspalte stand auf breiten Monitoren rechts ueber |

@@ -153,7 +153,9 @@ def test_release_identity_publishes_v2_additively():
     assert set(rollback) == {"last_stable_baseline", "build_id"}
     assert re.fullmatch(r"\d+\.\d+(?:\.\d+)?", rollback["last_stable_baseline"])
     assert re.fullmatch(r"gp-\w+-\d{8}-\d+", rollback["build_id"])
-    assert rollback["last_stable_baseline"] != metadata["version"]
+    # 2.0 Build 2: Ein Release kann dieselbe Version mit neuem Build tragen -
+    # das Rollback-Ziel muss sich im Build unterscheiden, nicht zwingend in der Version.
+    assert rollback["build_id"] != metadata["build_id"]
 
 
 def test_v2_capabilities_and_v1_capabilities_are_both_available():
