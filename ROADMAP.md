@@ -84,8 +84,15 @@ production long-run acceptance is pending.
 - expand deterministic fixtures for spelling, punctuation and marketplace edge cases;
 - keep catalog, collection, valuation and deal decisions in consuming clients.
 
-Current status: **1.9.1 stable and production-accepted** (2026-08-13); 1.9.0
-is the rollback target. The acceptance run `levis 501 w34 l34` (4770 unique
+Current status: **1.9.2 release candidate** (2026-08-13), production acceptance
+pending; 1.9.1 is the accepted stable baseline and the rollback target. 1.9.2
+lets a blocked Vinted resume: the anonymous session limit is volume-based
+(~250 listings per bootstrap) and every fallback call bootstraps fresh, so a
+blocked source now stays in the rotation, waits the longer retry cooldown
+(60s) and retries the same page up to twice before it honestly ends blocked.
+A successful resume resets the retry budget.
+
+1.9.1 (accepted 2026-08-13, run `levis 501 w34 l34`, 4770 unique
 results, no retries) showed Kleinanzeigen ending truthfully with
 `source_complete` after 5 packets, eBay running 219 packets to its real
 natural end, and Vinted packets spaced 25–27s apart as designed. 1.9.1
@@ -111,9 +118,11 @@ never silently hiding a result. The acceptance run `lemmings snes` returned
 The Vinted question is now measured, not guessed: despite the 25–27s spacing
 the source still blocked after 10 full packets / exactly 250 listings — the
 same yield as without the cooldown. The anonymous session limit is
-volume-based (~250 listings per bootstrap), not rate-based. The next lever
-(candidate for 1.9.2) is a fresh session bootstrap once the limit is hit,
-so the source resumes instead of ending in a final `blocked`.
+volume-based (~250 listings per bootstrap), not rate-based. 1.9.2 implements
+the consequence: a blocked Vinted retries with a fresh bootstrap instead of
+ending for good. Whether Vinted actually reopens after the 60s retry cooldown
+is the open measurement for the 1.9.2 acceptance run; if it does not, the
+next candidate lever is a longer retry cooldown learned from event logs.
 
 Earlier status: 1.8.6 is the accepted stable
 baseline and the rollback target. 1.8.7 records why each source stops and

@@ -35,6 +35,13 @@ DEFAULT_SOURCES = ["kleinanzeigen", "vinted", "ebay"]
 # Wert lässt sich über die Blockade-Zeitstempel im Eventlog nachschärfen.
 VINTED_SOURCE = "vinted"
 VINTED_COOLDOWN_SECONDS = 20.0
+# Das anonyme Sitzungslimit ist volumenbasiert (~250 Treffer je Bootstrap,
+# 1.9.1-Abnahmelauf). Jeder Fallback-Aufruf bootstrappt ohnehin frisch —
+# eine blockierte Quelle wird deshalb nicht endgültig beendet, sondern nach
+# einer längeren Abklingzeit begrenzt oft erneut versucht. Erst wenn auch
+# das scheitert, endet sie ehrlich mit `blocked`.
+VINTED_BLOCK_RETRY_LIMIT = 2
+VINTED_RETRY_COOLDOWN_SECONDS = 60.0
 SourceName = Literal["kleinanzeigen", "vinted", "ebay"]
 SortName = Literal["relevance", "date", "price_asc", "price_desc"]
 
@@ -487,12 +494,15 @@ def normalize_source_status(source: str, raw: dict[str, Any], listing_count: int
     }
 
 
-def _vinted_cooldown_remaining(last_at: dict[str, Any], now: float) -> float:
+def _vinted_cooldown_remaining(
+    last_at: dict[str, Any], now: float, *, retry_pending: bool = False
+) -> float:
     last = last_at.get(VINTED_SOURCE)
     if last is None:
         return 0.0
+    window = VINTED_RETRY_COOLDOWN_SECONDS if retry_pending else VINTED_COOLDOWN_SECONDS
     try:
-        return max(0.0, VINTED_COOLDOWN_SECONDS - (now - float(last)))
+        return max(0.0, window - (now - float(last)))
     except (TypeError, ValueError):
         return 0.0
 
@@ -553,6 +563,11 @@ def _advance_state(
     updated["source_last_at"] = last_at
     updated.pop("pacing", None)
 
+    # Ein anstehender Blockade-Retry wartet länger als die normale Schonfrist.
+    retry_pending = int(
+        (updated.get("source_retry_counts") or {}).get(VINTED_SOURCE) or 0
+    ) > 0
+
     next_index = None
     deferred_index = None
     for step in range(1, len(sources) + 1):
@@ -560,7 +575,9 @@ def _advance_state(
         name = sources[candidate]
         if name in done:
             continue
-        if name == VINTED_SOURCE and _vinted_cooldown_remaining(last_at, now_ts) > 0:
+        if name == VINTED_SOURCE and _vinted_cooldown_remaining(
+            last_at, now_ts, retry_pending=retry_pending
+        ) > 0:
             # Vinted lässt seinen Zug aus, solange die Abklingzeit läuft.
             # Bleibt keine andere Quelle offen, kommt Vinted trotzdem an die
             # Reihe — dann mit Wartehinweis, denn die Taktung gehört dem
@@ -572,7 +589,9 @@ def _advance_state(
         break
     if next_index is None and deferred_index is not None:
         next_index = deferred_index
-        remaining = _vinted_cooldown_remaining(last_at, now_ts)
+        remaining = _vinted_cooldown_remaining(
+            last_at, now_ts, retry_pending=retry_pending
+        )
         if remaining > 0:
             updated["pacing"] = {
                 "source": VINTED_SOURCE,
@@ -631,6 +650,35 @@ async def execute_v2_packet(
     page_complete = bool(pagination.get("complete") is True or next_page is None)
     failed = source_status["status"] in {"blocked", "rate_limited", "timeout", "unavailable"}
     degraded_packet = source_status["status"] in {"blocked", "rate_limited", "timeout", "unavailable", "partial"}
+
+    # Wiederaufnahme statt endgültigem `blocked`: Das Vinted-Sitzungslimit ist
+    # volumenbasiert, und jeder erneute Aufruf bootstrappt frisch. Eine
+    # blockierte Quelle bleibt deshalb begrenzt oft offen und versucht nach
+    # der Retry-Abklingzeit dieselbe Seite noch einmal.
+    retry_counts = dict(state.get("source_retry_counts") or {})
+    if source == VINTED_SOURCE:
+        attempts = int(retry_counts.get(VINTED_SOURCE) or 0)
+        if (
+            source_status["status"] == "blocked"
+            and page_complete
+            and attempts < VINTED_BLOCK_RETRY_LIMIT
+        ):
+            retry_counts[VINTED_SOURCE] = attempts + 1
+            source_status = {
+                **source_status,
+                "retry": {
+                    "attempt": attempts + 1,
+                    "limit": VINTED_BLOCK_RETRY_LIMIT,
+                    "cooldown_seconds": VINTED_RETRY_COOLDOWN_SECONDS,
+                },
+            }
+            page_complete = False
+            next_page = page
+            failed = False  # zählt erst, wenn auch der letzte Anlauf scheitert
+        elif source_status["status"] == "ok" and attempts:
+            retry_counts.pop(VINTED_SOURCE, None)
+    state = {**state, "source_retry_counts": retry_counts}
+
     updated, batch_complete, search_complete = _advance_state(
         state,
         payload,

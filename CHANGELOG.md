@@ -2,6 +2,16 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.9.2 – 2026-08-13 – Blockiertes Vinted kommt wieder, statt endgültig zu enden
+
+- Der 1.9.1-Abnahmelauf hat belegt: Das anonyme Vinted-Sitzungslimit ist **volumenbasiert** (~250 Treffer je Bootstrap) — mehr Abstand erhöht die Ausbeute nicht. Zugleich bootstrappt der Fallback-Pfad ohnehin **bei jedem Aufruf frisch** (neuer Client, neue Cookies). Ein erneuter Versuch ist also automatisch ein erneuter Bootstrap.
+- Eine blockierte Vinted-Quelle wird deshalb nicht mehr sofort endgültig beendet. Sie bleibt in der Rotation, wartet die **Retry-Abklingzeit (60 s statt 20 s)** ab und versucht **dieselbe Seite** erneut — höchstens zweimal. Erst wenn auch der letzte Anlauf scheitert, endet sie ehrlich mit `blocked` (und der Lauf ggf. mit der bestehenden `all_sources_failed`-Abbildung).
+- Ein erfolgreicher Wiedereinstieg setzt das Retry-Budget zurück; eine spätere Blockade bekommt wieder zwei Anläufe.
+- Das Quellen-Statusfeld trägt den Anlauf additiv (`retry: {attempt, limit, cooldown_seconds}`), der `pacing`-Hinweis nutzt die längere Abklingzeit — der Browser wartet sichtbar und abbrechbar, die Taktung bleibt bei ihm.
+- Kleinanzeigen und eBay rotieren während der Wartezeit unverändert weiter; ältere Fortsetzungstoken ohne Retry-Zähler funktionieren weiter.
+- Neue Suite `tests/test_release_192.py` (5).
+- Produktionsabnahme: ausstehend. Prüfpunkt: Ein Lauf, in dem Vinted blockiert, zeigt nach der Blockade mindestens einen erneuten Vinted-Anlauf (Eventlog: weiteres Vinted-Paket nach ~60 s, `retry`-Feld im Quellenstatus) — und liefert im Erfolgsfall mehr als die bisherigen ~250 Vinted-Treffer. Rollback-Ziel: 1.9.1 / `gp-191-20260812-1`.
+
 ## 1.9.1 – 2026-08-12 – Vinted-Schonfrist und das erfundene Paketbudget
 
 - **Das „Kleinanzeigen-Paketbudget" gab es nie.** `packet_budget_reached` ist der Paket-Stop-Grund des v2-Vertrags („dieses Paket ist eine Seite, weiter per Token") und stand bei **jedem** Zwischenpaket in der Antwort. Der Browser schrieb ihn jeder Quelle zu, die mitten im Lauf endete — nur die letzte Quelle erbte `batch_complete`. Kleinanzeigen endete in allen drei ausgewerteten Läufen vermutlich regulär. Das v2-Paket trägt jetzt additiv `source_complete`, und der Browser vergibt `source_complete` als eigenen Endgrund statt des Paket-Grunds.
