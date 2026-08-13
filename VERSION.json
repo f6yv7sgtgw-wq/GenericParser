@@ -18,7 +18,7 @@
   "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+mobile-transport-recovery+deferred-vinted-details+responsive-web-ui-162+signed-continuations-v2+vinted-size-normalization+default-auction-search-with-result-filter+parallel-vinted-background-batches+source-neutral-condition-delivery-codes+derived-bundle-listings+modern-search-mask+round-robin-source-rotation",
   "release_date": "2026-08-12",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "release-candidate",
+  "status": "stable",
   "purpose": "protect Vinted with a rotation cooldown instead of pausing every source, report each source's true end instead of attributing the packet-level stop reason (the invented Kleinanzeigen packet budget), tolerate spelling variants like Lemminge/Tribess in the relevance check, keep the relevance reason through the Vinted enrichment rescore, and make the runtime loader fallbacks log loudly",
   "worker_plan": "paid",
   "sources": {
@@ -137,7 +137,10 @@
     "per_source_end_truthful": "required",
     "enrichment_rescore_applies_relevance": "required",
     "runtime_loader_fallback_logged": "required",
-    "production_acceptance": "pending"
+    "production_acceptance": "passed",
+    "production_commit": "d3f55c8e128187dffc15513b9708044ae2dc1847",
+    "production_workflow_run": 31672063257,
+    "accepted_at": "2026-08-13T06:20:36Z"
   },
   "rollback_plan": {"last_stable_baseline": "1.9.0", "build_id": "gp-190-20260812-1"},
   "metadata_schema": 62
