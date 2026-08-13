@@ -84,13 +84,18 @@ production long-run acceptance is pending.
 - expand deterministic fixtures for spelling, punctuation and marketplace edge cases;
 - keep catalog, collection, valuation and deal decisions in consuming clients.
 
-Current status: **1.9.2 release candidate** (2026-08-13), production acceptance
-pending; 1.9.1 is the accepted stable baseline and the rollback target. 1.9.2
-lets a blocked Vinted resume: the anonymous session limit is volume-based
-(~250 listings per bootstrap) and every fallback call bootstraps fresh, so a
-blocked source now stays in the rotation, waits the longer retry cooldown
-(60s) and retries the same page up to twice before it honestly ends blocked.
-A successful resume resets the retry budget.
+Current status: **1.9.2 stable and production-accepted** (2026-08-13); 1.9.1
+is the rollback target. 1.9.2 lets a blocked Vinted resume, and the
+acceptance run `snes` (7050 results, 494 packets) proved the mechanism: the
+first blockade was reopened 67s later by the retry with a fresh bootstrap
+(two more ok packets, retry budget reset), the second blockade survived both
+attempts and the source ended honestly blocked. Total Vinted yield stayed at
+~250 listings — the volume budget appears to be cumulative across bootstraps,
+so the resume recovers individual packets but does not lift the ceiling. If
+more yield is needed, a longer retry cooldown learned from event logs is the
+next measurable lever. The deploy flakiness (Pyodide download, `refused
+stream`) struck a second time and the deploy step now retries up to three
+times.
 
 1.9.1 (accepted 2026-08-13, run `levis 501 w34 l34`, 4770 unique
 results, no retries) showed Kleinanzeigen ending truthfully with

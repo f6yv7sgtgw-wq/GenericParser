@@ -155,7 +155,20 @@ jobs:
             sleep 5
           done
       - name: Deploy Python Worker
-        run: uv run --group cloudflare pywrangler deploy
+        # Der Pyodide-Download von GitHub ist zweimal transient gescheitert
+        # (`stream error received: refused stream`, Läufe 31640299495 und
+        # 31675450576). Beim zweiten Mal war der Upload bereits durch, nur die
+        # Live-Prüfungen liefen nie. Deshalb der in docs/HANDOVER-1.9.0.md
+        # vorgesehene Retry um genau diesen Schritt.
+        run: |
+          for attempt in 1 2 3; do
+            if uv run --group cloudflare pywrangler deploy; then
+              exit 0
+            fi
+            echo "pywrangler deploy attempt ${attempt} failed" >&2
+            sleep $((attempt * 15))
+          done
+          exit 1
       - name: Verify live release identity and eBay secret bindings
         env:
           EXPECTED_VERSION: ${{ steps.release.outputs.version }}
