@@ -84,8 +84,16 @@ production long-run acceptance is pending.
 - expand deterministic fixtures for spelling, punctuation and marketplace edge cases;
 - keep catalog, collection, valuation and deal decisions in consuming clients.
 
-Current status: **1.9.5 stable and production-accepted** (2026-08-13); 1.9.4
-is the rollback target. 1.9.5
+Current status: **2.0.0 release candidate** (2026-08-13), production acceptance
+pending; 1.9.5 is the accepted stable baseline and the rollback target. 2.0.0
+closes the project with a final UI polish for desktop and mobile: footer and
+manifest drop the historical "Mobile" branding, the search summary keeps
+German noun capitalisation ("letzte 90 Tage"), result cards stretch per grid
+row with the "Anzeige öffnen" footer pinned to the card end, and the result
+filter reset stays on one line on narrow screens. Search, sources and
+contracts are unchanged.
+
+1.9.5
 implements the consequence of the depth measurement: an empty Vinted catalog
 page beyond the first (no challenge) is a natural source end — `status:
 empty`, reason `vinted_anonymous_depth_reached`, no retries, no pointless

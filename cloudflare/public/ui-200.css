@@ -1,0 +1,25 @@
+/* 2.0: letzter UI-Feinschliff für Desktop und Mobile. */
+
+/* Trefferkarten: Karten einer Rasterzeile strecken sich auf gleiche Höhe
+   (statt align-items: start aus ui-134), und die Fußzeile mit
+   „Anzeige öffnen" sitzt am Kartenende — die Buttons schließen in jeder
+   Zeile bündig ab, statt mit der Titel- und Badge-Länge zu wandern. */
+.results {
+  align-items: stretch;
+}
+
+.listing-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.listing-footer {
+  margin-top: auto;
+  padding-top: 11px;
+}
+
+/* „Alle zurücksetzen" bleibt auf schmalen Screens einzeilig. */
+.filter-reset {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
