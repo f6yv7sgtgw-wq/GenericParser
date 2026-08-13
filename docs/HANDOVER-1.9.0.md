@@ -144,13 +144,20 @@ Bootstrap), nicht ratenbasiert. **In 1.9.2 umgesetzt:** Eine blockierte
 Vinted-Quelle endet nicht mehr sofort, sondern bleibt in der Rotation und
 versucht nach der Retry-Abklingzeit (60 s) dieselbe Seite erneut — der
 Fallback-Pfad bootstrappt bei jedem Aufruf ohnehin frisch, ein erneuter
-Versuch ist also automatisch ein erneuter Bootstrap. Höchstens zwei Anläufe,
-danach ehrlich `blocked`. **Die 1.9.2-Abnahme hat es gemessen:** Die erste
-Blockade wurde nach 67 s wiedereröffnet (zwei weitere Pakete), die zweite
-überstand beide Anläufe. Die Gesamtausbeute blieb bei ~250 Treffern — das
-Volumenbudget wirkt kumulativ über Bootstraps hinweg. Falls mehr Ausbeute
-nötig ist: längere Retry-Abklingzeit, aus den Blockade-Zeitstempeln der
-Eventlogs zu lernen.
+Versuch ist also automatisch ein erneuter Bootstrap. Höchstens zwei Anläufe
+(60 s, dann 120 s), danach ehrlich `blocked`. **Abschließend vermessen
+(Diagnoselauf 2026-08-13):** Ein reiner API-Lauf ohne jede
+Hintergrund-Anreicherung traf exakt dieselbe Wand — 10 Katalogseiten, 250
+Treffer, Blockade auf Seite 10, beide Anläufe erfolglos. Die Anreicherung ist
+entlastet; die Grenze ist die **anonyme Blättertiefe von ~10 Seiten**, kein
+Volumen- oder Ratenbudget. Zwei Blockade-Varianten: `vinted_browser_access_limited`
+(transient — öffnete im 1.9.2-Lauf einmal nach 67 s wieder) und
+`no_public_listings_parsed` ab Seite 10 (Tiefenende — öffnet nie). Kandidat
+für 1.9.5: das Tiefenende als natürliches `source_complete` behandeln
+(„anonyme Blättertiefe erreicht") statt ~3 Minuten aussichtslos zu warten;
+Retries nur noch für die transiente Variante. Strukturell macht die
+1.9-Jobs-Linie („nur neue Angebote", Vinted sortiert `newest_first`) die
+Tiefengrenze bedeutungslos.
 
 **Ungleiche Schrittweiten.** Der Turnus liefert 7/25/25 pro Runde. Gleichziehen
 beim Abruf ist teuer (Kleinanzeigen bräuchte drei bis vier Abrufe je Zug). Falls

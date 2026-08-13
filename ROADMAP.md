@@ -89,10 +89,23 @@ is the rollback target. 1.9.4
 aligns the results area with the search mask width (the 1.3.4 breakout to
 1460px left a fifth card column overhanging on wide monitors).
 
+The Vinted ceiling is now fully explained (diagnostic run, 2026-08-13): a
+vinted-only API run **without any browser background enrichment** hit exactly
+the same wall — 10 catalog pages, 250 listings, blocked on page 10, both
+staggered retries (60s/120s) unsuccessful. The enrichment traffic is
+exonerated; the limit is the **anonymous catalog depth of ~10 pages**, not a
+volume or rate budget. Two block flavours exist in the logs:
+`vinted_browser_access_limited` (transient — this one reopened once after
+67s in the 1.9.2 run) and `no_public_listings_parsed` at page ≥ 10 (the
+depth end — never reopens). Consequences: (a) a candidate 1.9.5 could treat
+the depth end as a natural `source_complete` ("anonyme Blättertiefe
+erreicht") instead of spending ~3 minutes on hopeless retries, keeping
+retries only for the transient flavour; (b) the structural answer remains
+the 1.9 server-side jobs line — Vinted sorts `newest_first`, so periodic
+"only new offers" runs make the 10-page depth irrelevant.
+
 The 1.9.3 acceptance run `f zero snes` proved the staggered
-retries (measured 64.7s and 124.9s) — Vinted did not reopen, so the ~250
-listing volume ceiling is marketplace-hard within ~3 minutes and even longer
-waits would stretch runs disproportionately. 1.9.3
+retries (measured 64.7s and 124.9s) — Vinted did not reopen. 1.9.3
 adds a listing-age window as a regular search criterion (browser defaults to
 the last 90 days with options from 15 days to "all"; additive `max_age_days`
 with default null in the contracts; undated listings always pass), staggers
