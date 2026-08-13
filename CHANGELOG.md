@@ -9,7 +9,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - **App-Icon fürs iOS-Homescreen:** Das gelieferte Searcherix-Bild ist als `apple-touch-icon` (180 px, vollflächig auf dem Marken-Navy) plus Manifest-Icons (192/512 px, dazu eine maskable-Variante mit Schutzzone) eingebunden; die PWA-Metatags für iOS (`apple-mobile-web-app-title` etc.) sind gesetzt.
 - Rein kosmetisch/PWA-seitig — Suche, Quellen, Verträge und Worker-Identität (`/health`, `/version`) unverändert; deshalb **Version 2.0.0, Build 2** (`gp-200-20260813-2`).
 - Neue Suite `tests/js/searcherix-200-2.test.mjs` (3); drei ältere Header-Tests auf die Searcherix-Realität nachgeführt.
-- Produktionsabnahme: ausstehend. Prüfpunkt: Suche und Favoriten zeigen überall Searcherix und nirgends GenericParser oder eine Version; Log & Diagnose zeigt weiterhin Version und Build; „Zum Home-Bildschirm" auf iOS installiert die App als „Searcherix" mit dem neuen Icon. Rollback-Ziel: 2.0.0 Build 1 / `gp-200-20260813-1`.
+- Produktionsabnahme erfolgreich: Deploy-Workflow `31689972940` grün auf Commit `9b9d700217f4c47ec55f4ae1a1095aa10976fe33`; Nutzer bestätigt die iOS-Installation über „Zum Home-Bildschirm" als „Searcherix" mit dem neuen Icon. Rollback-Ziel: 2.0.0 Build 1 / `gp-200-20260813-1`.
 
 ## 2.0.0 – 2026-08-13 – Projektabschluss mit letztem UI-Feinschliff
 
