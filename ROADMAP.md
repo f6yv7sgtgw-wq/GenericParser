@@ -84,8 +84,8 @@ production long-run acceptance is pending.
 - expand deterministic fixtures for spelling, punctuation and marketplace edge cases;
 - keep catalog, collection, valuation and deal decisions in consuming clients.
 
-Current status: **1.9.4 release candidate** (2026-08-13), production acceptance
-pending; 1.9.3 is the accepted stable baseline and the rollback target. 1.9.4
+Current status: **1.9.4 stable and production-accepted** (2026-08-13); 1.9.3
+is the rollback target. 1.9.4
 aligns the results area with the search mask width (the 1.3.4 breakout to
 1460px left a fifth card column overhanging on wide monitors).
 
