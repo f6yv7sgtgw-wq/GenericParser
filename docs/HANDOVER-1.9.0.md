@@ -136,11 +136,15 @@ nach 11, 6 und 4 Paketen blockiert (kumulatives Zeitfenster, keine
 Momentanrate; sequenzielle Suche hälfe nicht). Seit 1.9.1 lässt die Rotation
 Vinted aussetzen, bis 20 Sekunden seit dem letzten Vinted-Paket vergangen
 sind; ist nur noch Vinted offen, wartet der Browser sichtbar über den
-additiven `pacing`-Hinweis. **Offen bleibt:** die tatsächliche Fenstergröße
-aus Blockade-Zeitstempeln vermessen (die 20 s sind eine erste Näherung) und
-prüfen, ob ein erneuter Bootstrap nach Ablauf die Quelle wieder öffnet — dann
-Wiederaufnahme statt endgültigem `blocked`
-(`pocs/vinted-browser/src/index.js`).
+additiven `pacing`-Hinweis. **Der 1.9.1-Abnahmelauf hat die offene Frage
+entschieden:** Trotz gemessener 25–27 s zwischen den Vinted-Paketen blockierte
+die Quelle nach 10 vollen Paketen / exakt 250 Treffern — dieselbe Ausbeute wie
+ohne Schonfrist. Das Limit ist **volumenbasiert** (~250 Treffer je anonymem
+Bootstrap), nicht ratenbasiert. Der nächste Hebel (Kandidat für 1.9.2) ist ein
+**erneuter Session-Bootstrap** beim Erreichen des Limits, damit die Quelle
+weiterläuft statt endgültig `blocked` zu enden
+(`pocs/vinted-browser/src/index.js`); der Abstand allein erhöht die Ausbeute
+nicht, schont aber weiterhin die Zugriffsfrequenz.
 
 **Ungleiche Schrittweiten.** Der Turnus liefert 7/25/25 pro Runde. Gleichziehen
 beim Abruf ist teuer (Kleinanzeigen bräuchte drei bis vier Abrufe je Zug). Falls

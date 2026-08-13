@@ -84,8 +84,11 @@ production long-run acceptance is pending.
 - expand deterministic fixtures for spelling, punctuation and marketplace edge cases;
 - keep catalog, collection, valuation and deal decisions in consuming clients.
 
-Current status: **1.9.1 release candidate** (2026-08-12), production acceptance
-pending; 1.9.0 is the accepted stable baseline and the rollback target. 1.9.1
+Current status: **1.9.1 stable and production-accepted** (2026-08-13); 1.9.0
+is the rollback target. The acceptance run `levis 501 w34 l34` (4770 unique
+results, no retries) showed Kleinanzeigen ending truthfully with
+`source_complete` after 5 packets, eBay running 219 packets to its real
+natural end, and Vinted packets spaced 25–27s apart as designed. 1.9.1
 implements the Vinted rotation cooldown (20s between Vinted packets, the other
 sources rotate without pauses, a pacing hint lets the browser wait visibly
 when only Vinted remains), corrects the per-source stop reason — the
@@ -105,10 +108,12 @@ are covered in the title and maps low coverage to red/yellow additively —
 never silently hiding a result. The acceptance run `lemmings snes` returned
 249 results with 97 marked red and hidden only by the status filter.
 
-Still open around the Vinted window: measure the actual window size from
-timestamped blocked runs, and check whether a fresh session bootstrap after
-expiry reopens the source (then a resume attempt beats a final `blocked`).
-The 20s cooldown is a first approximation to be sharpened from event logs.
+The Vinted question is now measured, not guessed: despite the 25–27s spacing
+the source still blocked after 10 full packets / exactly 250 listings — the
+same yield as without the cooldown. The anonymous session limit is
+volume-based (~250 listings per bootstrap), not rate-based. The next lever
+(candidate for 1.9.2) is a fresh session bootstrap once the limit is hit,
+so the source resumes instead of ending in a final `blocked`.
 
 Earlier status: 1.8.6 is the accepted stable
 baseline and the rollback target. 1.8.7 records why each source stops and
