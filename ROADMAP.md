@@ -84,8 +84,17 @@ production long-run acceptance is pending.
 - expand deterministic fixtures for spelling, punctuation and marketplace edge cases;
 - keep catalog, collection, valuation and deal decisions in consuming clients.
 
-Current status: **1.9.2 stable and production-accepted** (2026-08-13); 1.9.1
-is the rollback target. 1.9.2 lets a blocked Vinted resume, and the
+Current status: **1.9.3 release candidate** (2026-08-13), production acceptance
+pending; 1.9.2 is the accepted stable baseline and the rollback target. 1.9.3
+adds a listing-age window as a regular search criterion (browser defaults to
+the last 90 days with options from 15 days to "all"; additive `max_age_days`
+with default null in the contracts; undated listings always pass), staggers
+the Vinted block retries (60s, then 120s, then a final honest `blocked`), and
+makes the per-source status describe its lifecycle — not started, working,
+completed, plus errors and warnings — instead of announcing "Erfolgreich"
+after every intermediate packet.
+
+1.9.2 (accepted 2026-08-13) lets a blocked Vinted resume, and the
 acceptance run `snes` (7050 results, 494 packets) proved the mechanism: the
 first blockade was reopened 67s later by the retry with a fresh bootstrap
 (two more ok packets, retry budget reset), the second blockade survived both

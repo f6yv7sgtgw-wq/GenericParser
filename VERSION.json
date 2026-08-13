@@ -1,8 +1,8 @@
 {
   "product": "GenericParser",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "package_version": "dynamic:generic_parser.release_identity.VERSION",
-  "build_id": "gp-192-20260813-1",
+  "build_id": "gp-193-20260813-1",
   "identity_source": "src/generic_parser/release_identity.py",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
@@ -18,8 +18,8 @@
   "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+mobile-transport-recovery+deferred-vinted-details+responsive-web-ui-162+signed-continuations-v2+vinted-size-normalization+default-auction-search-with-result-filter+parallel-vinted-background-batches+source-neutral-condition-delivery-codes+derived-bundle-listings+modern-search-mask+round-robin-source-rotation",
   "release_date": "2026-08-13",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "stable",
-  "purpose": "let a blocked Vinted resume instead of ending for good: the anonymous session limit is volume-based (~250 listings per bootstrap) and every fallback call bootstraps fresh, so a blocked source now retries the same page after a longer cooldown, bounded to two attempts, before it honestly ends blocked",
+  "status": "release-candidate",
+  "purpose": "stagger the Vinted block retries (60s then 120s, then give up), add a listing-age window as a regular search criterion (browser defaults to the last 90 days, additive max_age_days in the contracts, listings without a date always pass), and make the per-source status honest about its lifecycle: not started, working, completed, plus errors and warnings",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted", "ebay"],
@@ -138,13 +138,16 @@
     "enrichment_rescore_applies_relevance": "required",
     "runtime_loader_fallback_logged": "required",
     "vinted_block_retry_limit": 2,
-    "vinted_retry_cooldown_seconds": 60,
+    "vinted_retry_cooldown_schedule_seconds": [60, 120],
     "vinted_blocked_source_resumes": "required",
-    "production_acceptance": "passed",
-    "production_commit": "1fd1cfe25251fdef0ce858eac797c1b2cc829d45",
-    "production_workflow_run": 31675450576,
-    "accepted_at": "2026-08-13T07:22:03Z"
+    "max_age_days_criterion": "required",
+    "max_age_days_browser_default": 90,
+    "max_age_days_contract_default": null,
+    "undated_listings_pass_age_window": "required",
+    "lifecycle_source_status": "required",
+    "deploy_step_retries": 3,
+    "production_acceptance": "pending"
   },
-  "rollback_plan": {"last_stable_baseline": "1.9.1", "build_id": "gp-191-20260812-1"},
-  "metadata_schema": 63
+  "rollback_plan": {"last_stable_baseline": "1.9.2", "build_id": "gp-192-20260813-1"},
+  "metadata_schema": 64
 }

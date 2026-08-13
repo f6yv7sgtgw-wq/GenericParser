@@ -39,6 +39,8 @@ class ModuleSearchProfile(BaseModel):
     model_patterns: list[str] = Field(default_factory=list)
     brands: list[str] = Field(default_factory=list)
     max_price: float | None = Field(default=None, ge=0)
+    # Additiv seit 1.9.3; None heißt wie bisher: alle Anzeigen, egal wie alt.
+    max_age_days: int | None = Field(default=None, ge=1, le=3650)
     market_value: float | None = Field(default=None, ge=0)
     postal_code: str | None = None
     location_id: int | None = Field(default=None, gt=0)
@@ -116,6 +118,7 @@ class ModuleSearchProfile(BaseModel):
             "model_patterns": self.model_patterns,
             "brands": self.brands,
             "max_price": self.max_price,
+            "max_age_days": self.max_age_days,
             "market_value": self.market_value,
             "postal_code": self.postal_code,
             "location_id": self.location_id,
