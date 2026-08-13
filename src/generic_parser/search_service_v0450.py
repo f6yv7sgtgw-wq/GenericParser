@@ -33,6 +33,7 @@ from .product_classification import (
     apply_classification_metadata,
     classify_listing,
 )
+from .listing_age import apply_age_evaluation, evaluate_listing_age
 from .relevance import (
     apply_relevance_evaluation,
     apply_relevance_metadata,
@@ -44,6 +45,8 @@ class SearchRequest(reference.SearchRequest):
     """Active flat request with the additive eBay auction switch."""
 
     include_ebay_auctions: bool = False
+    # Additiv seit 1.9.3: Zeitraum in Tagen; None heißt alle Anzeigen.
+    max_age_days: int | None = None
 
 
 _MULTI_SOURCES = {"auto", "multi-source", "all", "both"}
@@ -110,6 +113,12 @@ def _decorate_listing(listing: dict[str, Any], payload: SearchRequest) -> dict[s
     evaluation = reference._evaluate(listing, payload)
     evaluation = apply_classification_evaluation(evaluation, classification)
     evaluation = apply_relevance_evaluation(evaluation, relevance)
+    evaluation = apply_age_evaluation(
+        evaluation,
+        evaluate_listing_age(
+            listing.get("posted_at"), getattr(payload, "max_age_days", None)
+        ),
+    )
     listing["traffic_light"] = evaluation
     listing["match"] = {
         "listing_class": evaluation["label"],

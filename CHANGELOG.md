@@ -2,6 +2,15 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.9.3 – 2026-08-13 – Zeitraum-Kriterium, gestaffelte Vinted-Anläufe, ehrlicher Quellen-Lebenszyklus
+
+- **Zeitraum als Suchkriterium.** Die Marktplätze führen teils jahrealte Festpreisangebote (im Lemmings-Lauf standen eBay-Anzeigen von 2017). Die Suchmaske startet jetzt mit **„Letzte 90 Tage"**; wer weiter zurück will, stellt das vorher um: 15/30/60/90/120/180 Tage, letztes Jahr oder alle Anzeigen. Zu alte Treffer werden über das harte Kriterium „Zeitraum" Rot — keine stille Kürzung, der Statusfilter zeigt sie weiterhin. **Anzeigen ohne lesbares Einstelldatum werden bewusst durchgelassen** (betrifft vor allem Vinted): Ein Filter, der nichts prüfen kann, darf nichts aussortieren.
+- Im Vertrag ist das Feld additiv: `filters.max_age_days` in module-v2 (Default `null` = alle Anzeigen — bestehende API-Nutzer sehen keine Verhaltensänderung), durchgereicht über das v1-Profil bis in den Suchkern; OpenAPI nachgeführt.
+- **Vinted-Anläufe gestaffelt:** erster erneuter Anlauf nach 60 s (öffnete die Quelle im 1.9.2-Abnahmelauf einmal wieder), zweiter nach 120 s, danach endgültig `blocked`. Der `retry`-Status und der `pacing`-Hinweis tragen die jeweils gültige Stufe.
+- **Quellen-Status benennt den Lebenszyklus:** „Noch nicht gestartet" → „Arbeitet" → „Abgeschlossen" statt des verwirrenden „Erfolgreich" nach jedem Zwischenpaket. Fehler und Warnungen werden ausgewiesen („Blockiert · neuer Anlauf 1/2", „Gedrosselt", „Zeitüberschreitung"), der volle Grund hängt als Hover-Detail an der Zeile, und ein unterbrochener Lauf hinterlässt „Angehalten" statt eines falschen Abschlusses.
+- Neue Suiten `tests/test_release_193.py` (11) und `tests/js/source-progress-193.test.mjs` (5).
+- Produktionsabnahme: ausstehend. Prüfpunkte: Eine Standardsuche zeigt alte eBay-Anzeigen (>90 Tage) auf Rot; „Alle Anzeigen" stellt das bisherige Verhalten her; die Quellenleiste durchläuft sichtbar „Noch nicht gestartet"/„Arbeitet"/„Abgeschlossen"; eine Vinted-Blockade wartet erst 60 s, dann 120 s. Rollback-Ziel: 1.9.2 / `gp-192-20260813-1`.
+
 ## 1.9.2 – 2026-08-13 – Blockiertes Vinted kommt wieder, statt endgültig zu enden
 
 - Der 1.9.1-Abnahmelauf hat belegt: Das anonyme Vinted-Sitzungslimit ist **volumenbasiert** (~250 Treffer je Bootstrap) — mehr Abstand erhöht die Ausbeute nicht. Zugleich bootstrappt der Fallback-Pfad ohnehin **bei jedem Aufruf frisch** (neuer Client, neue Cookies). Ein erneuter Versuch ist also automatisch ein erneuter Bootstrap.

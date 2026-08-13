@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "GenericParser Module API v2",
-    "version": "1.9.2",
+    "version": "1.9.3",
     "description": "Project-independent, packet-based marketplace search for Kleinanzeigen, Vinted and eBay. Module API v1 remains available."
   },
   "servers": [
@@ -99,6 +99,7 @@
         "additionalProperties": false,
         "properties": {
           "max_price": {"type": ["number", "null"], "minimum": 0},
+          "max_age_days": {"type": ["integer", "null"], "minimum": 1, "maximum": 3650, "default": null, "description": "Additive since 1.9.3: only listings published within the last N days pass; null keeps every listing regardless of age. Listings without a readable publication date always pass."},
           "accept_bundles": {"type": "boolean", "default": false},
           "accept_incomplete": {"type": "boolean", "default": false},
           "include_auctions": {"type": "boolean", "default": false},

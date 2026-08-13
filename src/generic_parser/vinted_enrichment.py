@@ -14,6 +14,7 @@ from .product_classification import (
     apply_classification_metadata,
     classify_listing,
 )
+from .listing_age import apply_age_evaluation, evaluate_listing_age
 from .relevance import (
     apply_relevance_evaluation,
     apply_relevance_metadata,
@@ -80,6 +81,12 @@ def _decorate(listing: dict[str, Any], payload: Any) -> dict[str, Any]:
     evaluation = reference._evaluate(listing, payload)
     evaluation = apply_classification_evaluation(evaluation, classification)
     evaluation = apply_relevance_evaluation(evaluation, relevance)
+    evaluation = apply_age_evaluation(
+        evaluation,
+        evaluate_listing_age(
+            listing.get("posted_at"), getattr(payload, "max_age_days", None)
+        ),
+    )
     listing["traffic_light"] = evaluation
     listing["match"] = {
         "listing_class": evaluation["label"],

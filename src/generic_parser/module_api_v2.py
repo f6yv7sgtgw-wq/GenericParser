@@ -38,10 +38,11 @@ VINTED_COOLDOWN_SECONDS = 20.0
 # Das anonyme Sitzungslimit ist volumenbasiert (~250 Treffer je Bootstrap,
 # 1.9.1-Abnahmelauf). Jeder Fallback-Aufruf bootstrappt ohnehin frisch —
 # eine blockierte Quelle wird deshalb nicht endgültig beendet, sondern nach
-# einer längeren Abklingzeit begrenzt oft erneut versucht. Erst wenn auch
-# das scheitert, endet sie ehrlich mit `blocked`.
-VINTED_BLOCK_RETRY_LIMIT = 2
-VINTED_RETRY_COOLDOWN_SECONDS = 60.0
+# einer wachsenden Abklingzeit erneut versucht: erster Anlauf nach 60 s
+# (öffnete die Quelle im 1.9.2-Abnahmelauf einmal wieder), zweiter nach
+# 120 s. Scheitert auch der, endet sie ehrlich mit `blocked`.
+VINTED_RETRY_COOLDOWN_SCHEDULE = (60.0, 120.0)
+VINTED_BLOCK_RETRY_LIMIT = len(VINTED_RETRY_COOLDOWN_SCHEDULE)
 SourceName = Literal["kleinanzeigen", "vinted", "ebay"]
 SortName = Literal["relevance", "date", "price_asc", "price_desc"]
 
@@ -119,6 +120,8 @@ class V2Filters(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     max_price: float | None = Field(default=None, ge=0)
+    # Additiv seit 1.9.3; None heißt wie bisher: alle Anzeigen, egal wie alt.
+    max_age_days: int | None = Field(default=None, ge=1, le=3650)
     accept_bundles: bool = False
     accept_incomplete: bool = False
     include_auctions: bool = False
@@ -158,6 +161,7 @@ class V2SearchDefinition(BaseModel):
             model_patterns=self.criteria.model_patterns,
             brands=self.criteria.brands,
             max_price=self.filters.max_price,
+            max_age_days=self.filters.max_age_days,
             postal_code=self.location.postal_code,
             location_id=self.location.location_id,
             radius_km=self.location.radius_km,
@@ -495,12 +499,16 @@ def normalize_source_status(source: str, raw: dict[str, Any], listing_count: int
 
 
 def _vinted_cooldown_remaining(
-    last_at: dict[str, Any], now: float, *, retry_pending: bool = False
+    last_at: dict[str, Any], now: float, *, retry_attempt: int = 0
 ) -> float:
     last = last_at.get(VINTED_SOURCE)
     if last is None:
         return 0.0
-    window = VINTED_RETRY_COOLDOWN_SECONDS if retry_pending else VINTED_COOLDOWN_SECONDS
+    if retry_attempt > 0:
+        index = min(retry_attempt, len(VINTED_RETRY_COOLDOWN_SCHEDULE)) - 1
+        window = VINTED_RETRY_COOLDOWN_SCHEDULE[index]
+    else:
+        window = VINTED_COOLDOWN_SECONDS
     try:
         return max(0.0, window - (now - float(last)))
     except (TypeError, ValueError):
@@ -563,10 +571,11 @@ def _advance_state(
     updated["source_last_at"] = last_at
     updated.pop("pacing", None)
 
-    # Ein anstehender Blockade-Retry wartet länger als die normale Schonfrist.
-    retry_pending = int(
+    # Ein anstehender Blockade-Retry wartet länger als die normale Schonfrist
+    # (Staffel 60 s, 120 s je Anlauf).
+    retry_attempt = int(
         (updated.get("source_retry_counts") or {}).get(VINTED_SOURCE) or 0
-    ) > 0
+    )
 
     next_index = None
     deferred_index = None
@@ -576,7 +585,7 @@ def _advance_state(
         if name in done:
             continue
         if name == VINTED_SOURCE and _vinted_cooldown_remaining(
-            last_at, now_ts, retry_pending=retry_pending
+            last_at, now_ts, retry_attempt=retry_attempt
         ) > 0:
             # Vinted lässt seinen Zug aus, solange die Abklingzeit läuft.
             # Bleibt keine andere Quelle offen, kommt Vinted trotzdem an die
@@ -590,7 +599,7 @@ def _advance_state(
     if next_index is None and deferred_index is not None:
         next_index = deferred_index
         remaining = _vinted_cooldown_remaining(
-            last_at, now_ts, retry_pending=retry_pending
+            last_at, now_ts, retry_attempt=retry_attempt
         )
         if remaining > 0:
             updated["pacing"] = {
@@ -669,7 +678,7 @@ async def execute_v2_packet(
                 "retry": {
                     "attempt": attempts + 1,
                     "limit": VINTED_BLOCK_RETRY_LIMIT,
-                    "cooldown_seconds": VINTED_RETRY_COOLDOWN_SECONDS,
+                    "cooldown_seconds": VINTED_RETRY_COOLDOWN_SCHEDULE[attempts],
                 },
             }
             page_complete = False

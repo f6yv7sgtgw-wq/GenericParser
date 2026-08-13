@@ -133,7 +133,9 @@
       + ['max-price', 'postal-code', 'location-id', 'radius-km', 'max-results'].filter(id => document.getElementById(id)?.value?.trim()).length
       + ['accept-bundles', 'accept-incomplete'].filter(id => document.getElementById(id)?.checked).length
       // Auctions are searched by default; only switching them off is a deviation.
-      + (document.getElementById('include-ebay-auctions')?.checked === false ? 1 : 0);
+      + (document.getElementById('include-ebay-auctions')?.checked === false ? 1 : 0)
+      // Der Zeitraum ist ein aktives Kriterium, sobald er nicht "Alle Anzeigen" ist.
+      + (document.getElementById('max-age-days')?.value ? 1 : 0);
     const badge = document.getElementById('criteria-count');
     if (badge) badge.textContent = count ? `${count} aktiv` : 'optional';
   }
@@ -151,6 +153,8 @@
     if (required) parts.push(`${required} Pflichtbegriff${required === 1 ? '' : 'e'}`);
     if (excluded) parts.push(`${excluded} Ausschlussbegriff${excluded === 1 ? '' : 'e'}`);
     if (maxPrice) parts.push(`bis ${maxPrice} €`);
+    const maxAge = document.getElementById('max-age-days');
+    if (maxAge?.value) parts.push(maxAge.selectedOptions[0]?.textContent?.trim().toLocaleLowerCase('de-DE') || `letzte ${maxAge.value} Tage`);
     if (count && count !== '0') parts.push(`${count} sichtbar`);
     const target = document.getElementById('search-summary');
     if (target) target.textContent = query ? parts.join(' · ') : 'Suchbegriff eingeben und eine oder alle Plattformen auswählen.';
@@ -335,19 +339,31 @@
     }
   }
 
-  function sourceStatusLabel(status) {
+  // Der Lebenszyklus einer Quelle wird ehrlich benannt: „Erfolgreich" nach
+  // jedem Zwischenpaket war verwirrend, solange weiter Treffer geholt wurden.
+  function sourceStatusLabel(state) {
+    if (state.status === 'disabled') return 'Nicht ausgewählt';
+    if (state.status === 'idle') return 'Noch nicht gestartet';
+    if (state.status === 'stopped') return 'Angehalten';
+    if (state.retry) return `Blockiert · neuer Anlauf ${state.retry.attempt}/${state.retry.limit}`;
+    if (state.ended) {
+      return {
+        ok: 'Abgeschlossen',
+        empty: 'Abgeschlossen · keine Treffer',
+        partial: 'Abgeschlossen · unvollständig',
+        blocked: 'Blockiert',
+        rate_limited: 'Gedrosselt',
+        timeout: 'Zeitüberschreitung',
+        unavailable: 'Nicht erreichbar'
+      }[state.status] || 'Abgeschlossen';
+    }
     return {
-      idle: 'Noch nicht gestartet',
-      active: 'Wird durchsucht',
-      ok: 'Erfolgreich',
-      empty: 'Keine Treffer',
-      partial: 'Teilweise verfügbar',
-      blocked: 'Momentan eingeschränkt',
-      rate_limited: 'Kurzzeitig begrenzt',
-      timeout: 'Zeitüberschreitung',
-      unavailable: 'Momentan nicht erreichbar',
-      disabled: 'Nicht ausgewählt'
-    }[status] || 'Bereit';
+      partial: 'Arbeitet · teilweise verfügbar',
+      blocked: 'Arbeitet · zuletzt eingeschränkt',
+      rate_limited: 'Arbeitet · zuletzt gedrosselt',
+      timeout: 'Arbeitet · zuletzt Zeitüberschreitung',
+      unavailable: 'Arbeitet · zuletzt nicht erreichbar'
+    }[state.status] || 'Arbeitet';
   }
 
   function renderSourceProgress() {
@@ -356,20 +372,23 @@
       if (!row) continue;
       const state = sourceState.get(source) || {status: 'idle', count: 0};
       row.classList.remove('is-active', 'is-ok', 'is-degraded', 'is-disabled');
-      if (state.status === 'active') row.classList.add('is-active');
-      else if (['ok', 'empty'].includes(state.status)) row.classList.add('is-ok');
-      else if (state.status === 'disabled') row.classList.add('is-disabled');
-      else if (state.status !== 'idle') row.classList.add('is-degraded');
-      row.querySelector('span:not(.source-progress-dot)').textContent = sourceStatusLabel(state.status);
+      const warning = Boolean(state.retry) || ['blocked', 'rate_limited', 'timeout', 'unavailable', 'partial'].includes(state.status);
+      if (state.status === 'disabled') row.classList.add('is-disabled');
+      else if (warning) row.classList.add('is-degraded');
+      else if (state.ended) row.classList.add('is-ok');
+      else if (!['idle', 'stopped'].includes(state.status)) row.classList.add('is-active');
+      // Der volle Grund (z. B. die vier Vinted-Strategien) als Hover-Detail.
+      row.title = state.reason || '';
+      row.querySelector('span:not(.source-progress-dot)').textContent = sourceStatusLabel(state);
       row.querySelector('b').textContent = String(state.count || 0);
     }
   }
 
-  function resetSourceProgress(active = true) {
+  function resetSourceProgress() {
     const selected = document.getElementById('search-source')?.value || 'auto';
     for (const source of ['kleinanzeigen', 'vinted', 'ebay']) {
       const enabled = selected === 'auto' || selected === source;
-      sourceState.set(source, {status: enabled ? (active ? 'active' : 'idle') : 'disabled', count: 0, keys: new Set()});
+      sourceState.set(source, {status: enabled ? 'idle' : 'disabled', count: 0, keys: new Set()});
     }
     renderSourceProgress();
   }
@@ -384,11 +403,25 @@
     if (listingKeys) {
       for (const key of listingKeys) if (key) keys.add(String(key));
     }
+    const sourceStatus = detail.sourceStatus || {};
     sourceState.set(source, {
       status: detail.status || 'ok',
+      ended: sourceStatus.source_complete === true || previous.ended === true,
+      retry: sourceStatus.retry || null,
+      reason: typeof sourceStatus.reason === 'string' ? sourceStatus.reason : '',
       count: listingKeys ? keys.size : Number(previous.count || 0) + Number(detail.count || 0),
       keys
     });
+    renderSourceProgress();
+  }
+
+  function finishSourceProgress(event) {
+    if (event?.detail?.running !== false) return;
+    for (const source of ['kleinanzeigen', 'vinted', 'ebay']) {
+      const state = sourceState.get(source);
+      if (!state || state.ended || ['idle', 'disabled', 'stopped'].includes(state.status)) continue;
+      sourceState.set(source, {...state, status: 'stopped'});
+    }
     renderSourceProgress();
   }
 
@@ -422,6 +455,10 @@
     for (const id of ['accept-bundles', 'accept-incomplete', 'include-ebay-auctions']) {
       document.getElementById(id)?.addEventListener('change', updateCriteriaCount);
     }
+    document.getElementById('max-age-days')?.addEventListener('change', () => {
+      updateCriteriaCount();
+      updateSearchSummary();
+    });
 
     document.getElementById('search-button')?.addEventListener('click', () => {
       saveRecent();
@@ -470,6 +507,7 @@
       event.currentTarget.setAttribute('aria-expanded', String(open));
     });
     window.addEventListener('gp-source-status', updateSourceProgress);
+    window.addEventListener('gp-search-run-state', finishSourceProgress);
     window.addEventListener('gp-chip-sync', syncEditors);
 
     const count = document.getElementById('results-count');
@@ -480,7 +518,7 @@
     }).observe(searchButton, {childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['disabled']});
   }
 
-  window.GPUI160 = {parseTermList, searchSnapshot};
+  window.GPUI160 = {parseTermList, searchSnapshot, sourceStatusLabel};
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, {once: true});
   else install();
 })();
