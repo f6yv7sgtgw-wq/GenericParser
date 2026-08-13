@@ -250,6 +250,28 @@ async def _fetch_browser_worker(query: str, page: int) -> dict[str, Any]:
         return {"listings": [], "status": "degraded", "http_status": None, "reason": "vinted_service_binding_unavailable", "url": url, "strategy": "service-binding"}
     try:
         status, data = await _binding_json_response(binding, url)
+        if status == 200 and data.get("status") == "empty" and page > 0:
+            # Der Browser-Worker hat die Seite ohne Challenge geladen und
+            # keine Anzeigen gefunden: Ab Seite 1 ist das die anonyme
+            # Blättertiefe (~10 Seiten, Diagnoselauf 2026-08-13) — ein
+            # natürliches Ende, keine Blockade. Der Public-Web-Fallback ist
+            # aus dem Worker-Netz ohnehin durchgehend gesperrt und entfällt.
+            # Seite 0 bleibt beim Fallback, damit ein Markup-Bruch sichtbar
+            # degradiert statt als "keine Treffer" durchzugehen.
+            return {
+                "listings": [],
+                "status": "empty",
+                "http_status": status,
+                "reason": "vinted_anonymous_depth_reached",
+                "url": data.get("targetUrl") or url,
+                "strategy": "service-binding",
+                "browser": data.get("browser"),
+                "component": data.get("component"),
+                "revision": data.get("revision"),
+                "complete": True,
+                "next_page": None,
+                "authoritative_empty": True,
+            }
         if status != 200 or data.get("status") != "ok":
             return {"listings": [], "status": "degraded", "http_status": status, "reason": data.get("reason") or "vinted_service_binding_unavailable", "url": url, "strategy": "service-binding", "browser": data.get("browser")}
         listings = [row for raw in (data.get("listings") or []) if (row := _normalize_browser_item(raw, query))]
@@ -413,7 +435,7 @@ async def _fetch_api(client, query, page):
 
 async def search_vinted(query: str, page: int = 0) -> dict[str, Any]:
     browser = await _fetch_browser_worker(query, page)
-    if browser.get("listings"):
+    if browser.get("listings") or browser.get("authoritative_empty"):
         return browser
     headers = {"Accept-Language": "de-DE,de;q=0.9,en;q=0.7", "User-Agent": "Mozilla/5.0 (compatible; GenericParser; +https://github.com/f6yv7sgtgw-wq/GenericParser)"}
     try:

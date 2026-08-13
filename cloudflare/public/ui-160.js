@@ -346,6 +346,11 @@
     if (state.status === 'idle') return 'Noch nicht gestartet';
     if (state.status === 'stopped') return 'Angehalten';
     if (state.retry) return `Blockiert · neuer Anlauf ${state.retry.attempt}/${state.retry.limit}`;
+    if (state.ended && state.reason === 'vinted_anonymous_depth_reached') {
+      // Kein Fehler: Vinted gibt anonym ~10 Katalogseiten her, danach ist
+      // regulär Schluss (Diagnoselauf 2026-08-13).
+      return 'Abgeschlossen · anonyme Blättertiefe erreicht';
+    }
     if (state.ended) {
       return {
         ok: 'Abgeschlossen',
