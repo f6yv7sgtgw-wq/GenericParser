@@ -9,7 +9,7 @@
   document.title = `GenericParser Log & Diagnose ${I.version}`;
   document.querySelectorAll('[data-version]').forEach(node => { node.textContent = I.version; });
   const footer = document.querySelector('footer span');
-  if (footer) footer.textContent = `GenericParser Mobile · Build ${I.buildId}`;
+  if (footer) footer.textContent = `GenericParser · Build ${I.buildId}`;
   window.GPFavorites?.updateCounts();
 
   function readKey(key) {

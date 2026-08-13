@@ -2,6 +2,16 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 2.0.0 – 2026-08-13 – Projektabschluss mit letztem UI-Feinschliff
+
+- Das Projekt schließt mit einem letzten Feinschliff der Oberfläche für Desktop und Mobile ab; Suche, Quellen und Verträge bleiben unverändert.
+- **Footer und Manifest tragen den Produktnamen:** „GenericParser · Build …" statt des historischen „GenericParser Mobile" (die App läuft längst auf allen Formfaktoren); auch der PWA-Name im Manifest folgt.
+- **Die Suchzusammenfassung schreibt korrekt:** „letzte 90 Tage" statt „letzte 90 tage" — Optionstexte werden nur noch am Satzanfang gesenkt, Substantive bleiben groß.
+- **Bündiges Trefferraster (Desktop):** Karten einer Rasterzeile strecken sich auf gleiche Höhe und „Anzeige öffnen" sitzt am Kartenende — die Buttons schließen zeilenweise bündig ab, statt mit der Titel- und Badge-Länge zu wandern.
+- **„Alle zurücksetzen" bleibt einzeilig** im Ergebnisfilter auf schmalen Screens.
+- Neue Suite `tests/js/ui-200.test.mjs` (4); alle Änderungen als additives `ui-200.css` plus drei Textstellen, kein Verhaltens- oder Vertragsbruch.
+- Produktionsabnahme: ausstehend. Prüfpunkt: Footer sagt „GenericParser · Build gp-200-20260813-1"; die Zusammenfassung einer Suche mit Zeitraum zeigt „letzte 90 Tage"; im Trefferraster enden die „Anzeige öffnen"-Buttons jeder Zeile auf gleicher Höhe; der Ergebnisfilter-Reset bricht auf Mobile nicht um. Rollback-Ziel: 1.9.5 / `gp-195-20260813-1`.
+
 ## 1.9.5 – 2026-08-13 – Die Blättertiefe ist ein Ende, kein Fehler
 
 - Der Diagnoselauf hatte es vermessen: Vinted gibt anonym ~10 Katalogseiten her — unabhängig von Tempo, Wiederanläufen und Anreicherung. Eine **leere Katalogseite ab Seite 1 ohne Challenge** gilt jetzt als das, was sie ist: das natürliche Ende der anonymen Blättertiefe (`status: empty`, `reason: vinted_anonymous_depth_reached`).

@@ -140,6 +140,12 @@
     if (badge) badge.textContent = count ? `${count} aktiv` : 'optional';
   }
 
+  function criterionCase(label) {
+    // Optionstexte wie "Letzte 90 Tage" stehen mitten im Zusammenfassungssatz:
+    // nur den ersten Buchstaben senken, Substantive bleiben groß.
+    return label ? label.charAt(0).toLocaleLowerCase('de-DE') + label.slice(1) : '';
+  }
+
   function updateSearchSummary() {
     const query = document.getElementById('query')?.value.trim();
     const source = document.getElementById('search-source')?.value || 'auto';
@@ -154,7 +160,7 @@
     if (excluded) parts.push(`${excluded} Ausschlussbegriff${excluded === 1 ? '' : 'e'}`);
     if (maxPrice) parts.push(`bis ${maxPrice} €`);
     const maxAge = document.getElementById('max-age-days');
-    if (maxAge?.value) parts.push(maxAge.selectedOptions[0]?.textContent?.trim().toLocaleLowerCase('de-DE') || `letzte ${maxAge.value} Tage`);
+    if (maxAge?.value) parts.push(criterionCase(maxAge.selectedOptions[0]?.textContent?.trim()) || `letzte ${maxAge.value} Tage`);
     if (count && count !== '0') parts.push(`${count} sichtbar`);
     const target = document.getElementById('search-summary');
     if (target) target.textContent = query ? parts.join(' · ') : 'Suchbegriff eingeben und eine oder alle Plattformen auswählen.';
@@ -523,7 +529,7 @@
     }).observe(searchButton, {childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['disabled']});
   }
 
-  window.GPUI160 = {parseTermList, searchSnapshot, sourceStatusLabel};
+  window.GPUI160 = {parseTermList, searchSnapshot, sourceStatusLabel, criterionCase};
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, {once: true});
   else install();
 })();

@@ -8,7 +8,7 @@
   const workerChip = document.getElementById('worker-version');
   if (workerChip) workerChip.textContent = I.version;
   const footerBuild = document.querySelector('footer span');
-  if (footerBuild) footerBuild.textContent = `GenericParser Mobile · Build ${I.buildId}`;
+  if (footerBuild) footerBuild.textContent = `GenericParser · Build ${I.buildId}`;
   const sourceUrl = new URL('./controller-0411.js?v=runtime-reference', location.href);
   const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
   const loadControllerSource = async () => {

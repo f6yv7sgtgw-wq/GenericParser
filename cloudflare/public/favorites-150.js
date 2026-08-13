@@ -12,7 +12,7 @@
   document.title = `GenericParser Favoriten ${identity.version}`;
   document.querySelectorAll('[data-version]').forEach(node => { node.textContent = identity.version; });
   const footer = document.querySelector('footer span');
-  if (footer) footer.textContent = `GenericParser Mobile · Build ${identity.buildId}`;
+  if (footer) footer.textContent = `GenericParser · Build ${identity.buildId}`;
 
   function formatPrice(row) {
     if (row.total_price != null) return `${money(row.total_price)} € gesamt`;
