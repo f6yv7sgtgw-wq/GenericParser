@@ -10,7 +10,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - **Bündiges Trefferraster (Desktop):** Karten einer Rasterzeile strecken sich auf gleiche Höhe und „Anzeige öffnen" sitzt am Kartenende — die Buttons schließen zeilenweise bündig ab, statt mit der Titel- und Badge-Länge zu wandern.
 - **„Alle zurücksetzen" bleibt einzeilig** im Ergebnisfilter auf schmalen Screens.
 - Neue Suite `tests/js/ui-200.test.mjs` (4); alle Änderungen als additives `ui-200.css` plus drei Textstellen, kein Verhaltens- oder Vertragsbruch.
-- Produktionsabnahme: ausstehend. Prüfpunkt: Footer sagt „GenericParser · Build gp-200-20260813-1"; die Zusammenfassung einer Suche mit Zeitraum zeigt „letzte 90 Tage"; im Trefferraster enden die „Anzeige öffnen"-Buttons jeder Zeile auf gleicher Höhe; der Ergebnisfilter-Reset bricht auf Mobile nicht um. Rollback-Ziel: 1.9.5 / `gp-195-20260813-1`.
+- Produktionsabnahme erfolgreich: Deploy-Workflow `31686914844` grün auf Commit `eb6a73ed81ce41b66e43b39207c9810b829eac88`; Nutzer bestätigt die Abnahme des UI-Feinschliffs auf Desktop und Mobile. **Damit ist das Projekt abgeschlossen.** Rollback-Ziel: 1.9.5 / `gp-195-20260813-1`.
 
 ## 1.9.5 – 2026-08-13 – Die Blättertiefe ist ein Ende, kein Fehler
 

@@ -18,7 +18,7 @@
   "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+mobile-transport-recovery+deferred-vinted-details+responsive-web-ui-162+signed-continuations-v2+vinted-size-normalization+default-auction-search-with-result-filter+parallel-vinted-background-batches+source-neutral-condition-delivery-codes+derived-bundle-listings+modern-search-mask+round-robin-source-rotation",
   "release_date": "2026-08-13",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "release-candidate",
+  "status": "stable",
   "purpose": "finish the project with a final UI polish for desktop and mobile: footer and manifest drop the historical 'Mobile' branding, the search summary keeps German noun capitalisation ('letzte 90 Tage'), result cards stretch per grid row with the 'Anzeige oeffnen' footer pinned to the card end, and the filter reset stays on one line on narrow screens",
   "worker_plan": "paid",
   "sources": {
@@ -154,7 +154,10 @@
     "search_summary_preserves_noun_case": "required",
     "result_card_footer_aligned": "required",
     "filter_reset_single_line": "required",
-    "production_acceptance": "pending"
+    "production_acceptance": "passed",
+    "production_commit": "eb6a73ed81ce41b66e43b39207c9810b829eac88",
+    "production_workflow_run": 31686914844,
+    "accepted_at": "2026-08-13T09:43:25Z"
   },
   "rollback_plan": {"last_stable_baseline": "1.9.5", "build_id": "gp-195-20260813-1"},
   "metadata_schema": 67
