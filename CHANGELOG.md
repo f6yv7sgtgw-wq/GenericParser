@@ -6,7 +6,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 
 - Die Trefferzentrale brach seit 1.3.4 bewusst auf 1460 px aus, während die Suchmaske im 1120-px-Shell bleibt — auf breiten Monitoren stand damit eine fünfte Kachelspalte rechts über (Livelauf-Befund aus der 1.9.3-Abnahme). Der Trefferbereich folgt jetzt derselben Breite wie der Rest der Seite.
 - Reiner CSS-Fix (`ui-180.css`), keine Verhaltensänderung in Suche oder Verträgen.
-- Produktionsabnahme: ausstehend. Prüfpunkt: Trefferkacheln enden rechts bündig mit der Suchmaske. Rollback-Ziel: 1.9.3 / `gp-193-20260813-1`.
+- Produktionsabnahme erfolgreich: Deploy-Workflow `31681226895` grün auf Commit `07b4290e37e45b430a381173acbdf6f51dfdf762`; Nutzer bestätigt, dass die Trefferkacheln bündig mit der Suchmaske enden. Rollback-Ziel: 1.9.3 / `gp-193-20260813-1`.
 
 ## 1.9.3 – 2026-08-13 – Zeitraum-Kriterium, gestaffelte Vinted-Anläufe, ehrlicher Quellen-Lebenszyklus
 
