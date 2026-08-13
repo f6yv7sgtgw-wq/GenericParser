@@ -18,7 +18,7 @@
   "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+mobile-transport-recovery+deferred-vinted-details+responsive-web-ui-162+signed-continuations-v2+vinted-size-normalization+default-auction-search-with-result-filter+parallel-vinted-background-batches+source-neutral-condition-delivery-codes+derived-bundle-listings+modern-search-mask+round-robin-source-rotation",
   "release_date": "2026-08-13",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "release-candidate",
+  "status": "stable",
   "purpose": "brand the PWA as Searcherix: user-facing pages drop the technical GenericParser identity (name, version badge, 'Plattformuebergreifend' eyebrow); version and build stay visible only under Log & Diagnose; the app icon set (apple-touch-icon 180, manifest 192/512 plus maskable) uses the provided Searcherix artwork",
   "worker_plan": "paid",
   "sources": {
@@ -158,7 +158,10 @@
     "version_only_in_log": "required",
     "search_eyebrow_removed": "required",
     "apple_touch_icon": "required",
-    "production_acceptance": "pending"
+    "production_acceptance": "passed",
+    "production_commit": "9b9d700217f4c47ec55f4ae1a1095aa10976fe33",
+    "production_workflow_run": 31689972940,
+    "accepted_at": "2026-08-13T10:22:03Z"
   },
   "rollback_plan": {"last_stable_baseline": "2.0.0", "build_id": "gp-200-20260813-1"},
   "metadata_schema": 68
