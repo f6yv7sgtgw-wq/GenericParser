@@ -4,7 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
-| 1.9.5 RC | `gp-195-20260813-1` | ausstehend | Anonyme Vinted-Blaettertiefe (~10 Seiten) als natuerliches Quellen-Ende: keine Retries, kein aussichtsloser Fallback, klares "Abgeschlossen - anonyme Blaettertiefe erreicht" statt "Blockiert" |
+| 1.9.5 | `gp-195-20260813-1` | `16ea151015a101275c9a7a763d77ab54faaa221d` | Anonyme Vinted-Blaettertiefe (~10 Seiten) als natuerliches Quellen-Ende: keine Retries, kein aussichtsloser Fallback, klares "Abgeschlossen - anonyme Blaettertiefe erreicht" statt "Blockiert" |
 | 1.9.4 | `gp-194-20260813-1` | `07b4290e37e45b430a381173acbdf6f51dfdf762` | Trefferzentrale buendig mit der Suchmaske statt 1.3.4-Ausbruch auf 1460 px - eine fuenfte Kachelspalte stand auf breiten Monitoren rechts ueber |
 | 1.9.3 | `gp-193-20260813-1` | `c1bdcf7bb2834e22c7fb3e8275d2876625fd079e` | Zeitraum als Suchkriterium (UI-Default 90 Tage, additives max_age_days, Anzeigen ohne Datum passieren); Vinted-Anlaeufe gestaffelt 60/120 s; Quellen-Status benennt den Lebenszyklus statt "Erfolgreich" je Zwischenpaket |
 | 1.9.2 | `gp-192-20260813-1` | `1fd1cfe25251fdef0ce858eac797c1b2cc829d45` | Blockiertes Vinted bleibt in der Rotation und versucht nach 60 s dieselbe Seite mit frischem Bootstrap erneut (max. zweimal), statt endgueltig zu enden - das Sitzungslimit ist volumenbasiert, jeder Fallback-Aufruf bootstrappt frisch |

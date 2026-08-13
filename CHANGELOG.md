@@ -9,7 +9,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - Die Retry-Staffel (60/120 s) bleibt für die transiente Variante `vinted_browser_access_limited` erhalten — die hat im 1.9.2-Lauf nachweislich einmal wieder geöffnet.
 - Seite 0 bleibt beim alten Fallback-Verhalten: Ein Markup-Bruch soll sichtbar degradieren, nicht als „keine Treffer" durchgehen.
 - Neue Suiten `tests/test_release_195.py` (4) und `tests/js/source-progress-195.test.mjs` (2).
-- Produktionsabnahme: ausstehend. Prüfpunkt: Ein Lauf über die Vinted-Tiefe hinaus endet dort ohne Wartezeiten mit „Abgeschlossen · anonyme Blättertiefe erreicht"; das Eventlog zeigt `status=empty` statt `blocked` und keinen `retry`. Rollback-Ziel: 1.9.4 / `gp-194-20260813-1`.
+- Produktionsabnahme erfolgreich: Deploy-Workflow `31683355858` grün auf Commit `16ea151015a101275c9a7a763d77ab54faaa221d`; Nutzer bestätigt die Abnahme — ein Lauf über die Vinted-Tiefe hinaus endet dort ohne Wartezeiten mit „Abgeschlossen · anonyme Blättertiefe erreicht". Rollback-Ziel: 1.9.4 / `gp-194-20260813-1`.
 
 ## 1.9.4 – 2026-08-13 – Treffer bündig mit der Suchmaske
 
