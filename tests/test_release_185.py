@@ -46,7 +46,7 @@ def _run(limits: dict[str, int], *, state: dict | None = None, sources: list[str
     state = state or _fresh_state()
     seen: dict[str, int] = {}
     order: list[str] = []
-    for _ in range(40):
+    for step in range(40):
         source = names[state["source_index"]]
         page = int(state["page"])
         seen[source] = seen.get(source, 0) + 1
@@ -60,6 +60,9 @@ def _run(limits: dict[str, int], *, state: dict | None = None, sources: list[str
             failed=False,
             degraded=False,
             listings=25,
+            # Große Zeitschritte: Die Vinted-Abklingzeit (1.9.1) ist hier nie
+            # aktiv, diese Suite prüft die reine Rotationsmechanik.
+            now=step * 60.0,
         )
         if batch_complete:
             break

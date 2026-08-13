@@ -184,7 +184,7 @@ async function handleRequest(request, env) {
     return json({
       status: 'ok',
       component: 'genericparser-ebay-notifications',
-      version: '1.9.0',
+      version: '1.9.1',
       challenge_ready: Boolean(validVerificationToken(env.EBAY_DELETION_VERIFICATION_TOKEN) && env.EBAY_DELETION_ENDPOINT_URL),
       signature_verification: 'ecdsa-public-key-api',
       persistence: 'none'

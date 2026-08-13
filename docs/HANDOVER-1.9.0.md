@@ -124,24 +124,23 @@ Vorher/Nachher lässt sich über die v2-API messen.
 
 ## 4. Weitere Verbesserungen der Suche
 
-**Kleinanzeigen-Paketbudget.** Der Lauf endete mit `packet_budget_reached` nach
-91 Treffern — es bleiben Treffer liegen, ohne dass es jemandem auffällt. Zu
-klären: Wo das Budget gesetzt wird, ob es ein Schutz gegen Sperren ist, und ob es
-angehoben oder pro Quelle unterschiedlich gefasst werden kann. Mindestens sollte
-die Oberfläche sagen, dass hier gekürzt wurde.
+**Kleinanzeigen-Paketbudget — in 1.9.1 als Reporting-Artefakt aufgeklärt.**
+`packet_budget_reached` ist der Paket-Stop-Grund des v2-Vertrags und stand bei
+jedem Zwischenpaket in der Antwort; der Browser schrieb ihn jeder Quelle zu,
+die mitten im Lauf endete. Ein Quellen-Budget gibt es nicht — Kleinanzeigen
+endete vermutlich regulär. Seit 1.9.1 trägt das v2-Paket additiv
+`source_complete`, und der Browser vergibt einen ehrlichen Endgrund.
 
-**Vinted-Sitzungslimit — eingeplant für 1.9.1.** `vinted_session_bootstrap_access_limit`
-im Browser-Worker (`pocs/vinted-browser/src/index.js`). Vinted begrenzt den
-anonymen Katalogzugriff. Ein zweiter Lauf (`zelda link to the past`, direkt
-nach dem Mario-Lauf) wurde schon nach 6 statt 11 Paketen blockiert — das
-spricht für ein kumulatives Zeitfenster-Budget, nicht für eine Momentanrate.
-Ein Zurück zur sequenziellen Suche hilft dann nicht (gleiche Gesamtzahl,
-dichter gebündelt). Beschlossener Ansatz: **bewusster Abstand nur für Vinted**
-innerhalb der Rotation — Vinted lässt seinen Zug aus, bis eine Abklingzeit
-verstrichen ist, die übrigen Quellen rotieren pausenlos weiter. Vorher zu
-klären: Fenstergröße aus mehreren Läufen mit Blockade-Zeitstempeln vermessen,
-und ob ein erneuter Bootstrap nach Ablauf die Quelle wieder öffnet (dann
-Wiederaufnahme statt endgültigem `blocked`).
+**Vinted-Sitzungslimit — Schonfrist in 1.9.1 umgesetzt.** Drei Läufe wurden
+nach 11, 6 und 4 Paketen blockiert (kumulatives Zeitfenster, keine
+Momentanrate; sequenzielle Suche hälfe nicht). Seit 1.9.1 lässt die Rotation
+Vinted aussetzen, bis 20 Sekunden seit dem letzten Vinted-Paket vergangen
+sind; ist nur noch Vinted offen, wartet der Browser sichtbar über den
+additiven `pacing`-Hinweis. **Offen bleibt:** die tatsächliche Fenstergröße
+aus Blockade-Zeitstempeln vermessen (die 20 s sind eine erste Näherung) und
+prüfen, ob ein erneuter Bootstrap nach Ablauf die Quelle wieder öffnet — dann
+Wiederaufnahme statt endgültigem `blocked`
+(`pocs/vinted-browser/src/index.js`).
 
 **Ungleiche Schrittweiten.** Der Turnus liefert 7/25/25 pro Runde. Gleichziehen
 beim Abruf ist teuer (Kleinanzeigen bräuchte drei bis vier Abrufe je Zug). Falls
@@ -198,7 +197,9 @@ Falls es sich häuft: Retry um den `pywrangler deploy`-Schritt.
 ## 5a. Befunde aus dem 1.9.0-Abnahmelauf (`lemmings snes`)
 
 Die Relevanzprüfung ist abgenommen (249 Treffer, 97 Rot, sichtbare Grüne alle
-echt, Grauzone korrekt Gelb). Drei Beobachtungen für die Nacharbeit:
+echt, Grauzone korrekt Gelb). Drei Beobachtungen — **alle drei in 1.9.1
+behoben** (Schreibvarianten als `relevance-v2`, Zubehörliste erweitert,
+Rescore wendet die Relevanz an):
 
 - **Schreibvarianten sind der nächste Hebel (relevance-v2):** „SNES Lemminge
   Verpackt…" und „…Lemminge 2 Tribess…" sind echte Lemmings-Angebote, landeten
