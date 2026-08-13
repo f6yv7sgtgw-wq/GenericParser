@@ -3,12 +3,12 @@
   const I = await (window.GP_BUILD_IDENTITY_READY || Promise.resolve(window.GP_BUILD_IDENTITY));
   if (!I?.version || !I?.buildId || !I?.apiContract) throw new Error('Live build identity missing');
   window.GP_HANDSHAKE_READY = true;
-  document.title = `GenericParser ${I.version}`;
+  document.title = 'Searcherix';
   document.querySelectorAll('[data-version]').forEach(node => { node.textContent = I.version; });
   const workerChip = document.getElementById('worker-version');
   if (workerChip) workerChip.textContent = I.version;
   const footerBuild = document.querySelector('footer span');
-  if (footerBuild) footerBuild.textContent = `GenericParser · Build ${I.buildId}`;
+  if (footerBuild) footerBuild.textContent = 'Searcherix';
   const sourceUrl = new URL('./controller-0411.js?v=runtime-reference', location.href);
   const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
   const loadControllerSource = async () => {

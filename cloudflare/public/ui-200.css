@@ -23,3 +23,10 @@
   flex: 0 0 auto;
   white-space: nowrap;
 }
+
+/* 2.0 Build 2 (Searcherix): Die Version ist ein technisches Detail und
+   nur noch unter Log & Diagnose sichtbar — der Chip an der Status-Karte
+   der Suche entfällt. app.js schreibt weiter hinein (fail-open). */
+[data-page="search"] #worker-version {
+  display: none;
+}

@@ -57,7 +57,9 @@ def test_eventlog_uses_shared_identity_and_current_diagnostic_ui() -> None:
     assert VERSION not in html
     assert BUILD_ID not in html
     assert "GP_BUILD_IDENTITY_READY" in script
-    assert "document.title = `GenericParser Log & Diagnose ${I.version}`" in script
+    # 2.0 Build 2: Die Seite firmiert als Searcherix, die technische Identität
+    # (Version im Titel, Build im Footer) bleibt dem Log erhalten.
+    assert "document.title = `Searcherix Log & Diagnose ${I.version}`" in script
     assert VERSION not in script
     assert BUILD_ID not in script
     assert "Service Binding · 3er-Detail-Batches" in script

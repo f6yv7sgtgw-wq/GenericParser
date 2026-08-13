@@ -2,6 +2,15 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 2.0.0 Build 2 – 2026-08-13 – Searcherix: die PWA bekommt ihren Namen
+
+- Die App firmiert nach außen als **Searcherix** und trägt die technische GenericParser-Funktion nicht mehr im Gesicht: Titel, Header und Footer der Suche und der Favoriten sagen Searcherix; das Eyebrow **„Plattformübergreifend" entfällt**.
+- **Version und Build sind nur noch unter Log & Diagnose sichtbar** — der Versions-Badge im Header entfällt, der Versions-Chip an der Status-Karte ist ausgeblendet, und die Browser-Titel tragen keine Versionsnummer mehr. Das Log behält Versions-Badge und „GenericParser · Build …" als technische Identität.
+- **App-Icon fürs iOS-Homescreen:** Das gelieferte Searcherix-Bild ist als `apple-touch-icon` (180 px, vollflächig auf dem Marken-Navy) plus Manifest-Icons (192/512 px, dazu eine maskable-Variante mit Schutzzone) eingebunden; die PWA-Metatags für iOS (`apple-mobile-web-app-title` etc.) sind gesetzt.
+- Rein kosmetisch/PWA-seitig — Suche, Quellen, Verträge und Worker-Identität (`/health`, `/version`) unverändert; deshalb **Version 2.0.0, Build 2** (`gp-200-20260813-2`).
+- Neue Suite `tests/js/searcherix-200-2.test.mjs` (3); drei ältere Header-Tests auf die Searcherix-Realität nachgeführt.
+- Produktionsabnahme: ausstehend. Prüfpunkt: Suche und Favoriten zeigen überall Searcherix und nirgends GenericParser oder eine Version; Log & Diagnose zeigt weiterhin Version und Build; „Zum Home-Bildschirm" auf iOS installiert die App als „Searcherix" mit dem neuen Icon. Rollback-Ziel: 2.0.0 Build 1 / `gp-200-20260813-1`.
+
 ## 2.0.0 – 2026-08-13 – Projektabschluss mit letztem UI-Feinschliff
 
 - Das Projekt schließt mit einem letzten Feinschliff der Oberfläche für Desktop und Mobile ab; Suche, Quellen und Verträge bleiben unverändert.
