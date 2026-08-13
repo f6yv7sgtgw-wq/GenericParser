@@ -84,8 +84,15 @@ production long-run acceptance is pending.
 - expand deterministic fixtures for spelling, punctuation and marketplace edge cases;
 - keep catalog, collection, valuation and deal decisions in consuming clients.
 
-Current status: **1.9.3 release candidate** (2026-08-13), production acceptance
-pending; 1.9.2 is the accepted stable baseline and the rollback target. 1.9.3
+Current status: **1.9.4 release candidate** (2026-08-13), production acceptance
+pending; 1.9.3 is the accepted stable baseline and the rollback target. 1.9.4
+aligns the results area with the search mask width (the 1.3.4 breakout to
+1460px left a fifth card column overhanging on wide monitors).
+
+The 1.9.3 acceptance run `f zero snes` proved the staggered
+retries (measured 64.7s and 124.9s) — Vinted did not reopen, so the ~250
+listing volume ceiling is marketplace-hard within ~3 minutes and even longer
+waits would stretch runs disproportionately. 1.9.3
 adds a listing-age window as a regular search criterion (browser defaults to
 the last 90 days with options from 15 days to "all"; additive `max_age_days`
 with default null in the contracts; undated listings always pass), staggers
