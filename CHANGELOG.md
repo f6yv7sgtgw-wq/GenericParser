@@ -2,6 +2,12 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.9.4 – 2026-08-13 – Treffer bündig mit der Suchmaske
+
+- Die Trefferzentrale brach seit 1.3.4 bewusst auf 1460 px aus, während die Suchmaske im 1120-px-Shell bleibt — auf breiten Monitoren stand damit eine fünfte Kachelspalte rechts über (Livelauf-Befund aus der 1.9.3-Abnahme). Der Trefferbereich folgt jetzt derselben Breite wie der Rest der Seite.
+- Reiner CSS-Fix (`ui-180.css`), keine Verhaltensänderung in Suche oder Verträgen.
+- Produktionsabnahme: ausstehend. Prüfpunkt: Trefferkacheln enden rechts bündig mit der Suchmaske. Rollback-Ziel: 1.9.3 / `gp-193-20260813-1`.
+
 ## 1.9.3 – 2026-08-13 – Zeitraum-Kriterium, gestaffelte Vinted-Anläufe, ehrlicher Quellen-Lebenszyklus
 
 - **Zeitraum als Suchkriterium.** Die Marktplätze führen teils jahrealte Festpreisangebote (im Lemmings-Lauf standen eBay-Anzeigen von 2017). Die Suchmaske startet jetzt mit **„Letzte 90 Tage"**; wer weiter zurück will, stellt das vorher um: 15/30/60/90/120/180 Tage, letztes Jahr oder alle Anzeigen. Zu alte Treffer werden über das harte Kriterium „Zeitraum" Rot — keine stille Kürzung, der Statusfilter zeigt sie weiterhin. **Anzeigen ohne lesbares Einstelldatum werden bewusst durchgelassen** (betrifft vor allem Vinted): Ein Filter, der nichts prüfen kann, darf nichts aussortieren.
@@ -9,7 +15,7 @@ Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Vers
 - **Vinted-Anläufe gestaffelt:** erster erneuter Anlauf nach 60 s (öffnete die Quelle im 1.9.2-Abnahmelauf einmal wieder), zweiter nach 120 s, danach endgültig `blocked`. Der `retry`-Status und der `pacing`-Hinweis tragen die jeweils gültige Stufe.
 - **Quellen-Status benennt den Lebenszyklus:** „Noch nicht gestartet" → „Arbeitet" → „Abgeschlossen" statt des verwirrenden „Erfolgreich" nach jedem Zwischenpaket. Fehler und Warnungen werden ausgewiesen („Blockiert · neuer Anlauf 1/2", „Gedrosselt", „Zeitüberschreitung"), der volle Grund hängt als Hover-Detail an der Zeile, und ein unterbrochener Lauf hinterlässt „Angehalten" statt eines falschen Abschlusses.
 - Neue Suiten `tests/test_release_193.py` (11) und `tests/js/source-progress-193.test.mjs` (5).
-- Produktionsabnahme: ausstehend. Prüfpunkte: Eine Standardsuche zeigt alte eBay-Anzeigen (>90 Tage) auf Rot; „Alle Anzeigen" stellt das bisherige Verhalten her; die Quellenleiste durchläuft sichtbar „Noch nicht gestartet"/„Arbeitet"/„Abgeschlossen"; eine Vinted-Blockade wartet erst 60 s, dann 120 s. Rollback-Ziel: 1.9.2 / `gp-192-20260813-1`.
+- Produktionsabnahme erfolgreich: Abnahmelauf `f zero snes` (5763 Rohtreffer). Der Zeitraum stand auf „Letzte 90 Tage", die Quellenleiste zeigte den Lebenszyklus („Abgeschlossen"/„Blockiert"/„Arbeitet"), und die Staffel ist im Eventlog belegt: Anlauf 1 nach 64,7 s (`cooldown_seconds: 60`), Anlauf 2 nach 124,9 s (`cooldown_seconds: 120`), danach ehrliches Ende. **Vinted öffnete nicht wieder** — die Mechanik arbeitete korrekt, aber die ~250-Treffer-Volumendecke ist innerhalb von ~3 Minuten marktplatzseitig hart; noch längere Wartezeiten würden Läufe unverhältnismäßig strecken. Ein Livelauf-Befund geht in 1.9.4: Die Trefferzentrale war breiter als die Suchmaske (1.3.4-Ausbruch auf 1460 px) — auf breiten Monitoren stand eine fünfte Kachelspalte rechts über. Rollback-Ziel: 1.9.2 / `gp-192-20260813-1`.
 
 ## 1.9.2 – 2026-08-13 – Blockiertes Vinted kommt wieder, statt endgültig zu enden
 

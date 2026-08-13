@@ -219,3 +219,14 @@
     flex: 1 1 calc(50% - 8px);
   }
 }
+
+/* --- 1.9.4: Treffer bündig mit der Suchmaske --------------------------- */
+/* Der 1.3.4-Ausbruch verbreiterte die Trefferzentrale auf 1460 px, während
+   die Suchmaske im 1120-px-Shell bleibt. Auf breiten Monitoren stand damit
+   eine fünfte Kachelspalte rechts über. Die Treffer folgen jetzt derselben
+   Breite wie alles andere. */
+.results-section {
+  width: 100%;
+  left: auto;
+  transform: none;
+}
