@@ -2,6 +2,15 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 1.9.5 – 2026-08-13 – Die Blättertiefe ist ein Ende, kein Fehler
+
+- Der Diagnoselauf hatte es vermessen: Vinted gibt anonym ~10 Katalogseiten her — unabhängig von Tempo, Wiederanläufen und Anreicherung. Eine **leere Katalogseite ab Seite 1 ohne Challenge** gilt jetzt als das, was sie ist: das natürliche Ende der anonymen Blättertiefe (`status: empty`, `reason: vinted_anonymous_depth_reached`).
+- Konsequenzen: **keine Retries** mehr für das Tiefenende (spart ~3 Minuten je großem Lauf), kein aussichtsloser Public-Web-Fallback (der aus dem Worker-Netz durchgehend gesperrt ist), kein irreführendes „Blockiert" mit vier Fehlerstrategien im Grund. Die Quellenleiste sagt **„Abgeschlossen · anonyme Blättertiefe erreicht"**.
+- Die Retry-Staffel (60/120 s) bleibt für die transiente Variante `vinted_browser_access_limited` erhalten — die hat im 1.9.2-Lauf nachweislich einmal wieder geöffnet.
+- Seite 0 bleibt beim alten Fallback-Verhalten: Ein Markup-Bruch soll sichtbar degradieren, nicht als „keine Treffer" durchgehen.
+- Neue Suiten `tests/test_release_195.py` (4) und `tests/js/source-progress-195.test.mjs` (2).
+- Produktionsabnahme: ausstehend. Prüfpunkt: Ein Lauf über die Vinted-Tiefe hinaus endet dort ohne Wartezeiten mit „Abgeschlossen · anonyme Blättertiefe erreicht"; das Eventlog zeigt `status=empty` statt `blocked` und keinen `retry`. Rollback-Ziel: 1.9.4 / `gp-194-20260813-1`.
+
 ## 1.9.4 – 2026-08-13 – Treffer bündig mit der Suchmaske
 
 - Die Trefferzentrale brach seit 1.3.4 bewusst auf 1460 px aus, während die Suchmaske im 1120-px-Shell bleibt — auf breiten Monitoren stand damit eine fünfte Kachelspalte rechts über (Livelauf-Befund aus der 1.9.3-Abnahme). Der Trefferbereich folgt jetzt derselben Breite wie der Rest der Seite.

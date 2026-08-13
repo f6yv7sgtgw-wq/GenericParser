@@ -1,8 +1,8 @@
 {
   "product": "GenericParser",
-  "version": "1.9.4",
+  "version": "1.9.5",
   "package_version": "dynamic:generic_parser.release_identity.VERSION",
-  "build_id": "gp-194-20260813-1",
+  "build_id": "gp-195-20260813-1",
   "identity_source": "src/generic_parser/release_identity.py",
   "api_contract": "generic-parser-module-v1",
   "module_contract": "generic-parser-module-v1",
@@ -18,8 +18,8 @@
   "technical_base": "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+mobile-transport-recovery+deferred-vinted-details+responsive-web-ui-162+signed-continuations-v2+vinted-size-normalization+default-auction-search-with-result-filter+parallel-vinted-background-batches+source-neutral-condition-delivery-codes+derived-bundle-listings+modern-search-mask+round-robin-source-rotation",
   "release_date": "2026-08-13",
   "repository": "f6yv7sgtgw-wq/GenericParser",
-  "status": "stable",
-  "purpose": "align the results area with the search mask width: the 1.3.4 breakout widened it to 1460px while everything else stays in the 1120px shell, leaving a fifth card column overhanging on wide monitors",
+  "status": "release-candidate",
+  "purpose": "accept the anonymous Vinted catalog depth (~10 pages, measured) and make it transparent: an empty page beyond the first is a natural source end named 'anonyme Blaettertiefe erreicht' - no retries, no pointless public-web fallback, no scary 'blocked'; retries remain only for the transient access-limited flavour",
   "worker_plan": "paid",
   "sources": {
     "default": ["kleinanzeigen", "vinted", "ebay"],
@@ -147,11 +147,11 @@
     "lifecycle_source_status": "required",
     "deploy_step_retries": 3,
     "results_width_matches_shell": "required",
-    "production_acceptance": "passed",
-    "production_commit": "07b4290e37e45b430a381173acbdf6f51dfdf762",
-    "production_workflow_run": 31681226895,
-    "accepted_at": "2026-08-13T08:20:23Z"
+    "vinted_depth_end_is_natural": "required",
+    "vinted_depth_end_skips_fallback": "required",
+    "vinted_retries_only_for_transient_blocks": "required",
+    "production_acceptance": "pending"
   },
-  "rollback_plan": {"last_stable_baseline": "1.9.3", "build_id": "gp-193-20260813-1"},
-  "metadata_schema": 65
+  "rollback_plan": {"last_stable_baseline": "1.9.4", "build_id": "gp-194-20260813-1"},
+  "metadata_schema": 66
 }
