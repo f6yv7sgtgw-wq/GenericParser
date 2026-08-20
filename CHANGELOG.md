@@ -2,6 +2,13 @@
 
 Die Einträge fassen die produktiven Entwicklungsstände zusammen. Einzelne Versionen bestehen aus mehreren technischen Commits; der Abschluss-Commit steht in `docs/RELEASE_INDEX.md`.
 
+## 2.0.1 – 2026-08-20 – Aufgelöste Konvolute machen das Legacy-Paket nicht mehr kaputt
+
+- **Befund aus der SNES-Collect-Suche:** Jede Kleinanzeigen-Ergebnisseite mit einem auflösbaren Konvolut wurde von `/api/search` mit HTTP 500 „Arbeitspaket ist inkonsistent." abgewiesen — der SNES-Client wertete den 500er als transient, versuchte es dreimal und brach dann mit „Verbindung zum Parser nach drei Versuchen abgebrochen" ab.
+- **Ursache:** Die Konvolut-Auflösung (seit 1.8.0) ersetzt eine Konvolutkachel durch mehrere Einzelkacheln, ließ `summary.fetched_listings` aber auf dem Stand **vor** der Auflösung. Der Konsistenz-Check des Legacy-Vertrags (`fetched == visible + hidden`) schlug damit zwangsläufig fehl, sobald ein Konvolut aufgelöst wurde.
+- **Fix:** `fetched_listings` wächst um die Expansionsdifferenz der Auflösung mit; Seiten ohne aufgelöste Konvolute behalten ihre Referenzzählung unverändert. Suche, Quellen und Verträge sind ansonsten unberührt.
+- Neue Suite `tests/test_release_201.py` (3) pinnt den Legacy-Konsistenzvertrag für expandierte und nicht expandierte Pakete.
+
 ## 2.0.0 Build 2 – 2026-08-13 – Searcherix: die PWA bekommt ihren Namen
 
 - Die App firmiert nach außen als **Searcherix** und trägt die technische GenericParser-Funktion nicht mehr im Gesicht: Titel, Header und Footer der Suche und der Favoriten sagen Searcherix; das Eyebrow **„Plattformübergreifend" entfällt**.

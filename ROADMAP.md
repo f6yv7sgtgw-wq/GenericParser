@@ -84,7 +84,12 @@ production long-run acceptance is pending.
 - expand deterministic fixtures for spelling, punctuation and marketplace edge cases;
 - keep catalog, collection, valuation and deal decisions in consuming clients.
 
-Current status: **2.0.0 Build 2 stable and production-accepted** (2026-08-13);
+Current status: **2.0.1 release candidate** (2026-08-20) — a consistency fix
+for the legacy `/api/search` contract: `fetched_listings` now grows with the
+bundle expansion, so result pages containing a resolved Konvolut are no longer
+rejected with HTTP 500 "Arbeitspaket ist inkonsistent." (the cause of aborted
+SNES Collect searches). 2.0.0 Build 2 is the rollback target. Before that:
+**2.0.0 Build 2 stable and production-accepted** (2026-08-13);
 the project is complete, installed as the Searcherix PWA on iOS. 2.0.0
 Build 1 is the rollback target. Build 2 brands the PWA as **Searcherix** for the iOS
 home-screen install: user-facing pages drop the technical GenericParser

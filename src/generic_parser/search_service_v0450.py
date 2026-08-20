@@ -147,6 +147,7 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
         # Konvolute mit einer Einzelpreisliste werden in Einzelkacheln
         # aufgelöst. Die abgeleiteten Zeilen tragen einen neuen Titel und
         # müssen deshalb erneut klassifiziert werden.
+        pre_expansion = len(ka_result.get("listings") or [])
         bundles = await resolve_bundles(
             list(ka_result.get("listings") or []), fetch_html=_fetch_detail_html
         )
@@ -155,6 +156,14 @@ async def _multi_source_search(payload: SearchRequest, request: Request) -> dict
         for item in ka_result["listings"]:
             if item.get("derived"):
                 _decorate_listing(item, payload)
+        # Die Auflösung ersetzt eine Konvolutkachel durch mehrere Einzelkacheln.
+        # fetched_listings muss mitwachsen, sonst verletzt das Paket den
+        # Legacy-Konsistenz-Check (fetched == visible + hidden) und /api/search
+        # weist die komplette Seite mit HTTP 500 ab.
+        expansion = len(bundles["listings"]) - pre_expansion
+        if expansion and isinstance(ka_result.get("summary"), dict):
+            summary = ka_result["summary"]
+            summary["fetched_listings"] = int(summary.get("fetched_listings") or 0) + expansion
 
     vinted_result: dict[str, Any] | None = None
     vinted_visible: list[dict[str, Any]] = []
