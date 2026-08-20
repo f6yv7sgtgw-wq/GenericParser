@@ -4,6 +4,7 @@ Dieser Index ordnet die maßgeblichen Versionsstände ihren Build-IDs und Abschl
 
 | Version | Build-ID | Abschluss-Commit | Schwerpunkt |
 |---|---|---|---|
+| 2.0.1 | `gp-201-20260820-1` | ausstehend | Konsistenz-Fix fuer den Legacy-Vertrag: fetched_listings waechst nach der Konvolut-Aufloesung mit, statt jede Seite mit aufgeloestem Konvolut als "Arbeitspaket ist inkonsistent." (HTTP 500) abzuweisen - Ursache der abgebrochenen SNES-Collect-Suchen |
 | 2.0.0 Build 2 | `gp-200-20260813-2` | `9b9d700217f4c47ec55f4ae1a1095aa10976fe33` | Searcherix-Branding fuer die iOS-PWA: Nutzerseiten ohne GenericParser-Identitaet und ohne Version (nur noch unter Log & Diagnose), "Plattformuebergreifend" entfaellt, Searcherix-Iconsatz (apple-touch-icon 180, Manifest 192/512 + maskable) |
 | 2.0.0 | `gp-200-20260813-1` | `eb6a73ed81ce41b66e43b39207c9810b829eac88` | Projektabschluss mit letztem UI-Feinschliff fuer Desktop und Mobile: Footer/Manifest ohne "Mobile"-Altlast, korrekte Substantiv-Grossschreibung in der Suchzusammenfassung, buendige "Anzeige oeffnen"-Buttons je Rasterzeile, einzeiliger Filter-Reset |
 | 1.9.5 | `gp-195-20260813-1` | `16ea151015a101275c9a7a763d77ab54faaa221d` | Anonyme Vinted-Blaettertiefe (~10 Seiten) als natuerliches Quellen-Ende: keine Retries, kein aussichtsloser Fallback, klares "Abgeschlossen - anonyme Blaettertiefe erreicht" statt "Blockiert" |

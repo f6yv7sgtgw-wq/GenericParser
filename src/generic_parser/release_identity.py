@@ -5,8 +5,8 @@ identity must be imported from here. Do not duplicate VERSION/BUILD_ID in
 workflows, tests, browser assets or transport wrappers.
 """
 
-VERSION = "2.0.0"
-BUILD_ID = "gp-200-20260813-2"
+VERSION = "2.0.1"
+BUILD_ID = "gp-201-20260820-1"
 API_CONTRACT = "generic-parser-module-v1"
 MODULE_CONTRACT = API_CONTRACT
 PREFERRED_MODULE_CONTRACT = "generic-parser-module-v2"
@@ -20,5 +20,5 @@ FUNCTIONAL_REFERENCE = "0.44.4"
 OPERATIONAL_REFERENCE = "0.44.6.5"
 RUNTIME_REFERENCE = "0.44.6.2"
 TECHNICAL_BASE = "three-source-orchestration+product-classification-v1+traffic-group-sort+browser-local-explicit-favorites+ebay-ecdsa-deletion-notifications+truthful-stop-status+fail-open-identity+mobile-transport-recovery+deferred-vinted-details+responsive-web-ui-162+signed-continuations-v2+vinted-size-normalization+default-auction-search-with-result-filter+parallel-vinted-background-batches+source-neutral-condition-delivery-codes+derived-bundle-listings+modern-search-mask+round-robin-source-rotation+relevance-v2+vinted-pacing-hint+vinted-bootstrap-retry-schedule+max-age-days-criterion"
-RELEASE_DATE = "2026-08-13"
+RELEASE_DATE = "2026-08-20"
 WORKER_PLAN = "paid"

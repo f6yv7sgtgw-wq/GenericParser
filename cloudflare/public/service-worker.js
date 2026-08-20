@@ -1,4 +1,4 @@
-const CACHE = 'generic-parser-mobile-gp-200';
+const CACHE = 'generic-parser-mobile-gp-201';
 const ASSETS = [
   "./",
   "./eventlog.html",
